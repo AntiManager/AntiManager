@@ -1,0 +1,109 @@
+<!-- Глава 16. Управлять хаосом на производстве — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Когда ничего не ясно — не ищи идеальное решение, запускай Цикл принятия решений (ЦПР).</strong><br>
+    В условиях хаоса, дефицита времени и неполной информации классические методы проваливаются. Нужен другой подход: сформулировать проблему за 10 минут → выдвинуть 2–3 проверяемые гипотезы → быстро отсеять риски через Pre-Mortem → запустить дешёвый эксперимент → извлечь уроки. Пять этапов, которые превращают хаос в управляемый процесс.
+  </div>
+</section>
+
+<section>
+  <h2>Цикл принятия решений (ЦПР)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Этап</th><th>Что делаем</th><th>Инструмент</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Фрейминг</strong></td><td>Упаковываем хаос в рамку: проблема → цель → препятствие → направление</td><td>Проблемный треугольник</td></tr>
+      <tr><td><strong>2. Гипотезы</strong></td><td>Генерируем 2–3 проверяемых предположения</td><td>Карта гипотез</td></tr>
+      <tr><td><strong>3. Быстрый выбор</strong></td><td>Проверяем слепые зоны и риски; выбираем гипотезу</td><td>Квадрат Декарта + Pre‑Mortem</td></tr>
+      <tr><td><strong>4. Действие-эксперимент</strong></td><td>Минимальный пилот на одном станке/участке</td><td>MVP, A3</td></tr>
+      <tr><td><strong>5. Анализ</strong></td><td>Извлекаем уроки, фиксируем в журнал провалов</td><td>Чек-поинт, A3</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Когда я начинал работать на заводах, я искренне верил: если собрать достаточно данных, провести анализ и составить план — всё получится. Реальность оказалась жёстче. На производстве три убийцы любого плана: дефицит времени (станок уже сломан), неполнота информации (неизвестно, когда он сломался и почему) и когнитивные искажения (все ищут виноватого, а не причину).</p>
+    <p>Я перестал искать идеальное решение. Вместо этого я научился запускать короткие циклы: сформулировать проблему одним предложением → проверить гипотезу на одном станке → извлечь урок. Если урок — «гипотеза неверна» — это не провал. Это экономия месяцев работы над не той проблемой.</p>
+    <p>Pre‑Mortem — мой любимый инструмент из этого цикла. Представьте, что ваш эксперимент провалился. Почему? Назовите 3–5 причин за 5 минут. Это выявляет слепые зоны, которые вы бы заметили только после провала. На производстве он спас меня от десятка дорогих ошибок.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Pre‑Mortem: проверьте свою гипотезу на прочность</h2>
+  <div class="widget" id="premortemTool">
+    <div class="widget-title">Предсмертный анализ решения</div>
+    <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Представьте, что ваше решение провалилось. Заполните поля — и вы увидите слепые зоны до того, как они проявятся в реальности.</p>
+    <div class="form-group">
+      <label>Какое решение / эксперимент вы планируете?</label>
+      <textarea id="pmDecision" rows="2" style="width:100%;" placeholder="Например: установить датчики температуры на форму"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Почему это могло провалиться? (напишите 3–5 причин)</label>
+      <textarea id="pmReasons" rows="3" style="width:100%;" placeholder="1. Датчики дают ложные срабатывания из-за вибрации&#10;2. Операторы не обучены&#10;3. Руководство отменит бюджет через неделю"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Что можно сделать уже сейчас, чтобы предотвратить каждую причину?</label>
+      <textarea id="pmPrevent" rows="3" style="width:100%;" placeholder="1. Протестировать датчики в реальных условиях&#10;2. Провести 30-минутный тренинг&#10;3. Закрепить бюджет письменно"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="runPremortem()">Проверить гипотезу</button>
+    <div id="pmResult" style="display:none;margin-top:var(--space-4);">
+      <div class="block-principle" id="pmResultText"></div>
+      <button class="btn btn-ghost" onclick="resetPm()" style="margin-top:var(--space-2)">Заполнить заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function runPremortem() {
+  var decision = document.getElementById('pmDecision').value.trim();
+  var reasons = document.getElementById('pmReasons').value.trim();
+  var prevent = document.getElementById('pmPrevent').value.trim();
+
+  if (!decision || !reasons || !prevent) {
+    alert('Заполните все поля');
+    return;
+  }
+
+  var risks = reasons.split('\n').filter(function(l) { return l.trim(); });
+  var actions = prevent.split('\n').filter(function(l) { return l.trim(); });
+
+  var result = document.getElementById('pmResult');
+  var text = document.getElementById('pmResultText');
+  var html = '<div style="margin-bottom:var(--space-3)"><strong>Ваш Pre‑Mortem:</strong></div>';
+  html += '<p style="font-size:var(--text-sm);">Вы планируете: <strong>' + decision + '</strong></p>';
+  html += '<p style="font-size:var(--text-sm);margin-bottom:var(--space-3);"><br><strong>Риски (причины провала):</strong></p><ol style="font-size:var(--text-sm);padding-left:var(--space-4);">';
+  for (var i = 0; i < risks.length && i < (actions.length || 99); i++) {
+    html += '<li style="margin-bottom:var(--space-2);">' + risks[i];
+    if (actions[i]) html += '<br><span style="color:var(--color-tertiary);">→ ' + actions[i] + '</span>';
+    html += '</li>';
+  }
+  if (risks.length > actions.length) {
+    for (var j = actions.length; j < risks.length; j++) {
+      html += '<li style="margin-bottom:var(--space-2);">' + risks[j] + '<br><span style="color:#B34A6E;">→ Нет плана предотвращения!</span></li>';
+    }
+  }
+  html += '</ol><p style="font-size:var(--text-sm);margin-top:var(--space-2);"><strong>Вывод:</strong> ';
+  if (risks.length <= actions.length) {
+    html += 'У вас есть план предотвращения для всех рисков. Можно запускать эксперимент — но держите красные флаги под контролем.</p>';
+  } else {
+    html += 'Часть рисков не покрыта планом. Не запускайте эксперимент, пока не проработаете их.</p>';
+  }
+  text.innerHTML = html;
+  result.style.display = 'block';
+  document.querySelector('#premortemTool .btn-primary').style.display = 'none';
+}
+
+function resetPm() {
+  document.getElementById('pmResult').style.display = 'none';
+  document.querySelector('#premortemTool .btn-primary').style.display = 'inline-flex';
+  ['pmDecision','pmReasons','pmPrevent'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+}
+</script>

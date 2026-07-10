@@ -1,0 +1,12 @@
+[
+  { "id": "zolotaya-zhila", "title": "Золотая жила", "desc": "Как большой заказ разрушил систему", "rays": ["processes"], "chapters": ["02"], "tags": ["объём", "качество", "давление"] },
+  { "id": "uspeh-k-neuspehu", "title": "Успех к неуспеху", "desc": "Когда лучший участок убивает завод", "rays": ["processes"], "chapters": ["03"], "tags": ["успех", "перекос", "ресурсы"] },
+  { "id": "ekonomiya-na-reklame", "title": "Экономия на рекламе", "desc": "PDCA: как дешёвое измерение сэкономило миллион", "rays": ["adaptation"], "chapters": ["04"], "tags": ["pdca", "измерение", "oee"] },
+  { "id": "nochnoy-zvonok", "title": "Ночной звонок", "desc": "Как я перестал решать проблемы за подчинённых", "rays": ["people", "information"], "chapters": ["08", "20"], "tags": ["делегирование", "беспомощность", "управление"] },
+  { "id": "ryazanskie-podshipniki", "title": "Рязанские подшипники", "desc": "Культурный код: вторая смена и тайное соглашение", "rays": ["strategy"], "chapters": ["11"], "tags": ["культура", "смена", "неформальное"] },
+  { "id": "avariya-na-tpa", "title": "Авария на ТПА", "desc": "Pre-Mortem: как предотвратить катастрофу за час", "rays": ["adaptation"], "chapters": ["16"], "tags": ["авария", "pre-mortem", "риск"] },
+  { "id": "7-zavodov", "title": "Семь заводов", "desc": "Антикризис: один протокол — разные результаты", "rays": ["adaptation"], "chapters": ["18"], "tags": ["кризис", "протокол", "опыт"] },
+  { "id": "kiber-fizicheskaya-sistema", "title": "Кибер-физическая система", "desc": "Как цифровой двойник помог найти узкое место", "rays": ["information"], "chapters": ["19"], "tags": ["цифровой", "модель", "оптимизация"] },
+  { "id": "dva-kresla", "title": "Два кресла в холдинге", "desc": "Run и Change: два руководителя — два стиля", "rays": ["people"], "chapters": ["21"], "tags": ["run", "change", "стиль", "лидерство"] },
+  { "id": "master-i-poddon", "title": "Мастер и поддон", "desc": "Как абстрактная команда чуть не стоила человеку работы", "rays": ["adaptation"], "chapters": ["22"], "tags": ["коммуникация", "увольнение", "конкретика"] }
+]

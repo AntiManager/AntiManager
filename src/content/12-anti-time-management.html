@@ -1,0 +1,126 @@
+<!-- Глава 12. Анти-тайм-менеджмент — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Время — не управляется. Управляется внимание и входящий поток.</strong><br>
+    Тайм-менеджмент учит управлять задачами, которые вы выбрали. Но в реальности вами управляют входящие сигналы — звонки, письма, жалобы, аварии. Каждое переключение стоит вам 23 минут на восстановление фокуса. Мозг потребляет 20% энергии тела и саботирует сложные задачи в пользу «срочных». Решение — не в планировании, а в фильтрации: отличать задачу от просьбы, жалобу от сигнала о дефекте, срочность от важности.
+  </div>
+</section>
+
+<section>
+  <h2>Две системы мышления (Канеман) и пять ловушек</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Система</th><th>Как работает</th><th>Ловушка</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Система 1 — быстрая</strong></td><td>Автоматически, без усилий. Реагирует на знакомое, громкое, «срочное». Интуиция, рефлексы.</td><td>Эффект простой срочности: принимаем срочность за важность. Бросаем всё на звонок начальника.</td></tr>
+      <tr><td><strong>Система 2 — медленная</strong></td><td>Требует усилий, концентрации и энергии. Рассчитывает, анализирует, планирует. Быстро устаёт.</td><td>Ошибка планирования: недооцениваем время, переоцениваем силы. После обеда — идиотские решения.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Пять ловушек:</strong> (1) эффект простой срочности, (2) ошибка планирования, (3) иллюзия многозадачности (потеря 30% продуктивности), (4) истощение префронтальной коры (устал = соглашаешься на всё), (5) ловушка дефолт-системы (идеи приходят в душе, а не за отчётом).</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Я руководил производством. У меня было три смены, двадцать станков и постоянное чувство, что я — пожарный, который бегает с ведром от одного возгорания к другому. Каждое утро я составлял список задач. Каждый вечер зачёркивал пару пунктов и добавлял десять новых. Мне советовали «матрицу Эйзенхауэра», «съесть лягушку», «делегировать». Я пробовал всё. И ничего не работало.</p>
+    <p>Потому что через пять минут после начала важной задачи звонил начальник цеха: «Там брак, приди посмотри». И я бросал всё. Бежал тушить. Пока однажды не понял: проблема не во мне. Проблема в самом подходе. Эта книга — не про «как всё успевать». Она про то, как перестать реагировать на каждый сигнал, научиться отличать задачу от просьбы — и сохранять холодную голову в самом пекле.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: что съедает ваше внимание?</h2>
+  <div class="widget" id="focusDiag">
+    <div class="widget-title">Тест: профиль «пожирателей внимания»</div>
+    <div class="progress-bar"><div class="progress-fill" id="focProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="focStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
+    <div id="focQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="focText">Как часто вы отвлекаетесь на «срочные», но неважные звонки/письма/просьбы?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerFoc(2)">Каждые 10-15 минут — постоянно в режиме «пожарного»</button>
+        <button class="btn btn-outline" onclick="answerFoc(1)">Несколько раз в день — иногда отбиваюсь</button>
+        <button class="btn btn-outline" onclick="answerFoc(0)">Редко — есть система фильтрации входящих</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="focBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackFoc()">← Назад</button>
+    </div>
+    <div id="focResult" style="display:none;">
+      <div class="block-principle" id="focResultText"></div>
+      <button class="btn btn-ghost" onclick="resetFoc()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._focDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Как часто вы отвлекаетесь на «срочные», но неважные звонки/письма/просьбы?', options: [2,1,0], labels: ['Постоянно — каждые 10-15 минут','Несколько раз в день','Редко — есть система фильтрации'] },
+    { text: 'Пытаетесь ли вы делать несколько задач одновременно (писать отчёт и отвечать в чат)?', options: [2,1,0], labels: ['Да, постоянно — иначе ничего не успею','Иногда, когда «горит»','Нет — делаю одно дело за раз'] },
+    { text: 'Как часто вы принимаете важные решения после обеда, когда уже устали?', options: [2,1,0], labels: ['Регулярно — весь день одно сплошное решение','Бывает — когда дедлайн','Стараюсь сложное делать с утра'] },
+    { text: 'Есть ли у вас система фильтрации входящих (например: звонок → «это можно в почту?» → «это точно срочно?»)?', options: [2,1,0], labels: ['Нет — каждый сигнал требует реакции','Частично — но не всегда работает','Да — у меня есть протокол фильтрации'] },
+    { text: 'Как часто вы переключаетесь на простую рутину, чтобы «проветрить голову»?', options: [2,1,0], labels: ['Никогда — нет времени даже выдохнуть','Иногда — но это скорее прокрастинация','Сознательно — 15 минут рутины, чтобы перезагрузить Систему 2'] },
+  ];
+  var total = questions.length;
+
+  window.answerFoc = function(val) {
+    var state = window._focDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    document.getElementById('focProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('focStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showFocResult();
+    } else {
+      document.getElementById('focStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showFocQuestion(questions[state.step]);
+      document.getElementById('focBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackFoc = function() {
+    var state = window._focDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.score -= state.answers.pop();
+    document.getElementById('focProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('focStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showFocQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('focBackBtn').style.display = 'none';
+  };
+
+  function showFocQuestion(q) {
+    var c = document.getElementById('focQuestion');
+    var html = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for (var i = 0; i < q.labels.length; i++) html += '<button class="btn btn-outline" onclick="answerFoc(' + q.options[i] + ')">' + q.labels[i] + '</button>';
+    html += '</div><button class="btn btn-ghost btn-sm" id="focBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackFoc()">← Назад</button>';
+    c.innerHTML = html;
+  }
+
+  function showFocResult() {
+    var score = window._focDiag.score;
+    document.getElementById('focQuestion').style.display = 'none';
+    document.getElementById('focResult').style.display = 'block';
+    var text = document.getElementById('focResultText');
+    if (score <= 3) {
+      text.innerHTML = '<strong>Вы управляете вниманием.</strong><br>У вас есть система фильтрации входящих, вы защищаете время для сложных задач. Продолжайте: защищайте первую половину дня для Системы 2, введите правило «один слот — одна задача».';
+    } else if (score <= 6) {
+      text.innerHTML = '<strong>Пограничное состояние — «пожарный с перерывами».</strong><br>Вы пытаетесь фильтровать, но среда сильнее. Начните с одного правила: на любой входящий звонок отвечайте «Это срочно или можно через час?» — 80% окажутся несрочными. Второе: сложные задачи — только до обеда.';
+    } else {
+      text.innerHTML = '<strong>Вы в режиме «пожарного».</strong><br>Вашим вниманием управляет среда, а не вы. Это не лень — это истощение префронтальной коры. Три немедленных шага: (1) отключите уведомления на телефоне, (2) введите правило «один час утром — никому не мешать», (3) на любой входящий сигнал задайте вопрос: «Это задача, просьба или жалоба?» — и реагируйте по протоколу.';
+    }
+  }
+
+  window.resetFoc = function() {
+    window._focDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('focQuestion').style.display = 'block';
+    document.getElementById('focResult').style.display = 'none';
+    document.getElementById('focProgress').style.width = '0%';
+    document.getElementById('focStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showFocQuestion(questions[0]);
+  };
+})();
+</script>

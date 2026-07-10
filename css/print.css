@@ -1,0 +1,16 @@
+/* Дополнительные стили для печати (уже частично в common.css) */
+@media print {
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+    .table-wrapper {
+        overflow: visible;
+    }
+    table {
+        border: 1px solid #ccc;
+    }
+}

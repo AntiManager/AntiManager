@@ -1,0 +1,143 @@
+<!-- Глава 02. Управление сложными системами — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Управленческая боль возникает там, где уровень сложности системы превышает уровень сложности инструментов управления.</strong><br>
+    Если вы чувствуете боль — вы используете не тот инструмент. Не подчинённые дураки, не начальник идиот, а просто вы пытаетесь открутить гайку молотком. Повышайте свой уровень или упрощайте систему.
+  </div>
+</section>
+
+<section>
+  <h2>Семь свойств сложных систем</h2>
+  <p>Любая производственная система проявляет семь свойств. Они не «баги», а «фичи» — их нельзя отключить. Можно только научиться с ними работать.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Свойство</th><th>Как вы это чувствуете</th><th>Что делать</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Эмерджентность</strong></td><td>Наняли крутых специалистов — команда не работает</td><td>Смотрите на взаимодействия, а не на части</td></tr>
+      <tr><td><strong>Адаптивность</strong></td><td>Ввели KPI — сотрудники накручивают цифры</td><td>Жёсткий контроль бесполезен. Ищите договорённости</td></tr>
+      <tr><td><strong>Нелинейность</strong></td><td>Миллион на рекламу — ноль продаж</td><td>Не ищите прямую причину — ищите петли</td></tr>
+      <tr><td><strong>Нестационарность</strong></td><td>Вчерашнее решение уже не работает</td><td>Постоянно корректируйте модель. Нет вечных инструкций</td></tr>
+      <tr><td><strong>Собственные цели</strong></td><td>Качество против объёма, производство против продаж</td><td>Ищите зону совпадения, а не диктуйте</td></tr>
+      <tr><td><strong>Неопределённость</strong></td><td>После аудита находится скрытая проблема</td><td>Действуйте итерациями: сделал — проверил — скорректировал</td></tr>
+      <tr><td><strong>Запаздывание</strong></td><td>Урезали бюджет на обучение — брак пошёл вверх через 3 месяца</td><td>Не дёргайте систему каждую минуту. Ждите, измеряйте</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Когда я был молодым мастером цеха, меня мучили три вопроса: почему мой начальник кидает задачи как попало? Почему мои подчинённые не могут выстроить работу сами? И что вообще значит «мыслить системно» — это магическое заклинание или навык?</p>
+    <p>Потом я возглавлял заводы от цеха на 50 человек до холдинга с тысячами сотрудников. Везде одно: система сопротивляется управлению, а руководители тушат пожары вместо того, чтобы строить пожаробезопасное управление.</p>
+    <p>Семь свойств сложных систем (таблица выше) — ваши ежедневные «почему». Если вы их не знаете, вы будете спотыкаться о них снова и снова. Если знаете — сможете предсказывать и готовиться.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: на каком уровне вы управляете?</h2>
+  <div class="widget" id="levelDiagnostic">
+    <div class="widget-title">Тест: 7 уровней сложности</div>
+    <div class="progress-bar"><div class="progress-fill" id="lvProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="lvStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
+    <div id="lvQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="lvText">Как часто у вас возникают авралы и срывы сроков?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerLv(3)">Постоянно, всё горит — это норма жизни</button>
+        <button class="btn btn-outline" onclick="answerLv(2)">Бывает, но мы привыкли тушить</button>
+        <button class="btn btn-outline" onclick="answerLv(1)">Редко, есть система планирования</button>
+        <button class="btn btn-outline" onclick="answerLv(0)">Практически нет, работаем ритмично</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="lvBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackLv()">← Назад</button>
+    </div>
+    <div id="lvResult" style="display:none;">
+      <div class="block-principle" id="lvResultText"></div>
+      <button class="btn btn-ghost" onclick="resetLv()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._lvDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Как часто у вас возникают авралы и срывы сроков?', options: [3,2,1,0] },
+    { text: 'Конфликтуют ли отделы за ресурсы и зоны ответственности?', options: [3,2,1,0] },
+    { text: 'Есть ли у компании миссия, которая вдохновляет — или работают только за деньги?', options: [3,2,1,0] },
+    { text: 'Знает ли каждый сотрудник, как его работа влияет на общий результат?', options: [0,1,2,3] },
+    { text: 'Как часто вы пересматриваете стратегию?', options: [0,1,2,3] },
+  ];
+
+  window.answerLv = function(val) {
+    var state = window._lvDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    var total = questions.length;
+    document.getElementById('lvProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('lvStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showLvResult(state.score);
+    } else {
+      document.getElementById('lvStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showLvQuestion(questions[state.step]);
+      document.getElementById('lvBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackLv = function() {
+    var state = window._lvDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    var lastVal = state.answers.pop();
+    state.score -= lastVal;
+    var total = questions.length;
+    document.getElementById('lvProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('lvStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showLvQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('lvBackBtn').style.display = 'none';
+  };
+
+  function showLvQuestion(q) {
+    var container = document.getElementById('lvQuestion');
+    if (!container) return;
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="lvText">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerLv(' + q.options[0] + ')">Да, сильно проявляется</button>' +
+      '<button class="btn btn-outline" onclick="answerLv(' + q.options[1] + ')">Время от времени</button>' +
+      '<button class="btn btn-outline" onclick="answerLv(' + q.options[2] + ')">Редко, почти нет</button>' +
+      '<button class="btn btn-outline" onclick="answerLv(' + q.options[3] + ')">Не проявляется вообще</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="lvBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackLv()">← Назад</button>';
+  }
+
+  function showLvResult(score) {
+    var container = document.getElementById('lvQuestion');
+    var result = document.getElementById('lvResult');
+    var resultText = document.getElementById('lvResultText');
+    if (!container || !result || !resultText) return;
+    container.style.display = 'none';
+    result.style.display = 'block';
+    if (score <= 3) {
+      resultText.innerHTML = '<strong>Ваш уровень: 1–2 (Операционный / Проектный).</strong><br>Вы хорошо организованы на уровне операций, но рискуете не заметить стратегических сдвигов. Раз в квартал пересматривайте долгосрочные цели и спрашивайте себя: «А туда ли мы идём?»';
+    } else if (score <= 6) {
+      resultText.innerHTML = '<strong>Ваш уровень: 3 (Программный).</strong><br>У вас есть процессы и инструменты, но вы тратите энергию на тушение конфликтов между отделами. Попробуйте ввести сквозные OKR — общие цели для смежных подразделений. Это синхронизирует их и снизит трения.';
+    } else if (score <= 9) {
+      resultText.innerHTML = '<strong>Ваш уровень: 4 (Стратегический).</strong><br>Вы думаете о стратегии, но есть риск, что она — реактивная, а не проактивная. Устройте стратегическую сессию: ответьте на три вопроса — где мы были, где мы сейчас, куда идём.';
+    } else {
+      resultText.innerHTML = '<strong>Ваш уровень: 5+ (Политика / Смыслы).</strong><br>Вы работаете с ценностями и смыслами. Не забывайте спускаться на уровень операций — убедитесь, что ежедневные действия команды соответствуют заявленным принципам. В противном случае — разрыв породит цинизм.';
+    }
+  }
+
+  window.resetLv = function() {
+    window._lvDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('lvQuestion').style.display = 'block';
+    document.getElementById('lvResult').style.display = 'none';
+    document.getElementById('lvProgress').style.width = '0%';
+    document.getElementById('lvStepCounter').textContent = 'Вопрос 1 из ' + questions.length;
+    showLvQuestion(questions[0]);
+  };
+})();
+</script>

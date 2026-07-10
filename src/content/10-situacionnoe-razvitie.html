@@ -1,0 +1,137 @@
+<!-- Глава 10. Ситуационное развитие — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Не существует одного «лучшего» стиля руководства. Эффективный лидер адаптирует стиль в зависимости от уровня зрелости сотрудника по конкретной задаче.</strong><br>
+    Классическая модель Херси-Бланшара — блестящий диагноз, но слабое лекарство. Она учит адаптировать стиль под текущий уровень, но не отвечает на главный вопрос: как перевести сотрудника с M1 на M4, не сломав его на переходах? Мы «докрутили» модель до технологии ситуационного развития — от новичка до лидера.
+  </div>
+</section>
+
+<section>
+  <h2>Четыре уровня зрелости и четыре стиля</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Уровень</th><th>Сотрудник</th><th>Стиль руководителя</th><th>Инструмент</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>M1</strong></td><td>Не способен, но настроен (новичок)</td><td><strong>S1</strong> — Указывающий<br>«Делай как я сказал»</td><td>SMART, чек-листы, SOP</td></tr>
+      <tr><td><strong>M2</strong></td><td>Не способен и не настроен (разочарован)</td><td><strong>S2</strong> — Убеждающий<br>«Давай обсудим, почему так»</td><td>TWI, наставничество, разбор</td></tr>
+      <tr><td><strong>M3</strong></td><td>Способен, но не настроен (неуверен)</td><td><strong>S3</strong> — Участвующий<br>«Давай решим вместе»</td><td>GROW, коучинг</td></tr>
+      <tr><td><strong>M4</strong></td><td>Способен и настроен (эксперт)</td><td><strong>S4</strong> — Делегирующий<br>«Сделай это сам»</td><td>OKR, автономия</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Три скрытых разрыва:</strong> (1) Вы требуете инициативу там, где учили исполнению. (2) Перекладываете ответственность, не научив ответственности. (3) Не умеете «понижать» эксперта, когда он получает новую задачу.</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Я написал эту книгу как человек, который двадцать лет управлял предприятиями и наступил на все возможные грабли. Один из таких велосипедов: классическая модель ситуационного лидерства — это блестящий диагноз, но слабое лекарство. Она учит адаптировать стиль под текущий уровень «зрелости» сотрудника. Сделал диагностику — применил нужный стиль. Всё. А дальше? Как перевести сотрудника с M1 на M2, с M2 на M3?</p>
+    <p>Самая частая и разрушительная ошибка — «проклятие компетентности». Чем выше ваш собственный уровень зрелости (M3–M4), тем сложнее вам поверить, что другой человек может быть на M1 или M2 не потому, что он плохой, а потому что он ещё не прошёл путь. Я сам был таким. На одном из заводов требовал от мастера смены видеть десять шагов вперёд, как я. Он не видел. Я орал. Он уволился. Пришёл новый — с тем же результатом. Потребовалось три увольнения, чтобы понять: проблема не в мастерах, а во мне.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: определите уровень зрелости сотрудника</h2>
+  <div class="widget" id="maturityDiag">
+    <div class="widget-title">Тест: на каком уровне ваш сотрудник?</div>
+    <p class="text-sm text-muted" style="margin-bottom:var(--space-3);">Выберите одного конкретного сотрудника и одну конкретную задачу. Отвечайте про него.</p>
+    <div class="progress-bar"><div class="progress-fill" id="matProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="matStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="matQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="matText">Знает ли сотрудник, КАК выполнять задачу? Есть ли у него необходимые навыки и опыт?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerMat(1)">Нет, совсем новичок — нужны инструкции и показ</button>
+        <button class="btn btn-outline" onclick="answerMat(2)">Частично — знает основы, но без опыта путается</button>
+        <button class="btn btn-outline" onclick="answerMat(3)">В основном да — есть пробелы, но справляется</button>
+        <button class="btn btn-outline" onclick="answerMat(4)">Да, полностью — эксперт в этой задаче</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="matBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackMat()">← Назад</button>
+    </div>
+    <div id="matResult" style="display:none;">
+      <div class="block-principle" id="matResultText"></div>
+      <button class="btn btn-ghost" onclick="resetMat()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._matDiag = { step: 0, answers: [] };
+  var questions = [
+    { text: 'Знает ли сотрудник, КАК выполнять задачу?', options: [1,2,3,4], labels: ['Нет, совсем новичок','Частично — знает основы','В основном да','Да, полностью эксперт'] },
+    { text: 'Хочет ли сотрудник выполнять эту задачу? Есть ли у него мотивация и настрой?', options: [1,2,3,4], labels: ['Нет, избегает и саботирует','Скорее нет — делал бы другое','Скорее да — но без энтузиазма','Да, горит и хочет сам'] },
+    { text: 'Насколько сотрудник уверен в себе по этой задаче?', options: [1,2,3,4], labels: ['Совсем не уверен, боится','Сомневается, нужна поддержка','Уверен, но ищет одобрения','Полностью уверен, действует сам'] },
+    { text: 'Берёт ли сотрудник ответственность за результат?', options: [1,2,3,4], labels: ['Нет, ждёт указаний на каждом шаге','Иногда — но переспрашивает','Да, но любит согласовать финал','Да, полностью отвечает сам'] },
+  ];
+  var total = questions.length;
+
+  window.answerMat = function(val) {
+    var state = window._matDiag;
+    state.answers.push(val);
+    state.step++;
+    document.getElementById('matProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('matStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showMatResult();
+    } else {
+      document.getElementById('matStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showMatQuestion(questions[state.step]);
+      document.getElementById('matBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackMat = function() {
+    var state = window._matDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.answers.pop();
+    document.getElementById('matProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('matStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showMatQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('matBackBtn').style.display = 'none';
+  };
+
+  function showMatQuestion(q) {
+    var c = document.getElementById('matQuestion');
+    var html = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for (var i = 0; i < q.options.length; i++) {
+      html += '<button class="btn btn-outline" onclick="answerMat(' + q.options[i] + ')">' + q.labels[i] + '</button>';
+    }
+    html += '</div><button class="btn btn-ghost btn-sm" id="matBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackMat()">← Назад</button>';
+    c.innerHTML = html;
+  }
+
+  function showMatResult() {
+    var answers = window._matDiag.answers;
+    var avg = answers.reduce(function(a,b){return a+b;},0) / answers.length;
+    var container = document.getElementById('matQuestion');
+    var result = document.getElementById('matResult');
+    var text = document.getElementById('matResultText');
+    container.style.display = 'none';
+    result.style.display = 'block';
+    var level, style, rec;
+    if (avg <= 1.5) {
+      level = 'M1 — Новичок'; style = 'S1 — Указывающий'; rec = 'Дайте чёткую пошаговую инструкцию. Не ждите инициативы — её пока нет. Используйте SMART и чек-листы. Контролируйте каждый шаг, но не наказывайте за ошибки — это часть обучения.';
+    } else if (avg <= 2.5) {
+      level = 'M2 — Разочарованный'; style = 'S2 — Убеждающий'; rec = 'Объясняйте не только «что», но и «почему». Проводите совместные разборы, используйте наставничество (TWI). Хвалите за прогресс — сотруднику нужно вернуть уверенность.';
+    } else if (avg <= 3.5) {
+      level = 'M3 — Неуверенный эксперт'; style = 'S3 — Участвующий'; rec = 'Навыки есть, но не хватает уверенности. Используйте коучинг (GROW), задавайте вопросы вместо указаний. Делегируйте ответственность порциями — не всю сразу.';
+    } else {
+      level = 'M4 — Эксперт'; style = 'S4 — Делегирующий'; rec = 'Сотрудник готов к полной автономии. Ставьте OKR и отойдите. Ваша задача — не мешать, а давать ресурсы. Но помните: при новой задаче даже M4 становится M1 — не пропустите этот момент.';
+    }
+    text.innerHTML = '<strong>Диагноз:</strong> ' + level + '<br><strong>Рекомендуемый стиль:</strong> ' + style + '<br><br>' + rec;
+  }
+
+  window.resetMat = function() {
+    window._matDiag = { step: 0, answers: [] };
+    document.getElementById('matQuestion').style.display = 'block';
+    document.getElementById('matResult').style.display = 'none';
+    document.getElementById('matProgress').style.width = '0%';
+    document.getElementById('matStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showMatQuestion(questions[0]);
+  };
+})();
+</script>

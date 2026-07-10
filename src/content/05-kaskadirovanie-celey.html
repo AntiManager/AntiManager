@@ -1,0 +1,132 @@
+<!-- Глава 05. Каскадирование целей — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Каскадирование — не механическое дробление KPI сверху вниз. Это перевод смысла стратегии с одного уровня сложности на другой.</strong><br>
+    Когда стратегия (уровень 4 по Хапрову) спускается в производственный цех (уровень 1–2), она должна адаптироваться, теряя сложность, но сохраняя суть. Без этого перевода цели разных подразделений начинают тянуть в разные стороны: закупщики выполняют свой KPI по снижению стоимости, а производство встаёт из-за некачественного сырья. Формально все выполнили план — а компания проиграла.
+  </div>
+</section>
+
+<section>
+  <h2>Семь уровней сложности (модель Хапрова)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Уровень</th><th>Название</th><th>Пример в организации</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Объект</td><td>Рабочий на конвейере, закручивающий гайку</td></tr>
+      <tr><td><strong>2</strong></td><td>Проект</td><td>Инженер, составляющий инструкцию для сборщиков</td></tr>
+      <tr><td><strong>3</strong></td><td>Программа</td><td>Главный инженер, создающий схему производства</td></tr>
+      <tr><td><strong>4</strong></td><td>Стратегия</td><td>Директор завода, меняющий стратегию развития</td></tr>
+      <tr><td><strong>5</strong></td><td>Политика</td><td>Совет директоров, меняющий правила управления</td></tr>
+      <tr><td><strong>6</strong></td><td>Идеология</td><td>Основатель, закладывающий миссию и ценности</td></tr>
+      <tr><td><strong>7</strong></td><td>Философия</td><td>Осмысление фундаментальных основ деятельности</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Ключевой тезис:</strong> «Сложностью управляет тот, кто сложнее». Нельзя управлять отделом R&D (уровень 5–6) языком регламентов и KPI (уровень 1–2). Нельзя спускать стратегию в цех без перевода — смысл потеряется.</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Недавно я получил на ознакомление две стратегии. Первая — стратегия развития компании на пять лет. Вторая — стратегия развития HR в той же компании. Две стратегии одной компании говорили на разных языках. Они не бились между собой ни по смыслу, ни по KPI. В одной отсутствовали сроки и ответственные. А потом я остыл и понял: я это уже видел. Много раз.</p>
+    <p>В каждой второй компании история повторялась. Стратегия — это документ, который пылится на полке. HR-стратегия — ещё один документ, который живёт своей жизнью. А реальные люди на заводе крутят гайки, не понимая, как их работа связана с «повышением акционерной стоимости». Мы назвали наш подход «Каскадирование целей с учётом уровней сложности». Звучит тяжело. Но на деле это просто: сохранить смысл стратегии, когда она спускается от кабинета собственника до рабочего места.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: есть ли у вас «разрыв каскада»?</h2>
+  <div class="widget" id="cascadeDiag">
+    <div class="widget-title">Тест: качество каскадирования целей</div>
+    <div class="progress-bar"><div class="progress-fill" id="casProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="casStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="casQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="casText">Знает ли каждый сотрудник, как его ежедневная работа связана со стратегической целью компании?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerCas(2)">Да, каждый может объяснить связь за 30 секунд</button>
+        <button class="btn btn-outline" onclick="answerCas(1)">Руководители знают, исполнители — не очень</button>
+        <button class="btn btn-outline" onclick="answerCas(0)">Стратегия живёт в презентациях, а не в цехах</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="casBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackCas()">← Назад</button>
+    </div>
+    <div id="casResult" style="display:none;">
+      <div class="block-principle" id="casResultText"></div>
+      <button class="btn btn-ghost" onclick="resetCas()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._casDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Знает ли каждый сотрудник, как его работа связана со стратегической целью?', options: [2,1,0], labels: ['Да, каждый объяснит за 30 секунд','Руководители знают, исполнители — нет','Стратегия только в презентациях'] },
+    { text: 'Согласованы ли KPI разных подразделений? Или они тянут в разные стороны?', options: [2,1,0], labels: ['Да, KPI сквозные и непротиворечивые','Частично — есть конфликты','Каждое подразделение само за себя'] },
+    { text: 'Переводится ли стратегия на язык конкретного уровня? Или всем спускают одно и то же?', options: [2,1,0], labels: ['Да, для каждого уровня свой язык и формат','Частично — местами адаптируем','Одинаково для всех — приказ есть приказ'] },
+    { text: 'Обновляется ли каскад целей при изменении стратегии или ситуации?', options: [2,1,0], labels: ['Да, пересматриваем раз в квартал','Раз в год — во время стратегической сессии','Написали один раз и забыли'] },
+  ];
+  var total = questions.length;
+
+  window.answerCas = function(val) {
+    var state = window._casDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    document.getElementById('casProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('casStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showCasResult();
+    } else {
+      document.getElementById('casStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showCasQuestion(questions[state.step]);
+      document.getElementById('casBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackCas = function() {
+    var state = window._casDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.score -= state.answers.pop();
+    document.getElementById('casProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('casStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showCasQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('casBackBtn').style.display = 'none';
+  };
+
+  function showCasQuestion(q) {
+    var c = document.getElementById('casQuestion');
+    var html = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for (var i = 0; i < q.options.length; i++) {
+      html += '<button class="btn btn-outline" onclick="answerCas(' + q.options[i] + ')">' + q.labels[i] + '</button>';
+    }
+    html += '</div><button class="btn btn-ghost btn-sm" id="casBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackCas()">← Назад</button>';
+    c.innerHTML = html;
+  }
+
+  function showCasResult() {
+    var score = window._casDiag.score;
+    document.getElementById('casQuestion').style.display = 'none';
+    document.getElementById('casResult').style.display = 'block';
+    var text = document.getElementById('casResultText');
+    if (score >= 6) {
+      text.innerHTML = '<strong>Каскад работает.</strong><br>Цели переведены на язык каждого уровня, KPI согласованы, стратегия живёт в ежедневных действиях. Поддерживайте ритм: ежеквартальный пересмотр каскада и проверка «не бьются ли стратегии разных подразделений друг с другом».';
+    } else if (score >= 3) {
+      text.innerHTML = '<strong>Каскад есть, но с разрывами.</strong><br>Стратегия переведена на уровень руководителей, но не дошла до цехов. Проведите короткую сессию с мастерами участков: попросите их объяснить, как их работа связана с целью компании. Разрывы, которые вы увидите — приоритет №1 для следующего цикла каскадирования.';
+    } else {
+      text.innerHTML = '<strong>Каскада нет — есть приказы.</strong><br>Стратегия спускается как директива без перевода на язык исполнителя. Это главная причина, почему «стратегия пылится на полке». Начните с одной сквозной цели (например, «снизить время выполнения заказа») и проведите её по всем уровням — от собственника до оператора станка. На каждом уровне задайте вопрос: «Что ЭТО значит для ТВОЕЙ работы?»';
+    }
+  }
+
+  window.resetCas = function() {
+    window._casDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('casQuestion').style.display = 'block';
+    document.getElementById('casResult').style.display = 'none';
+    document.getElementById('casProgress').style.width = '0%';
+    document.getElementById('casStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showCasQuestion(questions[0]);
+  };
+})();
+</script>

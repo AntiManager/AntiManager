@@ -1,0 +1,130 @@
+<!-- Глава 14. Управление живой системой — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Предприятие — не механизм с шестерёнками, а открытая, сложная, адаптивная система. Это джунгли, а не шахматная доска.</strong><br>
+    Модели MBA хороши для закрытых детерминированных систем, где все переменные известны. Но реальный завод — это система, которая постоянно обменивается энергией с внешней средой, где обратная связь запаздывает, результат непропорционален усилию, а люди обладают ограниченной рациональностью. Управлять такой системой — значит не «применять решения», а проектировать среду, в которой люди сами захотят и смогут реализовывать стратегию.
+  </div>
+</section>
+
+<section>
+  <h2>Четыре системных закона, которые ломают идеальные модели</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Закон</th><th>Что это значит</th><th>Пример с завода</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Нелинейность</strong></td><td>Результат непропорционален усилию. 20% усилий дают 80% результата. Иногда 100% усилий дают 0%.</td><td>Купили дорогой станок — производительность упала, потому что операторы его боятся, а технологи не умеют программировать.</td></tr>
+      <tr><td><strong>Эмерджентность</strong></td><td>Система порождает качества, которых нет ни у одного элемента по отдельности.</td><td>Два гениальных инженера вместе конкурируют, срывают сроки и демотивируют отдел. Или наоборот: средние спецы в слаженном коллективе дают выдающийся результат.</td></tr>
+      <tr><td><strong>Запаздывание обратной связи</strong></td><td>Между действием и последствием может пройти много времени. Связать их сложно.</td><td>Уволили опытного мастера — сэкономили деньги. Через полгода ползёт брак, через год ломается оборудование, которое он один умел чинить.</td></tr>
+      <tr><td><strong>Ограниченная рациональность</strong></td><td>Информация неполна, время ограничено, человек не может перебрать все варианты. Мы выбираем удовлетворительное, а не оптимальное.</td><td>Выбираем не лучшего поставщика, а того, кто «понятен», «был в прошлый раз», «быстро отвечает». Это не глупость — это рациональность в условиях ограничений.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Что делать:</strong> мыслите процессами, а не структурами. Ищите точки приложения усилий (leverage points) — там, где малое воздействие даёт большой эффект. Создавайте короткие циклы обратной связи. Принимайте решения итеративно (PDCA), а не «раз и навсегда».</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Ежегодно бизнес-школы выпускают тысячи управленцев. Они владеют SWOT, знают матрицу BCG, умеют считать дисконтированный денежный поток. На предприятиях выстроены идеальные процессы, прописаны KPI, закуплены лучшие ERP-системы. И всё равно самые блестящие стратегии разбиваются о молчаливое: «Здесь так не принято».</p>
+    <p>За 20 лет работы на производстве — от мастера цеха до генерального директора — я убедился: главный ресурс и главная проблема современного предприятия — это люди. И главный разрыв, который убивает эффективность — это разрыв между «Что надо сделать» (объектное управление) и «Как сделать так, чтобы люди это реально сделали» (субъектное управление). Эта книга — о том, как этот разрыв устранить. Как перестать ломать людей идеальными моделями и начать создавать среду, в которой они сами захотят и смогут реализовывать эти модели.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: насколько ваша система «живая»?</h2>
+  <div class="widget" id="systemDiag">
+    <div class="widget-title">Тест: механистическое vs системное управление</div>
+    <div class="progress-bar"><div class="progress-fill" id="sysProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="sysStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
+    <div id="sysQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="sysText">Как вы реагируете на проблему: ищете виноватого или системную причину?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerSys(2)">Всегда ищем корневую причину (5 почему, Исикава)</button>
+        <button class="btn btn-outline" onclick="answerSys(1)">Иногда анализируем, но часто ищем виноватого</button>
+        <button class="btn btn-outline" onclick="answerSys(0)">Находим виноватого — и проблема «решена»</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="sysBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackSys()">← Назад</button>
+    </div>
+    <div id="sysResult" style="display:none;">
+      <div class="block-principle" id="sysResultText"></div>
+      <button class="btn btn-ghost" onclick="resetSys()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._sysDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Как вы реагируете на проблему: ищете виноватого или системную причину?', options: [2,1,0], labels: ['Всегда ищем корневую причину','Иногда анализируем','Находим виноватого'] },
+    { text: 'Как вы принимаете важные решения: одним большим шагом или итерациями?', options: [2,1,0], labels: ['Гипотеза → пилот → анализ → правка','Сначала план, потом внедрение','Приняли — и вперёд, без права на ошибку'] },
+    { text: 'Как быстро вы видите последствия своих управленческих решений?', options: [2,1,0], labels: ['Есть короткие циклы обратной связи (ежедневный учёт)','Видим раз в месяц в отчётах','Последствия замечаем, когда уже поздно'] },
+    { text: 'Учитываете ли вы нелинейность — что малые усилия могут дать большой эффект (и наоборот)?', options: [2,1,0], labels: ['Да, ищем leverage points сознательно','Иногда — но чаще давим на всё подряд','Нет, чем больше усилий, тем лучше результат'] },
+    { text: 'Есть ли у вас практика «разбора полётов» без поиска виноватых?', options: [2,1,0], labels: ['Да, регулярные A3/Pre-Mortem без обвинений','Бывает, но люди всё равно защищаются','Нет, разбор = наказание'] },
+  ];
+  var total = questions.length;
+
+  window.answerSys = function(val) {
+    var state = window._sysDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    document.getElementById('sysProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('sysStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showSysResult();
+    } else {
+      document.getElementById('sysStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showSysQuestion(questions[state.step]);
+      document.getElementById('sysBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackSys = function() {
+    var state = window._sysDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.score -= state.answers.pop();
+    document.getElementById('sysProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('sysStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showSysQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('sysBackBtn').style.display = 'none';
+  };
+
+  function showSysQuestion(q) {
+    var c = document.getElementById('sysQuestion');
+    var html = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for (var i = 0; i < q.options.length; i++) {
+      html += '<button class="btn btn-outline" onclick="answerSys(' + q.options[i] + ')">' + q.labels[i] + '</button>';
+    }
+    html += '</div><button class="btn btn-ghost btn-sm" id="sysBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackSys()">← Назад</button>';
+    c.innerHTML = html;
+  }
+
+  function showSysResult() {
+    var score = window._sysDiag.score;
+    document.getElementById('sysQuestion').style.display = 'none';
+    document.getElementById('sysResult').style.display = 'block';
+    var text = document.getElementById('sysResultText');
+    if (score >= 8) {
+      text.innerHTML = '<strong>Системное управление.</strong><br>Вы мыслите процессами и взаимосвязями, ищете leverage points, работаете с обратной связью. Продолжайте развивать культуру разбора без обвинений и коротких циклов PDCA. Главный риск — самоуспокоенность: сложные системы требуют постоянной бдительности.';
+    } else if (score >= 5) {
+      text.innerHTML = '<strong>Переходное состояние.</strong><br>Вы используете отдельные системные практики, но механистические привычки ещё сильны. Сфокусируйтесь на одном: начните с коротких циклов обратной связи (ежедневный учёт OEE) и правила «одна проблема — один A3-разбор без поиска виноватых».';
+    } else {
+      text.innerHTML = '<strong>Механистическое управление.</strong><br>Вы управляете заводом как набором шестерёнок: план — исполнение — наказание за отклонение. Это работало в прошлом веке, но сегодня убивает инициативу и создаёт скрытые проблемы. Начните с малого: вместо «найти виноватого» задайте вопрос «почему это произошло?» пять раз (метод 5 почему). Результат вас удивит.';
+    }
+  }
+
+  window.resetSys = function() {
+    window._sysDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('sysQuestion').style.display = 'block';
+    document.getElementById('sysResult').style.display = 'none';
+    document.getElementById('sysProgress').style.width = '0%';
+    document.getElementById('sysStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showSysQuestion(questions[0]);
+  };
+})();
+</script>

@@ -1,0 +1,130 @@
+<!-- Глава 11. Культурный код — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Культура — это не ценности на стене. Это поведенческая операционная система компании.</strong><br>
+    Её нельзя изменить приказом или плакатами. Она отвечает на три вопроса: как здесь принято решать проблемы? Как здесь зарабатывают статус? Что здесь по-настоящему вознаграждается? Менять культуру нужно через ежедневные ритуалы — повторяющиеся действия, которые формируют поведение. 90% попыток проваливаются, потому что трогают надстройку, а не фундамент.
+  </div>
+</section>
+
+<section>
+  <h2>Четыре управленческих цикла</h2>
+  <p>Культура проявляется в четырёх ключевых циклах. Диагностируйте каждый:</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Цикл</th><th>Здоровая культура</th><th>Больная культура</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Принятие решений</strong></td><td>Решения делегируются на уровень информации. Ошибки — повод для анализа</td><td>Всё спускается сверху. Инициатива наказуема. Ошибки скрывают</td></tr>
+      <tr><td><strong>2. Коммуникация</strong></td><td>На совещаниях первыми называют проблемы. Обратная связь регулярная</td><td>Совещания — театр «всё хорошо». Обратная связь только негативная</td></tr>
+      <tr><td><strong>3. Цели и результаты</strong></td><td>Цели ясные, сквозные. Провал — урок, а не клеймо</td><td>Цели в головах. Провал — «ты не справился»</td></tr>
+      <tr><td><strong>4. Признание и статус</strong></td><td>Статус за компетентность и помощь. Герои делятся знанием</td><td>Статус за выслугу лет или «политическую лояльность»</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>В одной компании я увидел в холле огромный баннер: «Наши ценности: Честность, Уважение, Инновации». Спросил у первого встречного сотрудника: «Что здесь значит "инновации"?» Он подумал и сказал: «Наверное, мы должны предлагать идеи. Но однажды я предложил, как сэкономить 2 миллиона в год — меня вызвали на ковёр за то, что я "лезу не в своё дело"».</p>
+    <p>Культура — это не то, что вы провозглашаете. Это то, что вы делаете каждую среду в 10 утра на планерке. Если на планерке обсуждают только операционку и не говорят о стратегии — культура реактивная. Если за опоздание на 5 минут лишают премии, а за срыв срока поставки никто не отвечает — культура лицемерная.</p>
+    <p>За 15 лет работы с командами от 20 до 10 000 человек я выработал технологию, которая работает. Она не требует миллионных бюджетов. Она требует одного — вашей готовности изменить свои ежедневные ритуалы. Начните с одного: выберите один ритуал (например, как начинается планерка) и измените его за 90 дней. Когда новый ритуал станет привычкой — переходите к следующему.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: оцените свою культуру за 3 минуты</h2>
+  <div class="widget" id="ritualDiag">
+    <div class="widget-title">Тест: здоровье управленческих циклов</div>
+    <div class="progress-bar"><div class="progress-fill" id="rDiagProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="rDiagStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="rDiagQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="rDiagText">Как в вашей компании принимаются решения?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerRdiag(1)">Делегируются на уровень, где есть информация. Ошибки — повод для анализа</button>
+        <button class="btn btn-outline" onclick="answerRdiag(0)">Частично делегируются, но за ошибки наказывают</button>
+        <button class="btn btn-outline" onclick="answerRdiag(-1)">Все решения спускаются сверху. Инициатива наказуема</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="rDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRdiag()">← Назад</button>
+    </div>
+    <div id="rDiagResult" style="display:none;">
+      <div class="block-principle" id="rDiagResultText"></div>
+      <button class="btn btn-ghost" onclick="resetRdiag()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._rDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Как принимаются решения?', options: [1,0,-1] },
+    { text: 'Как проходят планерки/совещания?', options: [1,0,-1] },
+    { text: 'Что происходит при ошибке сотрудника?', options: [1,0,-1] },
+    { text: 'За что дают статус и уважение в компании?', options: [1,0,-1] },
+  ];
+  var total = questions.length;
+
+  window.answerRdiag = function(val) {
+    var state = window._rDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    document.getElementById('rDiagProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('rDiagStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showRdiagResult(state.score);
+    } else {
+      document.getElementById('rDiagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showRdiagQuestion(questions[state.step]);
+      document.getElementById('rDiagBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackRdiag = function() {
+    var state = window._rDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.score -= state.answers.pop();
+    document.getElementById('rDiagProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('rDiagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showRdiagQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('rDiagBackBtn').style.display = 'none';
+  };
+
+  function showRdiagQuestion(q) {
+    document.getElementById('rDiagQuestion').innerHTML =
+      '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[0] + ')">Здоровая культура</button>' +
+      '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[1] + ')">Бывает по-разному</button>' +
+      '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[2] + ')">Больная культура</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="rDiagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackRdiag()">← Назад</button>';
+  }
+
+  function showRdiagResult(score) {
+    var result = document.getElementById('rDiagResult');
+    var text = document.getElementById('rDiagResultText');
+    document.getElementById('rDiagQuestion').style.display = 'none';
+    result.style.display = 'block';
+    if (score >= 2) {
+      text.innerHTML = '<strong>Здоровая культура.</strong><br>Вы на правильном пути. Усильте один слабый цикл (где оценка была ниже) и сделайте его целевым ритуалом на ближайшие 90 дней. Главное — не останавливайтесь на достигнутом: устойчивость культуры требует постоянного внимания.';
+    } else if (score >= -1) {
+      text.innerHTML = '<strong>Смешанная культура.</strong><br>Есть здоровые элементы, но есть и больные. Выберите один цикл с самой низкой оценкой и сфокусируйтесь на нём. Не пытайтесь менять всё сразу: один изменённый ритуал за 90 дней даст больше, чем десять приказов.';
+    } else {
+      text.innerHTML = '<strong>Культура требует глубоких изменений.</strong><br>Не пытайтесь «улучшить культуру» лозунгами. Начните с наведения порядка в процессах (уровень управленческой зрелости 3). Без базовой предсказуемости культурные изменения не закрепятся — их «съест» ежедневный хаос. Вернитесь к этой главе, когда процессы станут стабильными.';
+    }
+  }
+
+  window.resetRdiag = function() {
+    window._rDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('rDiagQuestion').style.display = 'block';
+    document.getElementById('rDiagResult').style.display = 'none';
+    document.getElementById('rDiagProgress').style.width = '0%';
+    document.getElementById('rDiagStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showRdiagQuestion(questions[0]);
+  };
+})();
+</script>

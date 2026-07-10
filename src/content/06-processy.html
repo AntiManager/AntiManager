@@ -1,0 +1,139 @@
+<!-- Глава 06. Процессы, которые работают — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Процесс, который не читают, не работает.</strong><br>
+    Большинство регламентов пылятся на полке, потому что они отвечают на вопрос «как устроена компания», а не «что мне делать прямо сейчас». Правильный процесс разбит на шесть уровней — от стратегической карты компании до конкретного действия исполнителя. Каждый уровень — для своей аудитории и отвечает на свой вопрос.
+  </div>
+</section>
+
+<section>
+  <h2>Шесть уровней процесса</h2>
+  <p>Классическая иерархия APQC PCF, адаптированная под заводы и офисы. Каждый уровень — для своего читателя.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Уровень</th><th>Вопрос</th><th>Для кого</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Организация</strong></td><td>Кто за что отвечает?</td><td>CEO, директора</td></tr>
+      <tr><td><strong>2. Процессная область</strong></td><td>Какие блоки работы есть внутри функции?</td><td>Руководители функций</td></tr>
+      <tr><td><strong>3. Сквозной процесс</strong></td><td>Как работа идёт от начала до конца?</td><td>Владелец процесса</td></tr>
+      <tr><td><strong>4. Подпроцесс / Блок-схема</strong></td><td>Кто, что и в какой последовательности делает?</td><td>Руководитель участка</td></tr>
+      <tr><td><strong>5. Ролевая инструкция</strong></td><td>Что конкретно делать мне?</td><td>Исполнитель</td></tr>
+      <tr><td><strong>6. Шаг / Операция</strong></td><td>Как правильно сделать этот шаг?</td><td>Новичок, оператор</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Правило:</strong> не смешивать уровни в одном документе. Исполнителю — инструкцию на один шаг, владельцу — схему процесса, CEO — карту организации.</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>McKinsey: 70% программ изменений не достигают целей. HBR: лишь 54% внедрённых процессов признаны успешными. Причина №1 — не технология и не бюджет, а отсутствие управления изменениями.</p>
+    <p>Худшее, что можно сделать при внедрении процесса — сказать себе «они это переживут». Люди сопротивляются не потому что они «вредные». Они боятся потерять контроль, компетентность, статус. И на каждую открытую жалобу приходится двое молчаливых саботажников.</p>
+    <p>Я часто вижу одну и ту же ошибку: аналитик рисует одну большую блок-схему со всеми ролями, сотнями стрелок и ромбиков. Результат — монстр, который никто не читает. Выход — разбить процесс на шесть уровней (таблица выше). Каждый уровень отвечает на один конкретный вопрос.</p>
+    <p>Эта книга — не про Visio и BPMN. Она про то, как соединить жёсткое (правильное описание) и мягкое (работа со страхами, политика, быстрые победы).</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: на каком уровне описан ваш процесс?</h2>
+  <div class="widget" id="processDiag">
+    <div class="widget-title">Тест: хватит ли вашей команде текущего описания?</div>
+    <div class="progress-bar"><div class="progress-fill" id="pDiagProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="pDiagStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
+    <div id="pDiagQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="pDiagText">Как часто ваши регламенты перечитывают?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerPdiag(2)">Никто не читает, пылятся на полке</button>
+        <button class="btn btn-outline" onclick="answerPdiag(1)">Читают только при аудите или конфликте</button>
+        <button class="btn btn-outline" onclick="answerPdiag(0)">Иногда сверяются, но в целом знают работу</button>
+        <button class="btn btn-outline" onclick="answerPdiag(-1)">Да, это настольная книга команды</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="pDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPdiag()">← Назад</button>
+    </div>
+    <div id="pDiagResult" style="display:none;">
+      <div class="block-principle" id="pDiagResultText"></div>
+      <button class="btn btn-ghost" onclick="resetPdiag()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._pDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Как часто ваши регламенты перечитывают?', options: [2,1,0,-1] },
+    { text: 'Новичок может освоить работу по вашей инструкции без помощи мастера?', options: [2,1,0,-1] },
+    { text: 'Вы знаете, какой уровень детализации (1–6) нужен каждому типу документа?', options: [2,1,0,-1] },
+    { text: 'Ваши процессы обновляются при изменениях?', options: [2,1,0,-1] },
+    { text: 'Сотрудники предлагают улучшения процессов?', options: [-1,0,1,2] },
+  ];
+  var total = questions.length;
+
+  window.answerPdiag = function(val) {
+    var state = window._pDiag;
+    state.answers.push(val);
+    state.score += val;
+    state.step++;
+    document.getElementById('pDiagProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('pDiagStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showPdiagResult(state.score);
+    } else {
+      document.getElementById('pDiagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showPdiagQuestion(questions[state.step]);
+      document.getElementById('pDiagBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackPdiag = function() {
+    var state = window._pDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    state.score -= state.answers.pop();
+    document.getElementById('pDiagProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('pDiagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showPdiagQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('pDiagBackBtn').style.display = 'none';
+  };
+
+  function showPdiagQuestion(q) {
+    var container = document.getElementById('pDiagQuestion');
+    if (!container) return;
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="pDiagText">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[0] + ')">Да, регулярно</button>' +
+      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[1] + ')">Иногда</button>' +
+      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[2] + ')">Редко</button>' +
+      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[3] + ')">Нет / Не знаю</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="pDiagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackPdiag()">← Назад</button>';
+  }
+
+  function showPdiagResult(score) {
+    document.getElementById('pDiagQuestion').style.display = 'none';
+    document.getElementById('pDiagResult').style.display = 'block';
+    var text = document.getElementById('pDiagResultText');
+    if (score >= 5) {
+      text.innerHTML = '<strong>Ваши процессы в кризисе.</strong><br>Регламенты не работают, новички учатся «методом тыка», уровень детализации не осознан. Начните с одного сквозного процесса: опишите его на всех шести уровнях. Приоритет — быстрая победа, которая даст ощутимый результат за неделю.';
+    } else if (score >= 2) {
+      text.innerHTML = '<strong>Требуется доработка.</strong><br>Основные процессы описаны, но не хватает глубины. Проверьте, для кого вы пишете каждый документ: исполнителю нужна ролевая инструкция (уровень 5), владельцу — блок-схема (уровень 4). Не смешивайте уровни в одном файле. Проведите аудит: выберите один процесс и опросите исполнителей — читают ли они регламент и что в нём не так.';
+    } else if (score >= -1) {
+      text.innerHTML = '<strong>Хороший уровень.</strong><br>Процессы в порядке, но есть потенциал. Введите регулярное обновление (раз в квартал) и канал обратной связи от исполнителей. Лучшие процессы — те, которые живут и меняются.';
+    } else {
+      text.innerHTML = '<strong>Отличный уровень.</strong><br>Процессы работают как часы. Вы на правильном пути. Поделитесь опытом с соседними подразделениями и подумайте о наставничестве для тех, кто только начинает описывать свои процессы.';
+    }
+  }
+
+  window.resetPdiag = function() {
+    window._pDiag = { step: 0, score: 0, answers: [] };
+    document.getElementById('pDiagQuestion').style.display = 'block';
+    document.getElementById('pDiagResult').style.display = 'none';
+    document.getElementById('pDiagProgress').style.width = '0%';
+    document.getElementById('pDiagStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showPdiagQuestion(questions[0]);
+  };
+})();
+</script>

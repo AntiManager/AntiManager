@@ -1,0 +1,152 @@
+<!-- Глава 09. Бей, беги, замри — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Мотивация — не магия и не характер. Это энергоэффективный прогноз древнего мозга.</strong><br>
+    Внутри каждого сотрудника живёт программа «бей, беги, замри» возрастом в миллионы лет. Она каждую секунду оценивает: «Стоит ли тратить энергию? Справлюсь ли? А что получу?» Если ответ «нет» — организм выбирает саботаж, прокрастинацию или увольнение. Задача руководителя — спроектировать среду, в которой действовать выгоднее, чем избегать. Никакой магии — только биология, психология и чёткие алгоритмы.
+  </div>
+</section>
+
+<section>
+  <h2>Восемь потребностей — карта энергии сотрудника</h2>
+  <p>Опираясь на теорию самодетерминации (SDT) Деси и Райана и модель позитивной психотерапии, мы выделяем 8 первичных потребностей. Первые семь — потребности сохранения. Восьмая — ключевой драйвер внутренней мотивации.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Потребность</th><th>Как проявляется в работе</th><th>Что убивает</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Контакт</strong></td><td>Хочет быть в курсе, участвовать в совещаниях, получать обратную связь</td><td>Изоляция, игнорирование</td></tr>
+      <tr><td><strong>2. Удовольствие</strong></td><td>Ищет интересные задачи, геймификацию, позитивную атмосферу</td><td>Скука, рутина, монотонность</td></tr>
+      <tr><td><strong>3. Забота</strong></td><td>Ценит личное отношение, гибкость, внимание к благополучию</td><td>Чёрствость, формализм</td></tr>
+      <tr><td><strong>4. Время</strong></td><td>Хочет автономии, ненавидит микроменеджмент и постоянные переключения</td><td>Дёрганье, переработки</td></tr>
+      <tr><td><strong>5. Доверие</strong></td><td>Нуждается в чётких правилах, предсказуемости, защите от несправедливости</td><td>Двойные стандарты, непредсказуемость</td></tr>
+      <tr><td><strong>6. Смысл</strong></td><td>Хочет знать «зачем». Без ответа — апатия и саботаж</td><td>Бессмысленная работа</td></tr>
+      <tr><td><strong>7. Идеал</strong></td><td>Стремление к качеству, порядку, гордость результатом</td><td>«Халтура», некачественные условия</td></tr>
+      <tr><td><strong>8. Развитие</strong></td><td>Ищет вызов, новые навыки, рост компетентности</td><td>Застревание на рутине, отсутствие роста</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="block-principle" style="font-size:var(--text-sm);">
+    <strong>Формула платформы для развития:</strong><br>
+    Доверие + Время + Контакт = Платформа → на неё можно ставить Развитие. Вызов без платформы = слом.
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Вы когда-нибудь давали сотруднику задачу, чётко объясняли, показывали выгоду, даже обещали бонус — а он всё равно саботировал? Я — да. И долгое время думал, что проблема в людях: ленивые, безынициативные. Пока однажды не понял: проблема была во мне. Точнее, в том, как я ставил задачи.</p>
+    <p>Я изучил многие теории мотивации — Маслоу, Герцберга, Врума. Прочитал «Драйв» Пинка, «Атомные привычки» Клира. Всё это — надстройка. Красивая, логичная, но бесполезная, когда сотрудник сидит и смотрит в стену. Мозг не различает физические и социальные угрозы: дедлайн, критика начальника или неясная задача активируют те же нейронные контуры, что и хищник в джунглях. Эта книга — не про «как вдохновить». Она про инженерное проектирование мотивации на уровне нейронов, гормонов и привычек.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: какая потребность «западает» у команды?</h2>
+  <div class="widget" id="needsDiag">
+    <div class="widget-title">Тест: экспресс-диагностика 8 потребностей</div>
+    <div class="progress-bar"><div class="progress-fill" id="ndProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="ndStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 8</p>
+    <div id="ndQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="ndText">Насколько ваши сотрудники чувствуют себя частью команды? Они в курсе происходящего, участвуют в обсуждениях?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerNd(3)">Да, атмосфера открытая, все в курсе</button>
+        <button class="btn btn-outline" onclick="answerNd(2)">Скорее да — но есть «тихие»</button>
+        <button class="btn btn-outline" onclick="answerNd(1)">Скорее нет — информация закрыта</button>
+        <button class="btn btn-outline" onclick="answerNd(0)">Полная изоляция, каждый сам за себя</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="ndBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackNd()">← Назад</button>
+    </div>
+    <div id="ndResult" style="display:none;">
+      <div class="block-principle" id="ndResultText"></div>
+      <button class="btn btn-ghost" onclick="resetNd()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._ndDiag = { step: 0, scores: [0,0,0,0,0,0,0,0], answers: [] };
+  var needs = ['Контакт','Удовольствие','Забота','Время','Доверие','Смысл','Идеал','Развитие'];
+  var questions = [
+    { need: 0, text: 'Насколько сотрудники чувствуют себя частью команды? Они в курсе происходящего?' },
+    { need: 1, text: 'Приносит ли работа удовольствие? Есть ли интересные задачи, или сплошная рутина?' },
+    { need: 2, text: 'Чувствуют ли сотрудники заботу и внимание к своему благополучию?' },
+    { need: 3, text: 'Контролируют ли сотрудники свой график? Или их постоянно дёргают и переключают?' },
+    { need: 4, text: 'Доверяют ли сотрудники руководству? Понятны ли правила игры?' },
+    { need: 5, text: 'Понимают ли люди, ЗАЧЕМ они делают то, что делают? Видят ли связь с общей целью?' },
+    { need: 6, text: 'Могут ли сотрудники делать работу качественно? Или условия вынуждают «халтурить»?' },
+    { need: 7, text: 'Есть ли у сотрудников возможность учиться, расти и осваивать новое?' },
+  ];
+  var total = questions.length;
+
+  window.answerNd = function(val) {
+    var state = window._ndDiag;
+    var q = questions[state.step];
+    state.scores[q.need] = val;
+    state.answers.push(val);
+    state.step++;
+    document.getElementById('ndProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('ndStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showNdResult();
+    } else {
+      document.getElementById('ndStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showNdQuestion(questions[state.step]);
+      document.getElementById('ndBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackNd = function() {
+    var state = window._ndDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    var prev = questions[state.step - 1];
+    state.scores[prev.need] = 0;
+    state.answers.pop();
+    document.getElementById('ndProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('ndStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showNdQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('ndBackBtn').style.display = 'none';
+  };
+
+  function showNdQuestion(q) {
+    var c = document.getElementById('ndQuestion');
+    c.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerNd(3)">Да, полностью</button>' +
+      '<button class="btn btn-outline" onclick="answerNd(2)">Скорее да</button>' +
+      '<button class="btn btn-outline" onclick="answerNd(1)">Скорее нет</button>' +
+      '<button class="btn btn-outline" onclick="answerNd(0)">Совсем нет</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="ndBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackNd()">← Назад</button>';
+  }
+
+  function showNdResult() {
+    var scores = window._ndDiag.scores;
+    document.getElementById('ndQuestion').style.display = 'none';
+    document.getElementById('ndResult').style.display = 'block';
+    // Find weakest needs (score <= 1)
+    var weak = [];
+    for (var i = 0; i < scores.length; i++) {
+      if (scores[i] <= 1) weak.push(needs[i]);
+    }
+    var text = document.getElementById('ndResultText');
+    if (weak.length === 0) {
+      text.innerHTML = '<strong>Все потребности в норме.</strong><br>Базовая платформа безопасности есть. Теперь можно ставить вызов: дайте команде задачу чуть выше текущего уровня — это включит потребность в Развитии и даст устойчивый рост.';
+    } else if (weak.length <= 2) {
+      text.innerHTML = '<strong>Западают ' + weak.length + ' потребности: ' + weak.join(', ') + '.</strong><br>Это зоны риска. Пока они не закрыты, сотрудники тратят энергию на компенсацию, а не на результат. Начните с самой «проседающей» — один точечный ритуал (например, еженедельная встреча 1-на-1 для Контакта) за 2–4 недели поднимет общий тонус команды.';
+    } else {
+      text.innerHTML = '<strong>Критический дефицит: ' + weak.length + ' потребностей из 8.</strong><br>' + weak.join(', ') + ' — требуют срочного внимания. Команда работает в режиме энергосбережения. Не пытайтесь закрыть всё сразу. Выберите ОДНУ потребность, которая быстрее всего даст результат (обычно это Доверие или Контакт) и вложитесь в неё на 30 дней. Без платформы безопасности любые KPI и вызовы будут бесполезны.';
+    }
+  }
+
+  window.resetNd = function() {
+    window._ndDiag = { step: 0, scores: [0,0,0,0,0,0,0,0], answers: [] };
+    document.getElementById('ndQuestion').style.display = 'block';
+    document.getElementById('ndResult').style.display = 'none';
+    document.getElementById('ndProgress').style.width = '0%';
+    document.getElementById('ndStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showNdQuestion(questions[0]);
+  };
+})();
+</script>

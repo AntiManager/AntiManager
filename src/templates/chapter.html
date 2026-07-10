@@ -1,0 +1,26 @@
+<nav class="breadcrumbs" aria-label="Навигация">
+  <a href="/">Главная</a><span class="sep">/</span>
+  <a href="/catalog/">Каталог</a><span class="sep">/</span>
+  <span>{{title}}</span>
+</nav>
+
+<section class="chapter-hero">
+  <div class="ray-label">
+    <span class="badge badge-ray-{{ray}}">{{ray_name}}</span>
+    <span class="badge {{status_badge}}" style="margin-left:var(--space-2)">{{status_label}}</span>
+  </div>
+  <h1>{{title}}</h1>
+  <p class="subtitle">{{subtitle}}</p>
+  <div class="meta" style="margin-top:var(--space-3);display:flex;gap:var(--space-2);flex-wrap:wrap;">
+    {{tools_badges}}
+  </div>
+</section>
+
+{{content_body}}
+
+{{download_section}}
+
+<section style="margin-top:var(--space-12);padding-top:var(--space-8);border-top:1px solid var(--color-border-light);">
+  <h3>Связанные главы</h3>
+  <div class="card-grid" id="relatedChapters"></div>
+</section>

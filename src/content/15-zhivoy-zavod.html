@@ -1,0 +1,152 @@
+<!-- Глава 15. Живой завод — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Завод — не механизм с шестерёнками, а живой организм с пятью взаимосвязанными системами.</strong><br>
+    Вы внедряете KPI — не работает. Переходите на Agile — не работает. Вводите OKR — план всё равно не выполняется. Вы «меняете подшипник», а не ищете корень проблемы. Управленческие инструменты — разрозненные детали. Их нельзя сложить в кучу и ждать чуда. Нужна система пяти лучей: Компас (смысл), Двигатель (процессы), Нервы (информация), Кровь (люди), Иммунитет (изменения). В здоровой компании все пять работают в балансе.
+  </div>
+</section>
+
+<section>
+  <h2>Пять лучей — пять систем организма</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Луч</th><th>Аналогия</th><th>Ключевой вопрос</th><th>Симптом дисбаланса</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Компас</strong></td><td>ДНК, мозг</td><td>Во что мы верим? Что здесь реально ценится?</td><td>Миссия на стене, но никто не помнит. Виноватых ищут дольше, чем решают проблемы.</td></tr>
+      <tr><td><strong>Двигатель</strong></td><td>Скелет и мышцы</td><td>Как устроена машина производства? Кто за что отвечает?</td><td>Процессы есть, но не работают. План спускают, но не объясняют как.</td></tr>
+      <tr><td><strong>Нервы</strong></td><td>Нервная система</td><td>Чувствуем ли мы, что происходит? Быстро ли сигнал доходит?</td><td>Отчёты запаздывают. Директор узнаёт о проблеме последним. KPI конфликтуют.</td></tr>
+      <tr><td><strong>Кровь</strong></td><td>Кровеносная система</td><td>Как мы питаем людей энергией? Есть ли рост и признание?</td><td>Текучка, выгорание, «работа ради зарплаты». Обучение — раз в год «для галочки».</td></tr>
+      <tr><td><strong>Иммунитет</strong></td><td>Иммунная система</td><td>Как мы учимся на ошибках? Меняемся ли мы?</td><td>Ошибки скрывают. Изменения внедряются приказами и саботируются. Нет разбора полётов.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="block-principle" style="font-size:var(--text-sm);">
+    <strong>Ключевое правило:</strong> лучи влияют друг на друга. Ужесточили Двигатель (процессы) → может упасть Иммунитет (люди перестанут предлагать улучшения). Внедряете новую систему без качественной Крови → получите саботаж.
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Представьте: у вас на заводе сломался станок. Вы вызываете механика. Он говорит: «Нужно заменить подшипник». Вы заменяете. Через неделю станок снова ломается. Ещё через месяц — третий. Что вы сделаете? Будете менять подшипники до бесконечности? Или наконец спросите: «А почему они вылетают? Может, вал кривой? Или смазка не та?»</p>
+    <p>С управлением то же самое. Вы меняете «подшипники» — KPI, Agile, OKR, BSC — а корень проблемы остаётся. В здоровой компании все пять лучей работают в балансе. В больной — один или несколько перекошены. Эта книга даёт измеримые индексы здоровья, карту взаимовлияний и инструменты прогноза: что случится, если вы подтянете один луч, не трогая остальные.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: какой луч «западает»?</h2>
+  <div class="widget" id="rayDiag">
+    <div class="widget-title">Тест: индекс здоровья по пяти лучам</div>
+    <div class="progress-bar"><div class="progress-fill" id="ryProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="ryStepCounter" style="margin-bottom:var(--space-3);">Диагностика 1 из 5</p>
+    <div id="ryQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="ryText"><strong>Луч 1: Компас (смысл и культура).</strong><br>Может ли любой сотрудник сформулировать главную цель завода одним предложением? Поощряется ли инициатива или наказывается?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerRy(2)">Да — миссия ясна каждому, инициатива поощряется</button>
+        <button class="btn btn-outline" onclick="answerRy(1)">Формально есть, но живёт своей жизнью</button>
+        <button class="btn btn-outline" onclick="answerRy(0)">Нет — «работаем ради зарплаты», инициатива наказуема</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="ryBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRy()">← Назад</button>
+    </div>
+    <div id="ryResult" style="display:none;">
+      <div class="block-principle" id="ryResultText"></div>
+      <button class="btn btn-ghost" onclick="resetRy()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._ryDiag = { step: 0, scores: [0,0,0,0,0], answers: [] };
+  var rays = ['Компас (смысл)','Двигатель (процессы)','Нервы (информация)','Кровь (люди)','Иммунитет (изменения)'];
+  var rayDescs = [
+    'Миссия размыта, инициатива наказуема. Начните с ритуала: еженедельная встреча, где каждый может предложить улучшение без страха.',
+    'Процессы не работают или работают формально. Начните с одного сквозного процесса — опишите его на всех уровнях, от директора до оператора.',
+    'Информация не доходит или искажается. Внедрите один визуальный дашборд на самом проблемном участке и обновляйте его ежедневно.',
+    'Люди выгорают и не растут. Введите ежемесячные 1-на-1 встречи с каждым ключевым сотрудником — 30 минут на его цели, а не на отчёт.',
+    'Ошибки скрывают, изменения саботируют. Начните с Pre-Mortem на следующем проекте: спросите «почему это могло провалиться?» до старта.'
+  ];
+  var rayQs = [
+    { ray: 0, text: '<strong>Компас (смысл и культура).</strong><br>Может ли любой сотрудник сформулировать главную цель завода одним предложением? Поощряется ли инициатива?' },
+    { ray: 1, text: '<strong>Двигатель (процессы и структура).</strong><br>Знает ли каждый сотрудник, кто за что отвечает? Работают ли процессы или «галочки ставят»?' },
+    { ray: 2, text: '<strong>Нервы (информация).</strong><br>Как быстро директор узнаёт о проблеме в цехе? Есть ли единая система показателей или «зоопарк KPI»?' },
+    { ray: 3, text: '<strong>Кровь (люди и мотивация).</strong><br>Есть ли у сотрудников возможность учиться и расти? Чувствуют ли они признание и поддержку?' },
+    { ray: 4, text: '<strong>Иммунитет (изменения и адаптация).</strong><br>Как в компании относятся к ошибкам? Пробуют ли новое или «у нас так заведено»?' },
+  ];
+  var total = rayQs.length;
+
+  window.answerRy = function(val) {
+    var state = window._ryDiag;
+    var ray = rayQs[state.step].ray;
+    state.scores[ray] = val;
+    state.answers.push(val);
+    state.step++;
+    document.getElementById('ryProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('ryStepCounter').textContent = 'Диагностика завершена';
+      showRyResult();
+    } else {
+      document.getElementById('ryStepCounter').textContent = 'Диагностика ' + (state.step + 1) + ' из ' + total;
+      showRyQuestion(rayQs[state.step]);
+      document.getElementById('ryBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackRy = function() {
+    var state = window._ryDiag;
+    if (state.step <= 1) return;
+    state.step--;
+    var prevRay = rayQs[state.step].ray;
+    state.scores[prevRay] = 0;
+    state.answers.pop();
+    document.getElementById('ryProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('ryStepCounter').textContent = 'Диагностика ' + (state.step + 1) + ' из ' + total;
+    showRyQuestion(rayQs[state.step]);
+    if (state.step <= 1) document.getElementById('ryBackBtn').style.display = 'none';
+  };
+
+  function showRyQuestion(q) {
+    var c = document.getElementById('ryQuestion');
+    c.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerRy(2)">Да — полностью здоровый луч</button>' +
+      '<button class="btn btn-outline" onclick="answerRy(1)">Формально есть, но не работает</button>' +
+      '<button class="btn btn-outline" onclick="answerRy(0)">Нет — серьёзный перекос</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="ryBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackRy()">← Назад</button>';
+  }
+
+  function showRyResult() {
+    var scores = window._ryDiag.scores;
+    document.getElementById('ryQuestion').style.display = 'none';
+    document.getElementById('ryResult').style.display = 'block';
+    var text = document.getElementById('ryResultText');
+    // Find weakest ray(s)
+    var min = Math.min.apply(null, scores);
+    var weakest = [];
+    for (var i = 0; i < scores.length; i++) if (scores[i] === min) weakest.push(i);
+    var allOk = min >= 2;
+    if (allOk) {
+      text.innerHTML = '<strong>Все лучи в балансе.</strong><br>Отличный результат. Поддерживайте ритм: раз в квартал проводите экспресс-диагностику. Помните: лучи влияют друг на друга — изменения в одном могут вызвать перекос в другом. Следите за системой в динамике.';
+    } else {
+      var html = '<strong>Западают лучи:</strong> ' + weakest.map(function(i){return rays[i];}).join(', ') + '.<br><br>';
+      for (var j = 0; j < weakest.length; j++) {
+        html += '<strong>' + rays[weakest[j]] + ':</strong> ' + rayDescs[weakest[j]] + '<br><br>';
+      }
+      html += 'Не пытайтесь чинить всё сразу. Выберите ОДИН самый проблемный луч и работайте с ним 90 дней. Когда он поднимется — переходите к следующему.';
+      text.innerHTML = html;
+    }
+  }
+
+  window.resetRy = function() {
+    window._ryDiag = { step: 0, scores: [0,0,0,0,0], answers: [] };
+    document.getElementById('ryQuestion').style.display = 'block';
+    document.getElementById('ryResult').style.display = 'none';
+    document.getElementById('ryProgress').style.width = '0%';
+    document.getElementById('ryStepCounter').textContent = 'Диагностика 1 из ' + total;
+    showRyQuestion(rayQs[0]);
+  };
+})();
+</script>

@@ -1,0 +1,44 @@
+<!-- Глава 18. Антикризис — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Больное предприятие — не «плохие люди», а разрыв между способностью системы и требованиями среды. Лечить надо строго по порядку.</strong><br>
+    Три разрыва: (1) управляемость — нет достоверной информации, решения наугад; (2) дисциплина — нарушения стали нормой, или страх парализовал; (3) эффективность — система не учится, знания в головах «незаменимых». Золотое правило: нельзя перепрыгивать фазы. Сначала управляемость, потом дисциплина, потом эффективность. 80% провалов — потому что новый руководитель начинает с KPI и Lean, когда на заводе нет даже внятной системы информирования.
+  </div>
+</section>
+
+<section>
+  <h2>Протокол 90 дней: четыре фазы</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Фаза</th><th>Срок</th><th>Цель</th><th>Главное действие</th></tr></thead>
+    <tbody>
+      <tr><td><strong>0. Остановка падения</strong></td><td>1–30 дней</td><td>Перестать делать хуже, создать тишину для диагноза</td><td>Мораторий на наказания. 2 быстрые победы (кофеварка, туалет). Три цифры текущего состояния.</td></tr>
+      <tr><td><strong>1. Система информирования</strong></td><td>1–2 мес.</td><td>Заменить «контроль глазами» на обратную связь</td><td>Правило трёх вопросов. Визуальный контроль. Мастера учатся решать сами.</td></tr>
+      <tr><td><strong>2. Дисциплина без штрафов</strong></td><td>2–3 мес.</td><td>Восстановить норму без репрессий</td><td>Журнал повторяемости. Восстановительные, а не карательные действия.</td></tr>
+      <tr><td><strong>3. Обучение и тиражирование</strong></td><td>3–6 мес.</td><td>Превратить знания в систему</td><td>Стажировка у руководителя. Карта компетенций. Тиражирование успешных практик.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section><h2>Тезисный отрывок</h2><div class="block-thesis"><p>Я прошёл путь от оператора до руководителя производственного управления в холдинге из 16 заводов. За моими плечами — вывод семи предприятий из хаоса в системные компании. И каждый раз я видел одно и то же: умные директора на местах знают, что болит, но не видят карты — куда плыть, какой следующий маяк, как отличить симптом от причины.</p><p>Им кажется, что надо хвататься за всё сразу: KPI, наказания, обучение, оборудование. Через полгода завод не лучше, а хуже. Потому что они начали не с того конца. Эта глава — протокол, проверенный на земле. Четыре фазы, которые нельзя перепрыгивать. Перепрыгнул — провалился. Соблюдал порядок — завод оживал.</p></div></section>
+
+<section><h2>Диагностика: какая фаза нужна вашему заводу?</h2>
+  <div class="widget" id="crisisDiag"><div class="widget-title">Тест: определите фазу антикризиса</div>
+    <div class="progress-bar"><div class="progress-fill" id="criProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="criStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="criQuestion"><p style="font-weight:600;margin-bottom:var(--space-3)" id="criText">Есть ли у вас достоверная информация о состоянии завода? Знаете ли вы реальный процент брака, причины простоев, кто за что отвечает?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerCri(2)">Да — система информирования работает</button>
+        <button class="btn btn-outline" onclick="answerCri(1)">Частично — отчёты есть, но данные расходятся</button>
+        <button class="btn btn-outline" onclick="answerCri(0)">Нет — управляем «ногами и глазами»</button></div>
+      <button class="btn btn-ghost btn-sm" id="criBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackCri()">← Назад</button></div>
+    <div id="criResult" style="display:none;"><div class="block-principle" id="criResultText"></div><button class="btn btn-ghost" onclick="resetCri()" style="margin-top:var(--space-3)">Пройти заново</button></div></div></section>
+
+<script>(function(){window._cri={step:0,score:0,answers:[]};var qs=[{text:'Есть ли достоверная информация о состоянии завода?',opts:[2,1,0],labels:['Да — система работает','Частично — данные расходятся','Нет — управляем «глазами»']},{text:'Соблюдается ли дисциплина? Или нарушения стали нормой?',opts:[2,1,0],labels:['Дисциплина на уровне','Есть проблемы, но решаются','Нарушения — норма, или тотальный страх']},{text:'Фиксируются ли решения проблем? Или каждый раз тушат пожар заново?',opts:[2,1,0],labels:['Да — знания в процессах','Частично — есть журналы','Нет — всё в головах']},{text:'Есть ли у вас кредит доверия: решены ли «быстрые победы» (кофеварка, туалет, тара)?',opts:[2,1,0],labels:['Да — люди видят улучшения','Работаем над этим','Нет — люди не верят']}];var t=qs.length;
+window.answerCri=function(v){var s=window._cri;s.answers.push(v);s.score+=v;s.step++;document.getElementById('criProgress').style.width=((s.step/t)*100)+'%';if(s.step>=t){document.getElementById('criStepCounter').textContent='Вопрос '+t+' из '+t;showCriResult();}else{document.getElementById('criStepCounter').textContent='Вопрос '+(s.step+1)+' из '+t;showCriQ(qs[s.step]);document.getElementById('criBackBtn').style.display='inline-flex';}};
+window.goBackCri=function(){var s=window._cri;if(s.step<=1)return;s.step--;s.score-=s.answers.pop();document.getElementById('criProgress').style.width=((s.step/t)*100)+'%';document.getElementById('criStepCounter').textContent='Вопрос '+(s.step+1)+' из '+t;showCriQ(qs[s.step]);if(s.step<=1)document.getElementById('criBackBtn').style.display='none';};
+function showCriQ(q){var c=document.getElementById('criQuestion');var h='<p style="font-weight:600;margin-bottom:var(--space-3)">'+q.text+'</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';for(var i=0;i<q.labels.length;i++)h+='<button class="btn btn-outline" onclick="answerCri('+q.opts[i]+')">'+q.labels[i]+'</button>';h+='</div><button class="btn btn-ghost btn-sm" id="criBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackCri()">← Назад</button>';c.innerHTML=h;}
+function showCriResult(){var s=window._cri.score;document.getElementById('criQuestion').style.display='none';document.getElementById('criResult').style.display='block';var tx=document.getElementById('criResultText');if(s>=7)tx.innerHTML='<strong>Ваш завод — Фаза 3: Обучение и тиражирование.</strong><br>Управляемость и дисциплина на уровне. Теперь главное — превратить знания в систему: карта компетенций, стажировки, тиражирование лучших практик.';else if(s>=4)tx.innerHTML='<strong>Фаза 2: Дисциплина без штрафов.</strong><br>Информация есть, но дисциплина хромает. Не вводите наказания. Заведите журнал повторяемости нарушений и для каждого — восстановительное действие (обучение, наставник, перенастройка процесса).';else if(s>=2)tx.innerHTML='<strong>Фаза 1: Система информирования.</strong><br>Главная проблема — вы не видите реальной картины. Начните с правила трёх вопросов (что случилось? почему? что делаем?) и визуального контроля на участках. Первые 30 дней — только диагноз, никаких наказаний.';else tx.innerHTML='<strong>Фаза 0: Остановка падения.</strong><br>Вы в острой фазе. Мораторий на наказания. Две быстрые победы за 10 дней (бытовые проблемы рабочих). Три цифры текущего состояния. Только диагноз, никаких «внедрений».';}
+window.resetCri=function(){window._cri={step:0,score:0,answers:[]};document.getElementById('criQuestion').style.display='block';document.getElementById('criResult').style.display='none';document.getElementById('criProgress').style.width='0%';document.getElementById('criStepCounter').textContent='Вопрос 1 из '+t;showCriQ(qs[0]);};})();</script>

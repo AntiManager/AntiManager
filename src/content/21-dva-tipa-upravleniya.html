@@ -1,0 +1,211 @@
+<!-- Глава 21. Два типа управления — контент -->
+
+<section>
+  <h2>Концепция</h2>
+  <div class="card-grid">
+    <div class="card" onclick="openModal('modal-run')">
+      <div class="card-number" style="color:var(--ray-processes);font-size:var(--text-4xl);">▸</div>
+      <h3>Run — энергия границы</h3>
+      <p>Быстрая, высокая амплитуда. Создаёт безопасность через предсказуемость последствий и ясное дно.</p>
+      <span class="badge badge-ray-processes">Run</span>
+    </div>
+    <div class="card" onclick="openModal('modal-change')">
+      <div class="card-number" style="color:var(--ray-people);font-size:var(--text-4xl);">◈</div>
+      <h3>Change — энергия комфорта</h3>
+      <p>Долгая, низкая амплитуда. Создаёт безопасность через право на ошибку и отсутствие страха.</p>
+      <span class="badge badge-ray-people">Change</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Пролог. Два кресла в холдинге</h2>
+  <p>В нашем холдинге два руководителя. Я — начальник производственного управления. Моя функция — <strong>Run</strong>. Удержание стабильности, исполнение плана, борьба с простоями и браком. Мой коллега — руководитель функции развития производственных систем. Его функция — <strong>Change</strong>. Внедрение новых методов, изменение поведения заводчан, работа с будущим.</p>
+  <p>Мы оба отвечаем за развитие заводов. Но наши стили — как лёд и пламя.</p>
+  <p>И долгое время я думал: «Я плохой, он хороший». Но реальность показывает другое. Через некоторое время люди понимают: я дожимаю ситуацию, а он — не всегда.</p>
+  <div class="block-principle"><strong>Ответ:</strong> меняться не надо никому. Надо понять, какую энергию ты вкладываешь в систему, и честно договориться с командой о правилах игры. А ещё — признать, что система требует и Run, и Change. Просто в разные моменты.</div>
+</section>
+
+<section>
+  <h2>Диагностика: какая энергия нужна вашей системе?</h2>
+  <div class="widget" id="energyDiagnostic">
+    <div class="widget-title">Тест: Run или Change?</div>
+    <div class="progress-bar"><div class="progress-fill" id="diagProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="diagStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 3</p>
+    <div id="diagQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="diagText">Насколько хаотична ситуация на вашем участке?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" data-answer="run" onclick="answerDiag('run')">Всё горит, сроки сорваны, люди в ступоре</button>
+        <button class="btn btn-outline" data-answer="change" onclick="answerDiag('change')">Порядок есть, но нет идей, люди боятся высказаться</button>
+        <button class="btn btn-outline" data-answer="both" onclick="answerDiag('both')">Всё спокойно и работает — хочу улучшать</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="diagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackDiag()">← Назад</button>
+    </div>
+    <div id="diagResult" style="display:none;">
+      <div class="block-principle" id="diagResultText"></div>
+      <button class="btn btn-ghost" onclick="resetDiag()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Две функции — две энергии</h2>
+
+  <h3>Run: как работает пороховая бочка</h3>
+  <p>Люди быстро учатся моим границам. Они знают, за что я взорвусь, за что похвалю, а за что просто скажу «переделай». Им не нужно гадать. В хаосе, когда все парализованы неизвестностью, моя чёткая реакция снимает ступор.</p>
+  <div class="block-case">
+    <strong>Кейс с аудитом:</strong> Два месяца — 1% заполнения. Мы разжевали каждый пункт: как назвать файл, куда загрузить, с какими словами подойти к смежникам. Заставили открыть программу и загрузить тестовый документ под присмотром. Через неделю — 93%.
+  </div>
+
+  <h3>Тёмная сторона Run и её лечение</h3>
+  <p>Раньше я срывался в истерику. Видя последствия, я начал говорить подчинённым: «Я могу выйти за рамки. Вы можете меня остановить, попросив успокоиться, — и это вам ничем не грозит». Для надёжности ввели стоп-слово: «давай покурим».</p>
+
+  <div class="card-grid" style="margin:var(--space-4) 0;">
+    <div class="chapter-card"><strong>📋 Правила пороховой бочки</strong>
+      <ol style="margin-top:var(--space-2);padding-left:var(--space-4);font-size:var(--text-sm);">
+        <li>Признать, что я вспыльчив</li>
+        <li>Заключить контракт со стоп-словом</li>
+        <li>Извиняться за форму, не отменяя сути</li>
+        <li>Чётко отделять разнос от поддержки</li>
+        <li>Инвестировать в отношения вне стресса</li>
+      </ol>
+    </div>
+    <div class="chapter-card"><strong>📋 Правила тёплого пледа</strong>
+      <ol style="margin-top:var(--space-2);padding-left:var(--space-4);font-size:var(--text-sm);">
+        <li>Прозрачные критерии оценки</li>
+        <li>Спокойное, но твёрдое «нет»</li>
+        <li>Письменная фиксация договорённостей</li>
+        <li>Делегирование контроля регламенту</li>
+        <li>Признать право на усталость от мягкости</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Change: тёплый плед и его ловушки</h3>
+  <p>Он умеет то, что не умею я. Снизить тревогу. Сказать: «Давайте подумаем, а не приказываю». Создать пространство, где люди предлагают идеи, не боясь насмешки.</p>
+  <p><strong>Ловушки:</strong> потеря управляемости (мягкость читается как слабость), выгорание самого пледа (копит раздражение, потом взрывается), иллюзия консенсуса («все согласны» не значит «сделаем»).</p>
+</section>
+
+<section>
+  <h2>Кейс: Два кресла в холдинге</h2>
+  <div class="block-case">
+    <p><strong>Контекст:</strong> Два руководителя в одном холдинге. Разные стили — лёд и пламя.</p>
+    <p><strong>Проблема:</strong> Каждый считал свой стиль неправильным, глядя на другого.</p>
+    <p><strong>Решение:</strong> Признать, что система требует обеих энергий. Run — для стабильности и быстрой реакции. Change — для трансформации и вовлечения.</p>
+    <p><strong>Результат:</strong> Оба стиля работают, если есть контракт с командой и понимание, какая энергия нужна здесь и сейчас.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Чек-лист для руководителя</h2>
+  <p>Эти пункты работают и для бочки, и для пледа. По сути, это приземление циклов PDCA и OODA на личный стиль.</p>
+  <ol style="padding-left:var(--space-5);margin:var(--space-4) 0;display:flex;flex-direction:column;gap:var(--space-3);">
+    <li><strong>Я честно признаю свой природный стиль.</strong> Не пытаюсь быть тем, кем не являюсь.</li>
+    <li><strong>Я диагностировал систему:</strong> хаос или порядок? срочный горизонт или долгий?</li>
+    <li><strong>Я заключил с командой контракт:</strong> «Я буду таким-то. Вот что это даёт, а вот где я могу пережать».</li>
+    <li><strong>У меня есть стоп-сигнал</strong> (для бочки — слово «пауза», для пледа — право сказать «давайте жёстче»).</li>
+    <li><strong>Я извиняюсь за форму, если пережал,</strong> но не отменяю суть требования.</li>
+    <li><strong>Я знаю, как я восстанавливаю энергию,</strong> и не стесняюсь просить о помощи.</li>
+    <li><strong>У меня есть напарник с противоположным стилем</strong> в команде или среди коллег.</li>
+  </ol>
+</section>
+
+<!-- Modals -->
+<div class="modal" id="modal-run">
+  <div class="modal-content">
+    <button class="modal-close close-modal">&times;</button>
+    <h2><span style="color:var(--ray-processes);">▸</span> Run — энергия границы</h2>
+    <p><strong>Суть:</strong> Быстрая реакция, высокая амплитуда. Создаёт безопасность через предсказуемость последствий и ясное дно.</p>
+    <p><strong>Когда нужен:</strong> хаос, кризис, срыв сроков, паралич команды.</p>
+    <p><strong>Риски:</strong> страх подчинённых, одиночество руководителя, выгорание от постоянного напряжения.</p>
+    <p><strong>Компенсаторы:</strong> стоп-слово, контракт с командой, извинения за форму.</p>
+  </div>
+</div>
+
+<div class="modal" id="modal-change">
+  <div class="modal-content">
+    <button class="modal-close close-modal">&times;</button>
+    <h2><span style="color:var(--ray-people);">◈</span> Change — энергия комфорта</h2>
+    <p><strong>Суть:</strong> Долгая раскачка, низкая амплитуда. Создаёт безопасность через право на ошибку и отсутствие страха.</p>
+    <p><strong>Когда нужен:</strong> застой, отсутствие инициатив, страх высказываться, долгие трансформации.</p>
+    <p><strong>Риски:</strong> потеря управляемости, иллюзия консенсуса, выгорание от подавления раздражения.</p>
+    <p><strong>Компенсаторы:</strong> прозрачные критерии, письменная фиксация, жёсткий коллега-напарник.</p>
+  </div>
+</div>
+
+<script>
+// Diagnostic widget script
+(function(){
+  window._diagState = { step: 0, answers: [] };
+  var questions = [
+    { text: 'Насколько хаотична ситуация на вашем участке?', run: 'Всё горит, сроки сорваны', change: 'Порядок есть, но нет идей', both: 'Спокойно, хочу улучшать' },
+    { text: 'Какая культура у ваших подчинённых?', run: 'Ценят прямоту, иерархию, честь', change: 'Ценят рефлексию, равенство, комфорт', both: 'Смешанная культура' },
+    { text: 'Какой горизонт у текущих задач?', run: 'Сегодня-неделя — нужно быстро', change: 'Месяцы — меняем поведение', both: 'Разные горизонты' },
+  ];
+  var total = questions.length;
+
+  window.answerDiag = function(ans) {
+    var state = window._diagState;
+    state.answers.push(ans);
+    state.step++;
+    document.getElementById('diagProgress').style.width = ((state.step / total) * 100) + '%';
+    if (state.step >= total) {
+      document.getElementById('diagStepCounter').textContent = 'Вопрос ' + total + ' из ' + total;
+      showResult(state.answers);
+    } else {
+      document.getElementById('diagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+      showQuestion(questions[state.step]);
+      document.getElementById('diagBackBtn').style.display = 'inline-flex';
+    }
+  };
+
+  window.goBackDiag = function() {
+    var state = window._diagState;
+    if (state.step <= 1) return;
+    state.step--;
+    state.answers.pop();
+    document.getElementById('diagProgress').style.width = ((state.step / total) * 100) + '%';
+    document.getElementById('diagStepCounter').textContent = 'Вопрос ' + (state.step + 1) + ' из ' + total;
+    showQuestion(questions[state.step]);
+    if (state.step <= 1) document.getElementById('diagBackBtn').style.display = 'none';
+  };
+
+  function showQuestion(q) {
+    var container = document.getElementById('diagQuestion');
+    if (!container) return;
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="diagText">' + q.text + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
+      '<button class="btn btn-outline" onclick="answerDiag(\'run\')">' + q.run + '</button>' +
+      '<button class="btn btn-outline" onclick="answerDiag(\'change\')">' + q.change + '</button>' +
+      '<button class="btn btn-outline" onclick="answerDiag(\'both\')">' + q.both + '</button></div>' +
+      '<button class="btn btn-ghost btn-sm" id="diagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackDiag()">← Назад</button>';
+  }
+
+  function showResult(answers) {
+    var container = document.getElementById('diagQuestion');
+    var result = document.getElementById('diagResult');
+    var resultText = document.getElementById('diagResultText');
+    if (!container || !result || !resultText) return;
+    container.style.display = 'none';
+    result.style.display = 'block';
+    var runCount = answers.filter(function(a){return a==='run';}).length;
+    var changeCount = answers.filter(function(a){return a==='change';}).length;
+    if (runCount > changeCount) {
+      resultText.innerHTML = '<strong><span style="color:var(--ray-processes);">▸</span> Вашей системе сейчас нужна энергия Run.</strong><br>Жёсткость, ясные границы, быстрая реакция. Вытащите команду из ступора, дайте конкретные шаги, создайте «дно». Но не забудьте стоп-слово.';
+    } else if (changeCount > runCount) {
+      resultText.innerHTML = '<strong><span style="color:var(--ray-people);">◈</span> Вашей системе сейчас нужна энергия Change.</strong><br>Терпение, безопасность, право на ошибку. Раскачайте инициативу, увлеките, а не приказывайте. Но не забудьте про письменные договорённости.';
+    } else {
+      resultText.innerHTML = '<strong>◈ Вашей системе нужен баланс.</strong><br>Используйте оба стиля в зависимости от ситуации. Где хаос — включайте Run. Где застой — Change. А лучше — найдите напарника с противоположным стилем.';
+    }
+  }
+
+  window.resetDiag = function() {
+    window._diagState = { step: 0, answers: [] };
+    document.getElementById('diagQuestion').style.display = 'block';
+    document.getElementById('diagResult').style.display = 'none';
+    document.getElementById('diagProgress').style.width = '0%';
+    document.getElementById('diagStepCounter').textContent = 'Вопрос 1 из ' + total;
+    showQuestion(questions[0]);
+  };
+})();
+</script>

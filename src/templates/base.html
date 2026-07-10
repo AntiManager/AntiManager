@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru" class="{{theme_class}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%231E2A3A'/><path d='M16 6v20M6 16h20' stroke='%23E85D04' stroke-width='2' stroke-linecap='round'/><circle cx='16' cy='16' r='4' fill='%23E85D04'/></svg>">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <link rel="canonical" href="{{canonical}}">
+  {{og_tags}}
+  {{jsonld}}
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/common.css">
+  {{head_extra}}
+  <script>
+    (function(){var t=localStorage.getItem('am-theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;var th=t||(d?'dark':'');if(th==='dark')document.documentElement.classList.add('dark');if(!t)localStorage.setItem('am-theme',th||'light');})();
+  </script>
+  {{metrika}}
+</head>
+<body class="{{body_class}}">
+  <a href="#main" class="skip-link">Перейти к содержанию</a>
+  <div class="app-shell" id="appShell">
+    {{header}}
+    {{sidebar}}
+    <main class="main" id="main">
+      <div class="main-inner">
+        {{content}}
+      </div>
+    </main>
+  </div>
+  {{footer}}
+  <button class="scroll-top" id="scrollTop" aria-label="Наверх">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <script src="/js/common.js"></script>
+  <script>
+    // Active nav state based on current URL path
+    (function(){
+      var path = window.location.pathname;
+      var links = document.querySelectorAll('.header-nav a');
+      links.forEach(function(a){
+        var href = a.getAttribute('href');
+        if (href === '/' && path === '/') a.classList.add('active');
+        else if (href !== '/' && path.startsWith(href)) a.classList.add('active');
+      });
+    })();
+  </script>
+  {{scripts}}
+</body>
+</html>

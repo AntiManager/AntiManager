@@ -1,0 +1,120 @@
+<!-- Глава 04. Управление как эксперимент — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Управление — это не исполнение планов, а серия экспериментов.</strong><br>
+    Каждый управленческий цикл должен отвечать на вопрос: «Что мы узнали нового о том, как заставить систему работать лучше?» Вместо «списка дел» — проверяемая гипотеза. Вместо массового внедрения — контролируемый пилот. Вместо наказания — решение: стандартизировать успех или начать новый цикл.
+  </div>
+</section>
+
+<section>
+  <h2>Модель: цикл PDCA + формула гипотезы</h2>
+  <p>PDCA (Plan-Do-Check-Act) — не бюрократический шаблон, а научный метод в управлении. Четыре фазы, прожитые осознанно:</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Фаза</th><th>Что это на самом деле</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Plan</strong></td><td>Не список дел, а проверяемая гипотеза о причинно-следственной связи</td></tr>
+      <tr><td><strong>Do</strong></td><td>Не массовое внедрение, а контролируемый эксперимент (пилот)</td></tr>
+      <tr><td><strong>Check</strong></td><td>Не отчёт, а анализ данных и извлечение уроков</td></tr>
+      <tr><td><strong>Act</strong></td><td>Не наказание, а решение: стандартизировать или начать новый цикл</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Формула гипотезы:</strong></p>
+  <div class="block-principle" style="font-size:var(--text-sm);">
+    «Если <em>воздействие</em>, то <em>изменение поведения</em>,<br>
+    потому что <em>мотив или устранение барьера</em>,<br>
+    тогда <em>влияние на метрику</em>»
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Вы — руководитель. Каждый день вы слышите: «Надо провести планёрку», «Утвердить регламент», «Внедрить KPI». Вы это делаете. Но через два месяца проблема возвращается. Знакомо?</p>
+    <p>Ответ прост: вы меняли действия, а не поведение. Вы планировали мероприятия, а не эксперимент. Настоящий PDCA начинается не с плана работ, а с гипотезы: «Если сделать X, то люди начнут делать Y, потому что Z, тогда метрика изменится на N%».</p>
+    <p>Я помню свой первый осознанный цикл. На одном заводе брак на сварке достиг 7%. Мы не стали проводить внеплановый инструктаж. Вместо этого повесили на верстак образцы правильных и дефектных швов. Через неделю брак упал до 4%. Мы проверили гипотезу «если дать наглядный эталон, то сварщик будет сверяться». Сработало. Главное — мы поняли, что дело не в лени людей, а в отсутствии быстрой подсказки.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Конструктор гипотезы</h2>
+  <div class="widget" id="hypothesisBuilder">
+    <div class="widget-title">Соберите свою гипотезу PDCA</div>
+    <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Заполните поля — получите готовую формулировку для вашего эксперимента.</p>
+    <div class="form-group">
+      <label>Что вы сделаете? (воздействие)</label>
+      <input type="text" id="hbAction" placeholder="например: разместить эталонные образцы на верстаке" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>Какое поведение ожидаете? (что люди начнут делать)</label>
+      <input type="text" id="hbBehavior" placeholder="например: сварщик будет сверяться с эталоном перед каждым швом" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>Почему это сработает? (мотив / устранение барьера)</label>
+      <input type="text" id="hbWhy" placeholder="например: не надо лезть в телефон или звать мастера" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>Какая метрика изменится и на сколько?</label>
+      <input type="text" id="hbMetric" placeholder="например: брак снизится с 7% до 2% за две недели" style="width:100%;">
+    </div>
+    <button class="btn btn-primary" onclick="buildHypothesis()">Собрать гипотезу</button>
+    <div id="hbResult" style="display:none;margin-top:var(--space-4);">
+      <div class="block-principle" id="hbResultText"></div>
+      <button class="btn btn-ghost" onclick="resetHb()" style="margin-top:var(--space-2)">Заполнить заново</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Четыре рычага изменений</h2>
+  <p>Прежде чем запустить цикл PDCA, проверьте все четыре рычага. Если провалены два и более — сначала почините их.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Рычаг</th><th>Вопрос себе</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Процессы и инструкции</strong></td><td>Как новое поведение вписывается в ежедневную рутину?</td></tr>
+      <tr><td><strong>Мотивация и KPI</strong></td><td>Человеку выгодно делать по-новому?</td></tr>
+      <tr><td><strong>Ресурсы и инструменты</strong></td><td>Всё ли у него есть для нового поведения?</td></tr>
+      <tr><td><strong>Обучение и навыки</strong></td><td>Он умеет это делать?</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<script>
+function buildHypothesis() {
+  var action = document.getElementById('hbAction').value.trim();
+  var behavior = document.getElementById('hbBehavior').value.trim();
+  var why = document.getElementById('hbWhy').value.trim();
+  var metric = document.getElementById('hbMetric').value.trim();
+
+  if (!action || !behavior || !why || !metric) {
+    alert('Заполните все поля');
+    return;
+  }
+
+  var result = document.getElementById('hbResult');
+  var text = document.getElementById('hbResultText');
+  text.innerHTML = '<strong>Ваша гипотеза:</strong><br><br>'
+    + '«Если мы <em>' + action + '</em>,<br>'
+    + 'то <em>' + behavior + '</em>,<br>'
+    + 'потому что <em>' + why + '</em>,<br>'
+    + 'тогда <em>' + metric + '</em>».';
+  result.style.display = 'block';
+  document.querySelector('#hypothesisBuilder .btn-primary').style.display = 'none';
+}
+
+function resetHb() {
+  document.getElementById('hbResult').style.display = 'none';
+  document.querySelector('#hypothesisBuilder .btn-primary').style.display = 'inline-flex';
+  ['hbAction','hbBehavior','hbWhy','hbMetric'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+}
+</script>

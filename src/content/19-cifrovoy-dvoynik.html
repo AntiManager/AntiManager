@@ -1,0 +1,100 @@
+<!-- Глава 19. Цифровой двойник — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Объектно-ориентированное мышление — не про программирование. Это про умение видеть общее за уникальным.</strong><br>
+    Каждый станок уникален: ТПА №5 «капризничает», экструдер №2 «любит горячую зону». Но если присмотреться — ТПА №5 и ТПА №7 отличаются усилием, но одинаково смыкают форму. Экструдер для трубы и для плёнки разные, но оба плавят полимер. Вы уже мыслите объектно, когда говорите «это типовой ТПА 250 тонн». Просто не дали названия. Эта глава — о том, как сделать неявное явным и перестать зависеть от «уникального опыта» старых мастеров.
+  </div>
+</section>
+
+<section>
+  <h2>Четыре принципа ООП — на языке цеха</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Принцип</th><th>IT-определение</th><th>На заводе</th><th>Пример</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Класс и Объект</strong></td><td>Класс = чертёж. Объект = конкретный экземпляр.</td><td>Класс «ТПА» описывает все ТПА. Объект «ТПА №5» — конкретный станок с серийным номером.</td><td>Переносите режим с №5 на №7 — работает, потому что оба одного класса.</td></tr>
+      <tr><td><strong>Наследование</strong></td><td>Дочерний класс берёт всё от родительского и добавляет своё.</td><td>«ТПА с роботом» наследует от «ТПА» всё, плюс метод «захват детали».</td><td>Изменили стандарт безопасности в классе «ТПА» — все дочерние подхватили.</td></tr>
+      <tr><td><strong>Полиморфизм</strong></td><td>Одна команда — разное поведение в зависимости от объекта.</td><td>Скажите «Пуск». Для ТПА — смыкание, впрыск, раскрытие. Для экструдера — нагрев, запуск шнека. Для сушилки — включение вентилятора.</td><td>Оператор говорит «запускаю смену» — каждый станок запускается по-своему, но команда одна.</td></tr>
+      <tr><td><strong>Инкапсуляция</strong></td><td>Объект скрывает внутреннее устройство; взаимодействие — через интерфейс.</td><td>Мастеру не нужно знать, как устроен шнек внутри. Ему нужна кнопка «Пуск» и показатели на экране.</td><td>Скрыли сложность настройки за панелью оператора — снизили требования к квалификации.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Пётр работает на заводе 15 лет. Он знает: ТПА №3 «капризничает» при смене формы, экструдер №2 любит более горячую зону 3, а сушилка для АБС требует на 10°C больше паспорта. Когда Пётр в отпуске, мастер звонит ему в 11 вечера: «Почему деталь хрупкая?» Мастер не знает, как связать станок, форму и полимер — эти связи живут только в голове Петра.</p>
+    <p>Проблема не в уникальности станков. Проблема в неявных связях. Каждый сотрудник держит в голове свою карту. Когда карты не совпадают — начинается хаос. Эта глава даёт инструмент, чтобы вытащить знание из головы Петра и сделать его доступным всей команде — без программирования и «цифровых двойников».</p>
+  </div>
+</section>
+
+<section>
+  <h2>Упражнение: постройте карту объектов вашего цеха</h2>
+  <div class="widget" id="oopBuilder">
+    <div class="widget-title">Конструктор: карта связей цеха</div>
+    <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Заполните поля — увидите, как знания из головы Петра становятся системой.</p>
+    <div class="form-group">
+      <label>Выберите тип объекта (класс)</label>
+      <select id="oopClass" style="width:100%;">
+        <option value="">— выберите —</option>
+        <option value="ТПА">Термопластавтомат (ТПА)</option>
+        <option value="Экструдер">Экструдер</option>
+        <option value="Сушилка">Сушилка</option>
+        <option value="Форма">Форма / Оснастка</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Название конкретного объекта (например, «ТПА №5»)</label>
+      <input type="text" id="oopName" placeholder="ТПА №5" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>Три ключевых параметра этого объекта</label>
+      <input type="text" id="oopAttrs" placeholder="Усилие 250т, объём 400см³, зона 1: 200°C" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>С какими другими объектами он связан? (например, «использует Форму №12», «перерабатывает Полимер АБС»)</label>
+      <input type="text" id="oopLinks" placeholder="Форма №12, Полимер АБС" style="width:100%;">
+    </div>
+    <button class="btn btn-primary" onclick="buildOop()">Построить карту</button>
+    <div id="oopResult" style="display:none;margin-top:var(--space-4);">
+      <div class="block-principle" id="oopResultText"></div>
+      <button class="btn btn-ghost" onclick="resetOop()" style="margin-top:var(--space-2)">Заполнить заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function buildOop() {
+  var cls = document.getElementById('oopClass').value;
+  var name = document.getElementById('oopName').value.trim();
+  var attrs = document.getElementById('oopAttrs').value.trim();
+  var links = document.getElementById('oopLinks').value.trim();
+  if (!cls || !name) { alert('Выберите тип и название объекта'); return; }
+  var result = document.getElementById('oopResult');
+  var text = document.getElementById('oopResultText');
+  var html = '<strong>Карта объекта:</strong><br><br>';
+  html += '<strong>Класс:</strong> ' + cls + '<br>';
+  html += '<strong>Объект:</strong> ' + name + '<br>';
+  if (attrs) html += '<strong>Атрибуты:</strong> ' + attrs + '<br>';
+  if (links) html += '<strong>Связи:</strong> ' + links + '<br><br>';
+  html += '<strong>Что это даёт:</strong><br>';
+  html += '• Другой ' + cls + ' с похожими атрибутами можно настраивать по аналогии — класс один.<br>';
+  html += '• Знание о ' + name + ' теперь не в голове одного человека, а в карте.<br>';
+  html += '• При поломке ' + name + ' видно, с какими объектами он связан — можно оценить последствия.<br>';
+  html += '• Новичок может прочитать карту и понять систему связей за 5 минут.';
+  text.innerHTML = html;
+  result.style.display = 'block';
+  document.querySelector('#oopBuilder .btn-primary').style.display = 'none';
+}
+
+function resetOop() {
+  document.getElementById('oopResult').style.display = 'none';
+  document.querySelector('#oopBuilder .btn-primary').style.display = 'inline-flex';
+  ['oopName','oopAttrs','oopLinks'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('oopClass').value='';
+}
+</script>

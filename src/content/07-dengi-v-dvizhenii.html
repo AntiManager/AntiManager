@@ -1,0 +1,31 @@
+<!-- Глава 07. Деньги в движении — lite -->
+<section><h2>Принцип модели</h2><div class="block-principle"><strong>Вы управляете производством, но не видите, как ваши решения влияют на деньги. Наденьте «финансовые очки».</strong><br>Каждый день на заводе два параллельных процесса: физический (сырьё → продукт) и финансовый (деньги → затраты → прибыль). Второй невидим. Вы видите его последствия только в конце месяца в P&L, когда поезд уже разбился. Традиционный учёт «размазывает» накладные расходы равномерно — и врёт. ABC-костинг и OEE переводят язык станков на язык денег: каждая минута простоя, каждый процент брака, каждое лишнее движение — в рубли.</div></section>
+
+<section><h2>Семь пожирателей прибыли и OEE как переводчик</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Потеря</th><th>Как выглядит</th><th>Во что обходится</th></tr></thead>
+<tbody>
+<tr><td><strong>Перепроизводство</strong></td><td>Сделали больше, чем нужно</td><td>Заморозка денег в запасах, склад, утилизация</td></tr>
+<tr><td><strong>Ожидание</strong></td><td>Станок стоит — нет сырья, инструмента, наладчика</td><td>Стоимость часа работы станка + зарплата оператора</td></tr>
+<tr><td><strong>Транспортировка</strong></td><td>Детали возят через весь цех</td><td>Топливо, погрузчик, время, риск повреждения</td></tr>
+<tr><td><strong>Избыточная обработка</strong></td><td>Шлифуем там, где не надо</td><td>Амортизация, инструмент, энергия</td></tr>
+<tr><td><strong>Запасы</strong></td><td>Склад забит «на всякий случай»</td><td>Аренда, обслуживание, устаревание, оборотка</td></tr>
+<tr><td><strong>Движения</strong></td><td>Оператор ходит за инструментом</td><td>Потеря времени × ставка × количество операторов</td></tr>
+<tr><td><strong>Брак</strong></td><td>Деталь в утиль</td><td>Материал + обработка + утилизация + переделка</td></tr>
+</tbody></table></div>
+<p><strong>OEE = Доступность × Производительность × Качество.</strong> Падение OEE на 10% — это не «проблема эффективности». Это конкретная сумма убытка, которую можно посчитать для каждого станка.</p></section>
+
+<section><h2>Тезисный отрывок</h2><div class="block-thesis"><p>Ко мне пришёл владелец завода пластиковых деталей. Бухгалтерия показала: продукт А — себестоимость 100 руб., продукт Б — 120 руб. Он закрыл «нерентабельную» линейку Б. Через полгода прибыль упала на 30%. Оказалось, Б производился на старом самортизированном оборудовании и не требовал переналадок. А продукт А «тянул» огромные косвенные затраты на частые переналадки, сложный контроль и обслуживание. Реальная себестоимость А была 140, Б — 90.</p><p>Это не единичный случай. Я вижу такую картину на каждом втором предприятии. Традиционный учёт врёт — он не различает продукты по реальному потреблению ресурсов. Финансовые очки — это ABC-костинг: не «размазывать» накладные, а считать, какие именно операции съедают деньги и кто их потребляет.</p></div></section>
+
+<section><h2>Калькулятор: сколько стоит минута простоя?</h2>
+<div class="widget" id="oeeCalc"><div class="widget-title">Калькулятор стоимости простоя</div>
+<p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Введите данные по одному станку или участку.</p>
+<div class="form-group"><label>Стоимость станко-часа (амортизация + энергия + обслуживание), руб/час</label><input type="number" id="oeeRate" placeholder="например: 2500" style="width:100%;"></div>
+<div class="form-group"><label>Ставка оператора, руб/час</label><input type="number" id="oeeWage" placeholder="например: 500" style="width:100%;"></div>
+<div class="form-group"><label>Среднее время простоя в день, минут</label><input type="number" id="oeeDown" placeholder="например: 45" style="width:100%;"></div>
+<div class="form-group"><label>Рабочих дней в месяце</label><input type="number" id="oeeDays" placeholder="22" style="width:100%;"></div>
+<button class="btn btn-primary" onclick="calcOee()">Посчитать</button>
+<div id="oeeResult" style="display:none;margin-top:var(--space-4);"><div class="block-principle" id="oeeResultText"></div><button class="btn btn-ghost" onclick="resetOee()" style="margin-top:var(--space-2)">Заново</button></div></div></section>
+
+<script>function calcOee(){var r=parseFloat(document.getElementById('oeeRate').value)||0;var w=parseFloat(document.getElementById('oeeWage').value)||0;var d=parseFloat(document.getElementById('oeeDown').value)||0;var days=parseFloat(document.getElementById('oeeDays').value)||22;var costPerMin=(r+w)/60;var costDay=costPerMin*d;var costMonth=costDay*days;var costYear=costMonth*12;document.getElementById('oeeResult').style.display='block';document.querySelector('#oeeCalc .btn-primary').style.display='none';document.getElementById('oeeResultText').innerHTML='<strong>Стоимость 1 минуты простоя:</strong> '+costPerMin.toFixed(0)+' ₽<br><strong>В день:</strong> '+costDay.toFixed(0)+' ₽<br><strong>В месяц:</strong> '+costMonth.toFixed(0)+' ₽<br><strong>В год:</strong> '+costYear.toFixed(0)+' ₽<br><br>Если сократить простои на 30% — экономия <strong>'+(costYear*0.3).toFixed(0)+' ₽/год</strong>.';}
+function resetOee(){document.getElementById('oeeResult').style.display='none';document.querySelector('#oeeCalc .btn-primary').style.display='inline-flex';['oeeRate','oeeWage','oeeDown','oeeDays'].forEach(function(id){document.getElementById(id).value='';});}</script>

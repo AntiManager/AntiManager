@@ -1,0 +1,91 @@
+<!-- Глава 08. Нервная система компании — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Живая организация чувствует, что с ней происходит, понимает причины сбоев и сама корректирует поведение. Мёртвая — собирает тонны цифр, но не способна ни к адаптации, ни к развитию.</strong><br>
+    Главная болезнь современного производства — «зоопарк KPI»: бухгалтерия меряет рентабельность, производство — OEE, закупки — оборачиваемость склада. Каждый показатель живёт своей жизнью. За каждым — свой владелец со своей премией. В результате: данные не стыкуются, директор требует от мастера EBITDA, а мастер не знает, как на неё влиять. Решение — иерархия показателей по уровням сложности: каждому уровню управления — свой KPI.
+  </div>
+</section>
+
+<section>
+  <h2>Иерархия KPI по уровням сложности</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Уровень</th><th>Что управляем</th><th>Примеры KPI</th><th>Кто отвечает</th><th>Горизонт</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Объект</strong></td><td>Станок, операция</td><td>Выработка, время цикла, простой</td><td>Бригадир, оператор</td><td>Смена</td></tr>
+      <tr><td><strong>2. Проект</strong></td><td>Временная задача</td><td>Бюджет, сроки, вехи</td><td>Мастер, рук. проекта</td><td>1–6 мес.</td></tr>
+      <tr><td><strong>3. Программа</strong></td><td>Процесс, цех</td><td>OEE, OTIF, % брака</td><td>Начальник цеха</td><td>1–12 мес.</td></tr>
+      <tr><td><strong>4. Стратегия</strong></td><td>Вектор развития</td><td>NPS, рост в сегментах</td><td>Рук. направлений</td><td>6–24 мес.</td></tr>
+      <tr><td><strong>5. Политика</strong></td><td>Компания как целое</td><td>ROA, доля рынка</td><td>Гендиректор, CFO</td><td>1–3 года</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Золотое правило:</strong> KPI уровня N — это гипотеза для улучшений на уровне N-1 и результат для уровня N+1. Если OEE упал (уровень 3) — начальник цеха отвечает за результат, руководитель проекта ищет причину (уровень 2), а гендиректор пересматривает политику обслуживания (уровень 5).</p>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Представьте: вы генеральный директор. Утром открываете почту — 14 отчётов в разных Excel-файлах. Финансовый директор докладывает одну EBITDA, начальник производства — совсем другой OEE, отдел продаж рапортует о росте конверсии, но выручка не растёт. Вы идёте в цех — станок стоит, рабочие курят. Мастер говорит: «А мы докладывали, у меня в отчёте всё зелёное».</p>
+    <p>Эта книга — не про отчёты и IT-системы. Она про нервную систему компании: как сделать так, чтобы организация чувствовала, понимала и сама корректировала себя. Три смертельных греха управления через KPI: слишком мало показателей (видите только финал, когда поезд уже разбился), слишком много (шум забивает сигнал), и не те показатели для уровня (рабочему — KPI по рентабельности, стратегу — количество деталей в смену).</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: на каком уровне у вас разрыв KPI?</h2>
+  <div class="widget" id="kpiDiag">
+    <div class="widget-title">Тест: три смертельных греха KPI</div>
+    <div class="progress-bar"><div class="progress-fill" id="kpiProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="kpiStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="kpiQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="kpiText">Согласованы ли KPI разных подразделений? Или они тянут в разные стороны?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerKpi(2)">Да, показатели сквозные и непротиворечивые</button>
+        <button class="btn btn-outline" onclick="answerKpi(1)">Частично — есть конфликты между подразделениями</button>
+        <button class="btn btn-outline" onclick="answerKpi(0)">Зоопарк — каждый отдел меряет своё, данные не стыкуются</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="kpiBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackKpi()">← Назад</button>
+    </div>
+    <div id="kpiResult" style="display:none;">
+      <div class="block-principle" id="kpiResultText"></div>
+      <button class="btn btn-ghost" onclick="resetKpi()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._kpiDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Согласованы ли KPI разных подразделений? Или они тянут в разные стороны?', options: [2,1,0], labels: ['Да — сквозные и непротиворечивые','Частично — есть конфликты','Зоопарк — данные не стыкуются'] },
+    { text: 'Получает ли каждый уровень управления «правильные» KPI? Или всем спускают одно и то же?', options: [2,1,0], labels: ['Да — у оператора свои, у директора свои','Где-то адаптировано, но не системно','Всем одно и то же — EBITDA для всех'] },
+    { text: 'Видите ли вы причинно-следственные связи между показателями? (пример: снизили запасы → встал цех?)', options: [2,1,0], labels: ['Да — есть карта связей между KPI','Примерно понимаем, но не фиксируем','Нет — каждый показатель сам по себе'] },
+    { text: 'Как быстро информация о проблеме в цехе доходит до директора?', options: [2,1,0], labels: ['Мгновенно — есть визуальный дашборд','В течение дня — через отчёты','Директор узнаёт последним, когда уже поздно'] },
+  ];
+  var total = questions.length;
+
+  window.answerKpi = function(val) { var s = window._kpiDiag; s.answers.push(val); s.score += val; s.step++; document.getElementById('kpiProgress').style.width = ((s.step/total)*100)+'%'; if(s.step>=total){ document.getElementById('kpiStepCounter').textContent='Вопрос '+total+' из '+total; showKpiResult(); } else { document.getElementById('kpiStepCounter').textContent='Вопрос '+(s.step+1)+' из '+total; showKpiQuestion(questions[s.step]); document.getElementById('kpiBackBtn').style.display='inline-flex'; } };
+  window.goBackKpi = function() { var s = window._kpiDiag; if(s.step<=1) return; s.step--; s.score -= s.answers.pop(); document.getElementById('kpiProgress').style.width = ((s.step/total)*100)+'%'; document.getElementById('kpiStepCounter').textContent='Вопрос '+(s.step+1)+' из '+total; showKpiQuestion(questions[s.step]); if(s.step<=1) document.getElementById('kpiBackBtn').style.display='none'; };
+
+  function showKpiQuestion(q) {
+    var c = document.getElementById('kpiQuestion');
+    var h = '<p style="font-weight:600;margin-bottom:var(--space-3)">'+q.text+'</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for(var i=0;i<q.labels.length;i++) h+='<button class="btn btn-outline" onclick="answerKpi('+q.options[i]+')">'+q.labels[i]+'</button>';
+    h+='</div><button class="btn btn-ghost btn-sm" id="kpiBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackKpi()">← Назад</button>';
+    c.innerHTML=h;
+  }
+
+  function showKpiResult() {
+    var s=window._kpiDiag.score; document.getElementById('kpiQuestion').style.display='none'; document.getElementById('kpiResult').style.display='block';
+    var t=document.getElementById('kpiResultText');
+    if(s>=7) t.innerHTML='<strong>Нервная система работает.</strong><br>KPI согласованы между подразделениями, каждый уровень получает свои показатели, причинно-следственные связи видны. Поддерживайте: раз в квартал проводите аудит KPI на предмет конфликтов и «мёртвых» показателей, которые никто не использует для решений.';
+    else if(s>=4) t.innerHTML='<strong>Есть чувствительность, но нет координации.</strong><br>KPI собираются, но не согласованы между отделами. Начните с одного: выберите самый конфликтный стык (например, производство vs продажи) и проведите совместную сессию — пусть каждая сторона покажет, как её KPI влияет на KPI другой стороны. Найдите общий сквозной показатель.';
+    else t.innerHTML='<strong>Нервная система отсутствует.</strong><br>Это классический «зоопарк KPI»: много цифр, мало смысла. Начните с трёх шагов: (1) сократите количество показателей — оставьте только те, на основе которых реально принимаются решения; (2) для каждого показателя определите уровень по таблице выше; (3) постройте причинно-следственную карту: что на что влияет? Один лист А4, три главных KPI, стрелки между ними.';
+  }
+
+  window.resetKpi=function(){window._kpiDiag={step:0,score:0,answers:[]};document.getElementById('kpiQuestion').style.display='block';document.getElementById('kpiResult').style.display='none';document.getElementById('kpiProgress').style.width='0%';document.getElementById('kpiStepCounter').textContent='Вопрос 1 из '+total;showKpiQuestion(questions[0]);};
+})();
+</script>

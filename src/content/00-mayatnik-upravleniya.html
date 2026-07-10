@@ -1,0 +1,91 @@
+<!-- Глава 00. Маятник управления — lite -->
+<section>
+  <h2>Принцип модели</h2>
+  <div class="block-principle">
+    <strong>Каждая живая система, если её зафиксировать в инструкциях и оторвать от людей, умирает.</strong><br>
+    История менеджмента — это бесконечный маятник из четырёх фаз: (1) Прозрение — гениальный человек находит живое, контекстное решение. (2) Формализация — последователи превращают решение в ритуал, выбрасывая «почему» и оставляя «как». (3) Крах доверия — люди восстают или саботируют, хорошая идея становится ругательством. (4) Забвение и возвращение — маятник качается обратно. Единицы умеют «деформализовать»: брать идею, но не превращать её в догму.
+  </div>
+</section>
+
+<section>
+  <h2>Семь тысяч лет маятника: ключевые эпизоды</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Эпоха</th><th>Прозрение</th><th>Формализация</th><th>Урок</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Шумеры, 3000 до н.э.</strong></td><td>Глиняные таблички — первый учёт. Без учёта нет государства.</td><td>Жрецы стали кастой. «По документам всё правильно» — зерно гниёт.</td><td>Учёт — инструмент, а не цель.</td></tr>
+      <tr><td><strong>Венеция, 1436</strong></td><td>Арсенал: конвейер, стандартные детали, контроль качества — галера за 2 часа.</td><td>Гильдии охраняют секреты. Новшества караются. Корабли устарели.</td><td>Нет вечных систем. Система, которая не позволяет себя нарушать, умирает.</td></tr>
+      <tr><td><strong>Тейлор, 1911</strong></td><td>Научный менеджмент: хронометраж, стандарты, «лучший способ».</td><td>Рабочие — винтики. Забастовки. Конгресс США запрещает хронометраж.</td><td>Эффективность без человечности — бунт.</td></tr>
+      <tr><td><strong>Элтон Мэйо, 1924–32</strong></td><td>Хоторнские эксперименты: внимание к людям повышает производительность.</td><td>«Человеческие отношения» стали манипуляцией. Корпоративы вместо реальных изменений.</td><td>Забота не формализуется — она либо есть, либо её нет.</td></tr>
+      <tr><td><strong>Agile, 2001 → сегодня</strong></td><td>Манифест: люди важнее процессов, работающий продукт важнее документации.</td><td>SAFe, сертификации, «аджайл-коучи». Стендапы стали ритуалом отчётности.</td><td>Agile превратился в то, с чем боролся. Формализация съела смысл.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Тезисный отрывок</h2>
+  <div class="block-thesis">
+    <p>Вы держите в руках не обычную историю менеджмента. Это книга-предупреждение. Мы пройдём 7000 лет — от шумерских жрецов с глиняными табличками до нейросетей, которые сегодня решают, кого уволить. И в каждой эпохе мы увидим один и тот же трагический фарс: гений находит решение — бюрократы превращают его в ритуал — люди восстают — идею забывают и переизобретают заново.</p>
+    <p>В конце — не рецепты. В конце — единственный навык, который останется с вами после чтения: способность заметить, что форма убивает содержание, и смелость остановить конвейер. Потому что нет ничего опаснее успешной системы, которая перестала сомневаться в себе.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Диагностика: на какой фазе маятника ваша практика?</h2>
+  <div class="widget" id="pendulumDiag">
+    <div class="widget-title">Тест: формализация vs живое управление</div>
+    <p class="text-sm text-muted" style="margin-bottom:var(--space-3);">Вспомните конкретную управленческую практику (KPI, планёрки, регламенты, Agile...).</p>
+    <div class="progress-bar"><div class="progress-fill" id="penProgress" style="width:0%"></div></div>
+    <p class="text-sm text-muted" id="penStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
+    <div id="penQuestion">
+      <p style="font-weight:600;margin-bottom:var(--space-3)" id="penText">Знают ли люди, ПОЧЕМУ они делают эту практику, или просто «так положено»?</p>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <button class="btn btn-outline" onclick="answerPen(2)">Да — каждый понимает смысл и цель</button>
+        <button class="btn btn-outline" onclick="answerPen(1)">Скорее да — но уже «на автомате»</button>
+        <button class="btn btn-outline" onclick="answerPen(0)">Нет — «потому что начальник сказал»</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="penBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPen()">← Назад</button>
+    </div>
+    <div id="penResult" style="display:none;">
+      <div class="block-principle" id="penResultText"></div>
+      <button class="btn btn-ghost" onclick="resetPen()" style="margin-top:var(--space-3)">Пройти заново</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  window._penDiag = { step: 0, score: 0, answers: [] };
+  var questions = [
+    { text: 'Знают ли люди, ПОЧЕМУ они делают эту практику, или просто «так положено»?', options: [2,1,0], labels: ['Да — каждый понимает смысл','Скорее да — но уже «на автомате»','Нет — «потому что начальник сказал»'] },
+    { text: 'Обновлялась ли эта практика за последний год? Или «работает — не трогай»?', options: [2,1,0], labels: ['Да, регулярно пересматриваем','Корректировали, но редко','Не менялась годами — «деды так делали»'] },
+    { text: 'Может ли сотрудник отступить от практики, если это даст лучший результат?', options: [2,1,0], labels: ['Да — у нас поощряется разумное отступление','Теоретически может — но боится','Нет — нарушение карается'] },
+    { text: 'Приносят ли люди предложения по улучшению этой практики?', options: [2,1,0], labels: ['Да, регулярно — это живой процесс','Иногда — но редко внедряют','Нет — «зачем, всё равно не послушают»'] },
+  ];
+  var total = questions.length;
+
+  window.answerPen = function(val) { var s = window._penDiag; s.answers.push(val); s.score += val; s.step++; document.getElementById('penProgress').style.width = ((s.step/total)*100)+'%'; if(s.step>=total){ document.getElementById('penStepCounter').textContent='Вопрос '+total+' из '+total; showPenResult(); } else { document.getElementById('penStepCounter').textContent='Вопрос '+(s.step+1)+' из '+total; showPenQuestion(questions[s.step]); document.getElementById('penBackBtn').style.display='inline-flex'; } };
+  window.goBackPen = function() { var s = window._penDiag; if(s.step<=1) return; s.step--; s.score -= s.answers.pop(); document.getElementById('penProgress').style.width = ((s.step/total)*100)+'%'; document.getElementById('penStepCounter').textContent='Вопрос '+(s.step+1)+' из '+total; showPenQuestion(questions[s.step]); if(s.step<=1) document.getElementById('penBackBtn').style.display='none'; };
+
+  function showPenQuestion(q) {
+    var c = document.getElementById('penQuestion');
+    var h = '<p style="font-weight:600;margin-bottom:var(--space-3)">'+q.text+'</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
+    for(var i=0;i<q.labels.length;i++) h+='<button class="btn btn-outline" onclick="answerPen('+q.options[i]+')">'+q.labels[i]+'</button>';
+    h+='</div><button class="btn btn-ghost btn-sm" id="penBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackPen()">← Назад</button>';
+    c.innerHTML=h;
+  }
+
+  function showPenResult() {
+    var s=window._penDiag.score; document.getElementById('penQuestion').style.display='none'; document.getElementById('penResult').style.display='block';
+    var t=document.getElementById('penResultText');
+    if(s>=7) t.innerHTML='<strong>Фаза 1 — Живое прозрение.</strong><br>Ваша практика осмысленна, люди понимают «почему», она обновляется и допускает разумные отступления. Это редкое состояние. Защищайте его: главный враг сейчас — формализация через успех. Не позволяйте практике превратиться в ритуал.';
+    else if(s>=4) t.innerHTML='<strong>Фаза 2 — Начало формализации.</strong><br>Практика работает, но уже начинает костенеть. Люди делают «как привыкли», не задумываясь «почему». Предложения по улучшению единичны. Прямо сейчас: задайте вопрос «зачем мы это делаем?» на следующей планёрке. Разрешите одно осознанное отступление от правила — и обсудите результат.';
+    else t.innerHTML='<strong>Фаза 3 — Формализация / Крах доверия.</strong><br>Практика стала ритуалом. Люди исполняют, потому что «надо», а не потому что понятно. Смысл потерян. Два пути: (1) радикально пересмотреть практику — спросить людей «что здесь не работает?» и отменить то, что мешает; (2) признать, что практика умерла, и начать с чистого листа — но уже с пониманием маятника.';
+  }
+
+  window.resetPen=function(){window._penDiag={step:0,score:0,answers:[]};document.getElementById('penQuestion').style.display='block';document.getElementById('penResult').style.display='none';document.getElementById('penProgress').style.width='0%';document.getElementById('penStepCounter').textContent='Вопрос 1 из '+total;showPenQuestion(questions[0]);};
+})();
+</script>
