@@ -1,0 +1,48 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "permission": {
+    "bash": "allow",
+    "read": {
+      "*": "allow"
+    },
+    "edit": {
+      "*": "allow"
+    },
+    "external_directory": {
+      "C:\\Users\\USERNAME\\Documents\\Python\\AntiManager\\*": "allow",
+      "C:\\Users\\USERNAME\\Documents\\VAULT_DIR\\01_Статьи\\*": "allow",
+      "C:\\Users\\USERNAME\\AppData\\Local\\Temp\\kilo\\*": "allow"
+    }
+  },
+  "mcp": {
+    "obsidian": {
+      "type": "local",
+      "command": [
+        "cmd",
+        "/c",
+        "npx",
+        "--yes",
+        "obsidian-mcp",
+        "C:\\Users\\USERNAME\\Documents\\VAULT_DIR"
+      ],
+      "enabled": false
+    },
+    "github": {
+      "type": "local",
+      "command": [
+        "cmd",
+        "/c",
+        "npx",
+        "--yes",
+        "@modelcontextprotocol/server-github"
+      ],
+      "enabled": false
+    },
+    "web-search": {
+      "type": "remote",
+      "url": "https://mcp.khoj.dev/sse",
+      "enabled": false
+    }
+  },
+  "snapshot": false
+}
