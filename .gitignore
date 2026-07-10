@@ -1,6 +1,6 @@
 node_modules/
-test-results/
-playwright-report/
-tests/snapshots/**/*.png
-site/
-dist/
+site/dist/
+site/node_modules/
+site/test-results/
+site/playwright-report/
+site/tests/snapshots/**/*.png
