@@ -6,16 +6,16 @@
 - web-developer — дизайн-система, шаблон страницы, производительность
 - content-publisher — перенос Obsidian-статей в HTML
 - book-writing — редактура статей
-- vault-commander — аудит хранилища
+- vault-commander — аудит хранилища (устаревший, см. vault-indexer)
+- vault-indexer — полная инвентаризация vault (структура, связи, здоровье)
+- site-designer — дизайн и UX сайта antimanager.pro
 - diagram-architect — Mermaid-диаграммы
 - management-research — исследование концепций
 
-MCP (отключены, включать через /mcps):
-- obsidian — пакетная обработка заметок
+MCP (включены постоянно):
+- obsidian — пакетная обработка заметок, чтение/запись vault
 - web-search — поиск референсов
 - github — коммиты/пуши, деплой
-
-Я говорю когда включить/отключить MCP через /mcps.
 
 ---
 
