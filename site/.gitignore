@@ -4,3 +4,5 @@ playwright-report/
 tests/snapshots/**/*.png
 site/
 dist/
+.env
+.env.local

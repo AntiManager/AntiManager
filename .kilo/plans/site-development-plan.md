@@ -16,7 +16,7 @@
 
 ### Развёрнуто
 - https://antimanager.pro — HTTPS (Caddy + Let's Encrypt)
-- VPS: ANTIMANAGER_VPS_IP, nginx:alpine (Docker), Caddy
+- VPS: {{REMOTE_HOST}}, nginx:alpine (Docker), Caddy
 - Исходники: vault → `build.js` → `dist/` → VPS
 
 ### Готово
@@ -75,12 +75,9 @@
 ## 5. Деплой
 
 ```powershell
-cd 00_Сайт
+cd site
 node build.js
-ssh factory-vps "rm -rf /home/REMOTE_USER/antimanager/current/*"
-scp -r dist/* factory-vps:/home/REMOTE_USER/antimanager/current/
-ssh factory-vps "chmod -R 755 /home/REMOTE_USER/antimanager/current/
-  && find /home/REMOTE_USER/antimanager/current/ -type f -exec chmod 644 {} \;"
+# Или используй deploy.ps1 (читает .env)
 ```
 
 Или `deploy.ps1` (делает сборку + деплой).

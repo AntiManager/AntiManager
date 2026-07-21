@@ -4,3 +4,12 @@ site/node_modules/
 site/test-results/
 site/playwright-report/
 site/tests/snapshots/**/*.png
+
+# Environment files (credentials, local paths)
+.env
+.env.local
+*.env
+!.env.example
+
+# Kilo config with local paths (use kilo.json.example as template)
+.kilo/kilo.json

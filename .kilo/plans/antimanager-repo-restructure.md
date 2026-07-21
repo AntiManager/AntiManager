@@ -85,7 +85,7 @@ AntiManager/
 | 2 | Удалить старые статьи | git rm *.md (кроме README) |
 | 3 | Удалить дубликаты APQC, оставить 1 | git rm K0147* APQC* затем mkdir research; mv ... research/ |
 | 4 | Создать папки | mkdir site articles docs |
-| 5 | Скопировать сайт из vault | cp -r ../"VAULT_DIR/Книга/00_Сайт/"* site/ |
+| 5 | Скопировать сайт из vault | cp -r ../"{{VAULT_DIR}}/Книга/00_Сайт/"* site/ |
 | 6 | Написать README | (см. шаблон ниже) |
 | 7 | Закоммитить | git add . && git commit -m "restructure: site + references" |
 | 8 | Запушить | git push origin main |

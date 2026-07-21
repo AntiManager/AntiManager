@@ -9,9 +9,9 @@
       "*": "allow"
     },
     "external_directory": {
-      "C:\\Users\\USERNAME\\Documents\\Python\\AntiManager\\*": "allow",
-      "C:\\Users\\USERNAME\\Documents\\VAULT_DIR\\01_Статьи\\*": "allow",
-      "C:\\Users\\USERNAME\\AppData\\Local\\Temp\\kilo\\*": "allow"
+      "C:\\Users\\{{USERNAME}}\\Documents\\Python\\AntiManager\\*": "allow",
+      "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}\\01_Статьи\\*": "allow",
+      "{{TEMP_DIR}}\\*": "allow"
     }
   },
   "mcp": {
@@ -23,7 +23,7 @@
         "npx",
         "--yes",
         "obsidian-mcp",
-        "C:\\Users\\USERNAME\\Documents\\VAULT_DIR"
+        "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}"
       ],
       "enabled": false
     },

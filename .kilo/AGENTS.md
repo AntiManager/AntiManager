@@ -24,9 +24,9 @@ MCP (отключены, включать через /mcps):
 1. Установить Node.js (npx)
 2. Установить Obsidian + remotely-save
 3. Синхронизировать vault (remotely-save стянет всё, включая .kilo/)
-4. Скопировать глобальный конфиг:
+4. Скопировать глобальный конфиг (подставь свой путь до vault):
    `powershell
    New-Item -ItemType Directory -Path \"$env:USERPROFILE\.config\kilo\" -Force
-   Copy-Item \"$env:USERPROFILE\Documents\VAULT_DIR\.kilo\globalsync.jsonc\" \"$env:USERPROFILE\.config\kilo\kilo.jsonc\"
+   Copy-Item \"$env:USERPROFILE\Documents\{{VAULT_DIR}}\.kilo\globalsync.jsonc\" \"$env:USERPROFILE\.config\kilo\kilo.jsonc\"
    `
 5. Готово.

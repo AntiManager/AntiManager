@@ -26,9 +26,10 @@ AntiManager/
 
 ## Vault Path
 
-Source articles (`.md` files) for book chapters live in the Obsidian vault:
+Source articles (`.md` files) for book chapters live in the Obsidian vault.
+Configure the path in `.env` (`ARTICLES_DIR`). Default location:
 ```
-C:\Users\USERNAME\Documents\VAULT_DIR\Книга\01_Статьи\
+{{ARTICLES_DIR}}
 ```
 
 Chapters are numbered `XX_Title.md` and map to chapters in `site/src/data/chapters.json`.
@@ -39,7 +40,7 @@ When creating new lite chapter content:
 3. Create interactive widget (diagnostic/calculator)
 4. Write HTML partial to `site/src/content/XX-slug.html`
 5. Run `node site/build.js` to rebuild
-6. Run `site/deploy.ps1` to deploy
+6. Run `.\deploy.ps1` from `site/` directory to deploy
 
 ## Commands
 
@@ -48,13 +49,15 @@ cd site
 node build.js           # Build site into dist/
 npx serve dist          # Local preview
 npm test                # Playwright tests
-.\deploy.ps1            # Deploy to VPS
+.\deploy.ps1            # Deploy to VPS (reads .env)
 ```
 
 ## SSH / Deploy
+
+See `.env` for connection details. Default deploy configuration:
 ```
-ssh -p 2222 REMOTE_USER@ANTIMANAGER_VPS_IP
-nginx container: antimanager-web, root: /home/REMOTE_USER/antimanager/current/
+ssh -p {{REMOTE_PORT}} {{REMOTE_USER}}@{{REMOTE_HOST}}
+nginx container: antimanager-web, root: {{REMOTE_DIR}}/current/
 ```
 
 ## Conventions
