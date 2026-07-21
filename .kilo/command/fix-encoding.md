@@ -2,72 +2,73 @@
 description: Проверить и исправить битую кодировку в .md файлах vault
 ---
 
-## Два типа проблем
+# ПРОТОКОЛ БЕЗОПАСНОСТИ: перед любым изменением файлов — бекап
 
-### Тип 1: Файл целиком битый (double-encoding)
-Русский текст выглядит как «Р”РІР° С‚РёРїР°» вместо «Два типа».
+`powershell
+ = "C:\Users\EVGENI~1.BOG\AppData\Local\Temp\kilo\backups\20260721_174058"
+New-Item -ItemType Directory -Path  -Force | Out-Null
+Copy-Item -Path "target\*" -Destination  -Recurse -Force
+Write-Host "Backup: "
+`
 
-Причина: UTF-8 байты прочитаны как Windows-1251 и сохранены как UTF-8.
+Никогда не применять неоттестированный алгоритм к production-файлам.
+Всегда: бекап → тест на копии → применение → верификация.
 
-Исправление:
-1. Прочитать байты файла
-2. Декодировать как UTF-8 → строка
-3. Закодировать строку как Windows-1251 → байты
-4. Сохранить байты (UTF-8 без BOM)
+---
 
-### Тип 2: Только wiki-ссылки в mojibake
-Файл валидный UTF-8, но внутри `[[вики-ссылки]]` выглядят так:
-```
-[[Р¦РёРєР» PDCA (Deming Cycle)]]  → [[Цикл PDCA (Deming Cycle)]]
-[[РЈРґР°СЂРёС‚СЊ_РїРѕ_С‚СЂР°РµРєС‚РѕСЂРёРё]]  → [[Ударить_по_траектории]]
-```
+## Диагностика: как определить проблему
 
-Причина: ссылки вставлены из источника с другой кодировкой.
+Использовать ТОЛЬКО Python — PowerShell криво работает с кириллицей.
 
-Исправление:
-1. Найти все `[[...]]` в файле
-2. Для каждой ссылки: если она содержит mojibake-последовательности (байты UTF-8 русских букв, прочитанные как Latin-1)
-3. Перекодировать: UTF-8 bytes → Latin-1 string → UTF-8 bytes → correct string
-4. Заменить в файле
+Признак мохибейка: доля заглавных кириллических символов (А-Я) > 8%.
+Нормальный текст: 2-5% заглавной кириллицы.
+Мохибейк (double-encoding): 20-60% заглавной кириллицы.
 
-Алгоритм перекодирования одной mojibake-строки:
-```
-mojibake_bytes = mojibake_string.getBytes("UTF-8")
-correct_string = new String(mojibake_bytes, "Windows-1251")
-```
+---
 
-## Проверяемые директории
+## Единственный рабочий алгоритм: ftfy
 
-- Книга/01_Статьи/
-- Книга/02_Исходники/
-- Книга/03 - Инструменты/
-- Книга/06 - Черновики глав/
-- Roadmap/
+Библиотека ftfy (fix text for you) — Mozilla-алгоритм, единственный надёжный.
 
-## Симптомы для автоопределения
+`python
+from ftfy import fix_text
 
-| Симптом | Тип |
-|---------|-----|
-| Первая строка содержит `РџСЂРёРјРµСЂ` | Тип 1 — весь файл |
-| Файл открывается нормально, но `[[...]]` содержат `Р¦РёРєР»` | Тип 2 — только ссылки |
-| Файл начинается с BOM (EF BB BF) | Тип 1 — пересохранить без BOM |
+# Бекап
+import shutil, os
+backup = os.path.join(os.environ['TEMP'], 'kilo', 'backups',
+                      __import__('datetime').datetime.now().strftime('%Y%m%d_%H%M%S'))
+os.makedirs(backup, exist_ok=True)
+shutil.copy2(path, os.path.join(backup, os.path.basename(path)))
 
-## Команда
+# Чтение
+with open(path, 'rb') as f:
+    data = f.read()
+if data[:3] == b'\xef\xbb\xbf':
+    data = data[3:]
 
-```powershell
-# Тип 1 — пакетное исправление файлов
-$files = Get-ChildItem -Recurse -Filter "*.md" -Path "Книга/01_Статьи"
-foreach ($f in $files) {
-  $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
-  # если BOM — убрать
-  if ($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-    $bytes = $bytes[3..($bytes.Length-1)]
-  }
-  $utf8 = [System.Text.Encoding]::UTF8.GetString($bytes)
-  $win1251 = [System.Text.Encoding]::GetEncoding(1251).GetBytes($utf8)
-  [System.IO.File]::WriteAllBytes($f.FullName, $win1251)
-}
+# Фикс
+text = data.decode('utf-8', errors='replace')
+fixed = fix_text(text)
 
-# Тип 2 — исправление wiki-ссылок в валидном UTF-8 файле
-# Использует regex для поиска [[...]] и перекодировки содержимого
-```
+# Верификация
+cyr_new = sum(1 for c in fixed if '\u0410' <= c <= '\u042F')
+ratio_new = cyr_new / len(fixed) * 100 if len(fixed) > 0 else 0
+if ratio_new < 8:
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(fixed)
+    print(f'OK: {ratio_new:.0f}% — clean')
+else:
+    print(f'FAIL: {ratio_new:.0f}% — still mojibake, revert from backup')
+`
+
+---
+
+## Правила безопасности (learned the hard way)
+
+1. Бекап всегда. Перед ЛЮБЫМ изменением файлов.
+2. Не использовать PowerShell для кириллицы. Только Python 3.14+.
+3. Тест на копии. Если файл уникальный — скопировать, потестить.
+4. Два прохода ftfy. Если не помогло — не изобретать, передать пользователю.
+5. Верификация после фикса. Проверить долю заглавной кириллицы.
+6. По одному файлу. Не трогать пачкой — проверить — закоммитить.
+7. Файлы с BOM (EF BB BF) почти всегда требуют специальной обработки.

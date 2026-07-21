@@ -21,12 +21,16 @@ MCP (включены постоянно):
 
 ## Настройка на новом ПК
 
-1. Установить Node.js (npx)
-2. Установить Obsidian + remotely-save
-3. Синхронизировать vault (remotely-save стянет всё, включая .kilo/)
-4. Скопировать глобальный конфиг (подставь свой путь до vault):
-   `powershell
-   New-Item -ItemType Directory -Path \"$env:USERPROFILE\.config\kilo\" -Force
-   Copy-Item \"$env:USERPROFILE\Documents\{{VAULT_DIR}}\.kilo\globalsync.jsonc\" \"$env:USERPROFILE\.config\kilo\kilo.jsonc\"
-   `
-5. Готово.
+1. Установить Node.js, Python, Obsidian + remotely-save
+2. Клонировать репо: `git clone https://github.com/AntiManager/AntiManager`
+3. Скопировать `.kilo/kilo.json.example` → `.kilo/kilo.json`, подставить пути
+4. Синхронизировать vault (remotely-save стянет только контент)
+5. Готово — vault чистый, конфиг в репо
+
+---
+
+## Протокол безопасности (приоритет: абсолютный)
+
+1. **Бекап перед изменением.** Любая операция записи в файлы начинается с бекапа в $env:TEMP\kilo\backups\дата\`n2. **PowerShell — только для ASCII и простых операций.** Кириллицу обрабатывать через Python (ftfy).
+3. **Верификация.** После каждого изменения — проверка результата. Если алгоритм не дал ожидаемого результата — откат.
+4. **Не пачками.** Один файл → проверить → закоммитить. Без массовых apply.
