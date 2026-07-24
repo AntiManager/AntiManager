@@ -13,3 +13,9 @@ site/tests/snapshots/**/*.png
 
 # Kilo config with local paths (use kilo.json.example as template)
 .kilo/kilo.json
+
+# Playwright MCP browser artifacts (snapshots, console logs, screenshots)
+.playwright-mcp/
+
+# Kilo plan files (local development artifacts)
+.kilo/plans/
