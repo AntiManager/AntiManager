@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const SITE_URL = 'https://antimanager.pro';
 
 function read(name) { return fs.readFileSync(path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
@@ -22,490 +23,419 @@ function copyDir(src, dst) {
   }
 }
 
-function escapeScript(str) { return str.replace(/<\//g, '<\\/'); }
+const base = read('src/templates/base.html');
+const headerHtml = read('src/components/header.html');
+const footerHtml = read('src/components/footer.html');
 
-const SITE_URL = 'https://antimanager.pro';
-const YM_COUNTER = '';
+const weapons = JSON.parse(read('src/data/weapons.json'));
+const scenarios = JSON.parse(read('src/data/scenarios.json'));
+const thinkers = JSON.parse(read('src/data/thinkers.json'));
+const cases = JSON.parse(read('src/data/cases.json'));
 
-const RAYS = {
-  strategy:    { key: 'strategy',    name: 'Стратегия\nи смысл',     color: '#3A6EA5', angle: 270 },
-  processes:   { key: 'processes',   name: 'Процессы\nи структура',  color: '#D4711E', angle: 342 },
-  information: { key: 'information', name: 'Информация\nи данные',   color: '#339999', angle: 54 },
-  people:      { key: 'people',      name: 'Люди\nи мотивация',      color: '#B34A6E', angle: 126 },
-  adaptation:  { key: 'adaptation',  name: 'Изменения\nи адаптация', color: '#6B8C2E', angle: 198 },
-};
+const zoneLabels = { crisis: 'КРИЗИС', team: 'КОМАНДА', changes: 'ИЗМЕНЕНИЯ', system: 'СИСТЕМА' };
+const statusLabels = { published: 'Опубликовано', review: 'На ревью', draft: 'Черновик' };
 
-const STATUS_MAP = { published: { label: 'Опубликовано', badge: 'badge-green' }, review: { label: 'На ревью', badge: 'badge-orange' }, draft: { label: 'Черновик', badge: 'badge-gray' } };
+function weaponById(id) { return weapons.find(w => w.id === id); }
 
-const chapters = JSON.parse(read(path.join('src', 'data', 'chapters.json')));
-const tools = JSON.parse(read(path.join('src', 'data', 'tools.json')));
-const cases = JSON.parse(read(path.join('src', 'data', 'cases.json')));
-
-const baseTemplate = read(path.join('src', 'templates', 'base.html'));
-const chapterTemplate = read(path.join('src', 'templates', 'chapter.html'));
-const headerHtml = read(path.join('src', 'components', 'header.html'));
-const sidebarHtml = read(path.join('src', 'components', 'sidebar.html'));
-const footerHtml = read(path.join('src', 'components', 'footer.html'));
-
-const total = chapters.length;
-
-function hasContentFile(ch) { return fs.existsSync(path.join(__dirname, 'src', 'content', ch.id + '-' + ch.slug + '.html')); }
-
-function toolBadges(toolIds) {
-  if (!toolIds || !toolIds.length) return '';
-  return toolIds.map(id => { const t = tools.find(x => x.id === id); return t ? `<span class="badge badge-blue" style="font-size:var(--text-xs)">${t.name}</span>` : ''; }).join('');
+function zoneBadgeHtml(zone) {
+  if (!zone) return '';
+  return `<span class="badge badge-zone badge-zone-${zone}">${zoneLabels[zone] || zone}</span>`;
 }
 
-function renderPage(title, description, content, opts = {}) {
-  let html = baseTemplate;
+function statusBadgeHtml(status) {
+  return `<span class="badge badge-status badge-status-${status}">${statusLabels[status] || status}</span>`;
+}
+
+// === RENDER ===
+
+function renderPage(title, description, content, opts) {
+  opts = opts || {};
+  let html = base;
   html = html.replace('{{title}}', title);
   html = html.replace('{{description}}', description);
-
-  let canonical = opts.canonical || SITE_URL + '/';
-  html = html.replace('{{canonical}}', `<link rel="canonical" href="${canonical}">`);
-
-  let ogType = opts.og ? opts.og.type || 'website' : 'website';
-  let ogTitle = opts.og ? opts.og.title || title : title;
-  let ogDesc = opts.og ? opts.og.desc || description : description;
-  let ogUrl = opts.og ? opts.og.url || canonical : canonical;
-  let ogTags = `<meta property="og:title" content="${ogTitle}"><meta property="og:description" content="${ogDesc}"><meta property="og:url" content="${ogUrl}"><meta property="og:type" content="${ogType}"><meta property="og:site_name" content="AntiManager"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${ogTitle}"><meta name="twitter:description" content="${ogDesc}">`;
-  html = html.replace('{{og_tags}}', ogTags);
-
-  let noindex = opts.noindex;
-  let jsonld = '';
-  if (!noindex) {
-    jsonld = `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: ogTitle, description: ogDesc, url: ogUrl })}</script>`;
-  }
-  html = html.replace('{{jsonld}}', jsonld);
-
-  let metrika = '';
-  if (YM_COUNTER) {
-    metrika = '<script>window.AM_METRIKA_ID=' + JSON.stringify(YM_COUNTER) + ';(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(' + JSON.stringify(YM_COUNTER) + ',"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:false});</script>\n<noscript><div><img src="https://mc.yandex.ru/watch/' + YM_COUNTER + '" style="position:absolute;left:-9999px;" alt=""/></div></noscript>';
-  }
-  html = html.replace('{{metrika}}', metrika);
-
-  html = html.replace('{{head_extra}}', opts.headExtra || '');
-  html = html.replace('{{body_class}}', opts.bodyClass ? ' class="' + opts.bodyClass + '"' : '');
   html = html.replace('{{header}}', headerHtml);
-  html = html.replace('{{sidebar}}', sidebarHtml);
   html = html.replace('{{content}}', content);
-  html = html.replace('{{footer}}', footerHtml);
+  html = html.replace('{{footer}}', footerHtml.replace('{{year}}', '2026'));
+  html = html.replace('{{head_extra}}', opts.headExtra || '');
   html = html.replace('{{scripts}}', opts.scripts || '');
-
-  if (noindex) html = html.replace('<meta name="robots" content="noindex">', '').replace('</head>', '<meta name="robots" content="noindex"></head>');
+  if (opts.noindex) html = html.replace('</head>', '<meta name="robots" content="noindex"></head>');
   return html;
 }
 
-function buildChapter(ch) {
-  const ray = RAYS[ch.ray];
-  if (!ray) { console.warn('  ⚠ Unknown ray: ' + ch.ray + ' for chapter ' + ch.id); return; }
-  const st = STATUS_MAP[ch.status] || STATUS_MAP.draft;
-  const contentPath = path.join(__dirname, 'src', 'content', ch.id + '-' + ch.slug + '.html');
-  const hasContent = fs.existsSync(contentPath);
-
-  let contentBody = '';
-  if (hasContent) { contentBody = fs.readFileSync(contentPath, 'utf-8'); }
-  else { contentBody = `<div class="empty-state"><h3>Глава в разработке</h3><p>Эта глава ещё не готова. Скоро здесь появится полный текст.</p><p style="margin-top:var(--space-4);"><a href="/catalog/" class="btn btn-outline">← Вернуться к каталогу</a></p></div>`; }
-
-  let chapterHtml = chapterTemplate;
-  chapterHtml = chapterHtml.replace(/{{ray}}/g, ch.ray);
-  chapterHtml = chapterHtml.replace('{{ray_name}}', ray.name);
-  chapterHtml = chapterHtml.replace(/{{title}}/g, ch.title);
-  chapterHtml = chapterHtml.replace('{{subtitle}}', ch.subtitle || '');
-  chapterHtml = chapterHtml.replace('{{status_badge}}', st.badge);
-  chapterHtml = chapterHtml.replace('{{status_label}}', st.label);
-  chapterHtml = chapterHtml.replace('{{tools_badges}}', toolBadges(ch.tools));
-  chapterHtml = chapterHtml.replace('{{content_body}}', contentBody);
-  chapterHtml = chapterHtml.replace('{{slug}}', ch.slug);
-
-  const downloadSection = hasContent
-    ? `<section class="download-section" style="margin:var(--space-10) 0;padding:var(--space-6);background:var(--layer-surface);border-radius:var(--radius-lg);border:1px solid var(--color-border-light);text-align:center;"><h3 style="margin-bottom:var(--space-2)">Полный формат главы</h3><p style="margin-bottom:var(--space-4);max-width:480px;margin-left:auto;margin-right:auto;">Хотите получить полную версию главы с дополнительными материалами? Оставьте заявку — мы сообщим, когда формат будет готов.</p><button class="btn btn-primary download-btn" data-chapter="${ch.slug}">Скачать полный формат</button><p class="download-feedback text-sm text-muted" style="display:none;margin-top:var(--space-3);"></p></section>`
-    : '';
-  chapterHtml = chapterHtml.replace('{{download_section}}', downloadSection);
-
-  const rayName = ray.name;
-  const scripts = '<script>\n' +
-    '    const CHAPTER_DATA = ' + escapeScript(JSON.stringify(ch)) + ';\n' +
-    '    const RELATED_CHAPTERS = ' + escapeScript(JSON.stringify(chapters.filter(c => c.ray === ch.ray && c.id !== ch.id))) + ';\n' +
-    '    document.addEventListener(\'DOMContentLoaded\', function(){\n' +
-    '      var grid = document.getElementById(\'relatedChapters\');\n' +
-    '      if(!grid) return;\n' +
-    '      if (RELATED_CHAPTERS.length === 0) { grid.parentNode.style.display = \'none\'; return; }\n' +
-    '      RELATED_CHAPTERS.forEach(function(c){\n' +
-    '        var card = document.createElement(\'div\');\n' +
-    '        card.className = \'chapter-card\';\n' +
-    '        card.setAttribute(\'role\', \'button\');\n' +
-    '        card.setAttribute(\'tabindex\', \'0\');\n' +
-    '        card.setAttribute(\'aria-label\', \'Открыть главу \' + c.title);\n' +
-    '        card.innerHTML = \'<h4>\' + c.title + \'</h4><p>\' + (c.subtitle || \'\') + \'</p><div class="meta"><span class="badge badge-ray-\' + c.ray + \'">' + rayName + '</span></div>\';\n' +
-    '        card.addEventListener(\'click\', function(){ window.location.href = \'/books/\' + c.slug + \'/\'; });\n' +
-    '        card.addEventListener(\'keydown\', function(e){ if(e.key === \'Enter\' || e.key === \' \') { e.preventDefault(); window.location.href = \'/books/\' + c.slug + \'/\'; } });\n' +
-    '        grid.appendChild(card);\n' +
-    '      });\n' +
-    '    });\n' +
-    '  </script>';
-
-  const titlePage = ch.title + ' | AntiManager';
-  const page = renderPage(titlePage, ch.subtitle || 'Глава ' + ch.id + ' системы управления производством', chapterHtml, {
-    scripts, bodyClass: 'content-page' + (hasContent ? '' : ' noindex'),
-    canonical: SITE_URL + '/books/' + ch.slug + '/',
-    og: { type: 'article', title: titlePage, desc: ch.subtitle || '' },
-    noindex: !hasContent
-  });
-  write(path.join('books', ch.slug, 'index.html'), page);
-  console.log('  ✓ ' + ch.id + ' ' + ch.slug);
-}
+// === STAR MAP (Story 08) ===
 
 function starSvg() {
   const CX = 300, CY = 300, R = 220;
-  let chByRay = {};
-  Object.values(RAYS).forEach(function(r){ chByRay[r.key] = chapters.filter(function(c){ return c.ray === r.key; }); });
-  let svg = '<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта системы управления: пять контуров. Нажмите на луч, чтобы увидеть главы." style="width:100%;max-width:600px;height:auto;">';
-  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R+50) + '" fill="none" stroke="var(--color-border-light)" stroke-width="1" stroke-dasharray="4 4"/>';
-
-  Object.values(RAYS).forEach(function(r, ri){
-    const rad = r.angle * Math.PI / 180;
-    const ex = CX + R * Math.cos(rad);
-    const ey = CY + R * Math.sin(rad);
-    const chaptersInRay = chByRay[r.key] || [];
-    const delay = ri * 0.3;
-    svg += '<g class="ray-group" data-ray="' + r.key + '" style="cursor:pointer;">';
-    svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + ex + '" y2="' + ey + '" stroke="' + r.color + '" stroke-width="18" stroke-linecap="round" opacity="0.15"/>';
-    svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + ex + '" y2="' + ey + '" stroke="' + r.color + '" stroke-width="3" stroke-linecap="round" opacity="0.4" class="ray-flow" style="animation-delay:' + delay + 's"/>';
-
-    for (let pi = 0; pi < 3; pi++) {
-      const pt = 0.15 + pi * 0.25;
-      const px = CX + pt * R * Math.cos(rad);
-      const py = CY + pt * R * Math.sin(rad);
-      const pDelay = delay + pi * 0.4;
-      svg += '<circle cx="' + px + '" cy="' + py + '" r="3" fill="' + r.color + '" class="ray-particle" style="animation-delay:' + pDelay + 's"/>';
+  const n = scenarios.length;
+  const angleStep = 360 / n;
+  let svg = '<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта зон Антименеджера" style="width:100%;max-width:600px;height:auto;">';
+  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="250" fill="none" stroke="#DC2626" stroke-width="1" stroke-dasharray="8 8" opacity="0.3"/>';
+  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="240" fill="none" stroke="#DC2626" stroke-width="0.5" opacity="0.15"/>';
+  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="55" fill="none" stroke="#DC2626" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.4"/>';
+  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="75" fill="none" stroke="#DC2626" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.2"/>';
+  scenarios.forEach(function(s, i) {
+    var angle = (i * angleStep - 90) * Math.PI / 180;
+    var ex = CX + R * Math.cos(angle);
+    var ey = CY + R * Math.sin(angle);
+    var labelR = R + 30;
+    var lx = CX + labelR * Math.cos(angle);
+    var ly = CY + labelR * Math.sin(angle);
+    svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + ex + '" y2="' + ey + '" stroke="#DC2626" stroke-width="3" opacity="0.3" stroke-linecap="round"/>';
+    var count = Math.min(s.weapons.filter(function(id) { return weaponById(id); }).length, 8);
+    for (var j = 0; j < count; j++) {
+      var t = (j + 1) / (count + 1);
+      var dx = CX + (R * 0.85 * t) * Math.cos(angle);
+      var dy = CY + (R * 0.85 * t) * Math.sin(angle);
+      svg += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#DC2626" opacity="' + (0.4 + j * 0.1) + '"/>';
     }
-
-    const labelParts = r.name.split('\n');
-    svg += '<text x="' + ex + '" y="' + ey + '" fill="' + r.color + '" font-family="var(--font-heading)" font-weight="700" font-size="14" text-anchor="middle">' + labelParts[0] + '</text>';
-    if (labelParts.length > 1) {
-      svg += '<text x="' + ex + '" y="' + (ey + 16) + '" fill="' + r.color + '" font-family="var(--font-sans)" font-weight="500" font-size="11" text-anchor="middle" opacity="0.8">' + labelParts[1] + '</text>';
-    }
-    if (chaptersInRay.length > 0) {
-      svg += '<circle cx="' + (ex - 8) + '" cy="' + (ey + 28) + '" r="10" fill="' + r.color + '"/>';
-      svg += '<text x="' + (ex - 8) + '" y="' + (ey + 32) + '" fill="white" font-family="var(--font-heading)" font-weight="700" font-size="10" text-anchor="middle">' + chaptersInRay.length + '</text>';
-    }
-    chaptersInRay.forEach(function(ch, i){
-      const t = (i + 1) / (chaptersInRay.length + 1);
-      const dx = CX + (R * 0.5 * t) * Math.cos(rad);
-      const dy = CY + (R * 0.5 * t) * Math.sin(rad);
-      svg += '<circle cx="' + dx + '" cy="' + dy + '" r="4" fill="' + r.color + '" opacity="0.6"/>';
-    });
-    svg += '</g>';
+    svg += '<text x="' + lx + '" y="' + ly + '" fill="#DC2626" font-family="\'Golos Text\',sans-serif" font-weight="900" font-size="12" text-anchor="middle" letter-spacing="1">' + s.title + '</text>';
+    svg += '<circle cx="' + lx + '" cy="' + (ly + 18) + '" r="12" fill="#DC2626"/>';
+    svg += '<text x="' + lx + '" y="' + (ly + 22) + '" fill="#fff" font-family="\'Golos Text\',sans-serif" font-weight="700" font-size="10" text-anchor="middle">' + count + '</text>';
   });
-  svg += '<circle class="map-center-hub" cx="' + CX + '" cy="' + CY + '" r="45" fill="var(--layer-surface)" stroke="var(--color-tertiary)" stroke-width="3"/>';
-  svg += '<text x="' + CX + '" y="' + (CY - 6) + '" fill="var(--color-text)" font-family="var(--font-heading)" font-weight="800" font-size="13" text-anchor="middle">СИСТЕМА</text>';
-  svg += '<text x="' + CX + '" y="' + (CY + 10) + '" fill="var(--color-text-secondary)" font-family="var(--font-sans)" font-weight="500" font-size="9" text-anchor="middle">УПРАВЛЕНИЯ</text>';
+  svg += '<circle cx="' + CX + '" cy="' + CY + '" r="40" fill="#0A0A0A" stroke="#DC2626" stroke-width="3"/>';
+  svg += '<text x="' + CX + '" y="' + (CY - 5) + '" fill="#fff" font-family="\'Golos Text\',sans-serif" font-weight="900" font-size="11" text-anchor="middle" letter-spacing="3">АНТИ</text>';
+  svg += '<text x="' + CX + '" y="' + (CY + 12) + '" fill="#DC2626" font-family="\'Golos Text\',sans-serif" font-weight="900" font-size="11" text-anchor="middle" letter-spacing="2">МЕНЕДЖЕР</text>';
   svg += '</svg>';
   return svg;
 }
 
-function buildIndex() {
-  const chaptersJson = escapeScript(JSON.stringify(chapters));
-  const toolsJson = escapeScript(JSON.stringify(tools));
-  const casesJson = escapeScript(JSON.stringify(cases));
+// === CONTENT GENERATORS ===
 
-  const content = `
-    <section class="hero-full">
-      <div class="main-inner">
-        <h1>Система управления производством<br>в 5 контурах</h1>
-        <p style="font-size:var(--text-lg);max-width:600px;margin:0 auto var(--space-6);">Главы, инструменты и кейсы — не разрозненные техники, а единая связанная система для руководителя производства.</p>
-        <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap;">
-          <a href="#systemMap" class="btn btn-primary">Исследовать карту →</a>
-          <a href="/catalog/" class="btn btn-outline" style="border-color:white;color:white;">Смотреть каталог</a>
-        </div>
-        <div style="display:flex;gap:var(--space-6);justify-content:center;margin-top:var(--space-8);flex-wrap:wrap;">
-          <div style="text-align:center;"><strong style="font-size:var(--text-3xl);color:white;">${total}</strong><br><span style="font-size:var(--text-sm);color:hsla(220,15%,80%,0.8);">глав</span></div>
-          <div style="text-align:center;"><strong style="font-size:var(--text-3xl);color:white;">${tools.length}</strong><br><span style="font-size:var(--text-sm);color:hsla(220,15%,80%,0.8);">инструментов</span></div>
-          <div style="text-align:center;"><strong style="font-size:var(--text-3xl);color:white;">${cases.length}</strong><br><span style="font-size:var(--text-sm);color:hsla(220,15%,80%,0.8);">кейсов</span></div>
-          <div style="text-align:center;"><strong style="font-size:var(--text-3xl);color:white;">${chapters.filter(function(c){return c.status === 'published'}).length}</strong><br><span style="font-size:var(--text-sm);color:hsla(220,15%,80%,0.8);">опубликовано</span></div>
-        </div>
-      </div>
-    </section>
-    <div class="main-inner">
-      <section style="text-align:center;margin:var(--space-12) 0;">
-        <h2>Карта системы</h2>
-        <p style="margin-bottom:var(--space-6);">Пять управленческих контуров. Нажмите на луч — увидите главы и инструменты.</p>
-        <div class="map-container" id="systemMap">${starSvg()}</div>
-        <div id="rayChapters" style="margin-top:var(--space-6);"></div>
-      </section>
-      <section style="margin:var(--space-12) 0;">
-        <h2 style="text-align:center;margin-bottom:var(--space-6);">Для кого эта система</h2>
-        <div class="card-grid">
-          <div class="chapter-card" style="text-align:center;">
-            <div style="font-size:var(--text-4xl);margin-bottom:var(--space-3);color:var(--ray-strategy);">▣</div>
-            <h3>Директору завода</h3>
-            <p>Стратегия, каскадирование целей, антикризис, культура</p>
-          </div>
-          <div class="chapter-card" style="text-align:center;">
-            <div style="font-size:var(--text-4xl);margin-bottom:var(--space-3);color:var(--ray-processes);">▦</div>
-            <h3>Начальнику цеха</h3>
-            <p>Процессы, OEE, ситуационное развитие, работа с хаосом</p>
-          </div>
-          <div class="chapter-card" style="text-align:center;">
-            <div style="font-size:var(--text-4xl);margin-bottom:var(--space-3);color:var(--ray-people);">◈</div>
-            <h3>HR и консультанту</h3>
-            <p>Диагностика, JDR, культурный код, мотивация</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  `;
+const publishedWeapons = weapons.filter(function(w) { return w.status === 'published'; });
+const featuredWeapons = publishedWeapons.length > 0
+  ? publishedWeapons.slice(0, 4)
+  : weapons.filter(function(w) { return w.status === 'review'; }).slice(0, 4);
 
-  const scripts = `<script id="chaptersData" type="application/json">${chaptersJson}</script><script src="/js/map.js"></script>`;
+const featuredWeaponsHtml = featuredWeapons.map(function(w) {
+  return '<a href="/weapons/' + w.slug + '/" class="weapon-card">'
+    + '<div class="weapon-title">' + w.title + '</div>'
+    + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
+    + (w.zone ? '<span class="weapon-status">' + zoneLabels[w.zone] + '</span>' : '')
+    + '</a>';
+}).join('');
 
-  const page = renderPage(
-    'AntiManager — Система управления производством',
-    `Интерактивная карта системы управления: 5 контуров, ${total} глав, ${tools.length} инструментов. Для руководителей производства.`,
-    content,
-    { headExtra: '', scripts, canonical: SITE_URL, og: { type: 'website', title: 'AntiManager — Система управления производством', desc: `Интерактивная карта: 5 контуров, ${total} глав` } }
-  );
-  write('index.html', page);
-  console.log('  ✓ index (главная с картой)');
-}
+const manifestoContent = '<section class="content-page">'
+  + '<h1>Манифест</h1>'
+  + '<p class="weapon-subtitle">Manifestum Imperii Rationalis — Манифест рационального управления</p>'
+  + '<div class="manifesto-values">'
+  + '<div class="manifesto-value"><span>1.</span> Люди и их потенциал над слепым исполнением инструкций</div>'
+  + '<div class="manifesto-value"><span>2.</span> Работающая и справедливая система над героизмом и авралами</div>'
+  + '<div class="manifesto-value"><span>3.</span> Сотрудничество и доверие над тотальным контролем</div>'
+  + '<div class="manifesto-value"><span>4.</span> Постоянное улучшение процессов над поиском виноватых</div>'
+  + '<div class="manifesto-value"><span>5.</span> Смысл и осознанность над слепым следованием трендам</div>'
+  + '<div class="manifesto-value"><span>6.</span> Прозрачность и конституция над устными указаниями</div>'
+  + '<div class="manifesto-value"><span>7.</span> Ментальное здоровье над когнитивным перегрузом</div>'
+  + '<div class="manifesto-value"><span>8.</span> Конфликт мнений над уютным консенсусом</div>'
+  + '<div class="manifesto-value"><span>9.</span> Антихрупкость над хрупкой эффективностью</div>'
+  + '<div class="manifesto-value"><span>10.</span> Открытая политика над неформальной властью</div>'
+  + '</div></section>';
 
-function buildCatalog() {
-  const parts = [
-    { id: 0, name: 'Пролог' },
-    { id: 1, name: 'I. Диагностика' },
-    { id: 2, name: 'II. Стратегия' },
-    { id: 3, name: 'III. Операции' },
-    { id: 4, name: 'IV. Люди' },
-    { id: 5, name: 'V. Кризис и адаптация' },
-    { id: 6, name: 'VI. Развитие и смысл' },
-  ];
+const archiveContent = '<section class="content-page">'
+  + '<h1>Архив великих идей</h1>'
+  + '<p class="weapon-subtitle">Великие мыслители уже говорили это. Мы просто снимаем консалтинговую пыль.</p>'
+  + '<div class="thinker-grid">'
+  + thinkers.map(function(t) {
+    return '<div class="thinker-card">'
+      + '<div class="thinker-name">' + t.name + '</div>'
+      + '<div class="thinker-years">' + t.years + '</div>'
+      + '<div class="thinker-idea">' + t.idea + '</div>'
+      + '<div class="thinker-arrow">→ ' + t.weapon + '</div>'
+      + '</div>';
+  }).join('')
+  + '</div></section>';
 
-  let html = '<h1>Каталог глав</h1><p>Все ' + chapters.length + ' глав, сгруппированные по разделам книги.</p>';
-  html += '<div class="filters" id="catalogFilters">';
-  html += '<button class="filter-btn active" data-filter="all">Все</button>';
-  html += Object.entries(RAYS).map(([k, v]) => `<button class="filter-btn" data-filter="${k}">${v.name}</button>`).join('');
-  html += '</div>';
-  html += '<div id="catalogGrid">';
+const arsenalContent = '<section class="content-page">'
+  + '<h1>Арсенал</h1>'
+  + '<p class="weapon-subtitle">' + weapons.filter(function(w) { return w.status === 'published'; }).length + ' опубликовано, ' + weapons.length + ' всего. Выбери оружие.</p>'
+  + '<div class="filters">'
+  + '<button class="filter-btn active" data-filter="all">ВСЕ</button>'
+  + scenarios.map(function(s) { return '<button class="filter-btn" data-filter="' + s.id + '">' + s.title + '</button>'; }).join('')
+  + '</div>'
+  + '<div class="weapon-grid" id="arsenalGrid">'
+  + weapons.map(function(w) {
+    return '<a href="/weapons/' + w.slug + '/" class="weapon-card" data-zone="' + (w.zone || '') + '">'
+      + '<div class="weapon-title">' + w.title + '</div>'
+      + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
+      + (w.zone ? zoneBadgeHtml(w.zone) : '')
+      + statusBadgeHtml(w.status)
+      + '</a>';
+  }).join('')
+  + '</div></section>'
+  + '<script>document.addEventListener(\'DOMContentLoaded\',function(){'
+  + 'var btns=document.querySelectorAll(\'.filters .filter-btn\');'
+  + 'var cards=document.querySelectorAll(\'#arsenalGrid .weapon-card\');'
+  + 'btns.forEach(function(b){b.addEventListener(\'click\',function(){'
+  + 'btns.forEach(function(x){x.classList.remove(\'active\');});'
+  + 'this.classList.add(\'active\');var f=this.dataset.filter;'
+  + 'cards.forEach(function(c){c.style.display=(f===\'all\'||c.dataset.zone===f)?\'\':\'none\';});});});});</script>';
 
-  for (const part of parts) {
-    const partChapters = chapters.filter(c => c.part === part.id);
-    if (!partChapters.length) continue;
-    html += `<div class="catalog-section"><h2 style="margin-top:var(--space-8);padding-bottom:var(--space-2);border-bottom:3px solid var(--color-tertiary);display:inline-block;">${part.name}</h2><div class="card-grid">`;
-    for (const ch of partChapters) {
-      const st = STATUS_MAP[ch.status] || STATUS_MAP.draft;
-      html += `<div class="chapter-card" data-ray="${ch.ray}" data-roles="${ch.roles.join(',')}" data-status="${ch.status}" data-slug="${ch.slug}" role="button" tabindex="0" aria-label="Открыть главу: ${ch.id}. ${ch.title}">
-        <div class="meta"><span class="badge badge-ray-${ch.ray}" style="font-size:var(--text-xs)">${RAYS[ch.ray].name}</span></div>
-        <h3>${ch.id}. ${ch.title}</h3>
-        <p>${ch.subtitle || ''}</p>
-        <div class="meta"><span class="badge ${st.badge}">${st.label}</span></div>
-      </div>`;
-    }
-    html += '</div></div>';
+const scenariosContent = '<section class="content-page">'
+  + '<h1>Сценарии</h1>'
+  + '<p class="weapon-subtitle">Выбери свой участок фронта — получи набор оружия.</p>'
+  + scenarios.map(function(s) {
+    var zoneWeapons = s.weapons.map(function(id) { return weaponById(id); }).filter(Boolean);
+    return '<div class="zone-card zone-' + s.id + '" style="margin-bottom:var(--space-6);">'
+      + '<div class="zone-icon">' + s.icon + '</div>'
+      + '<div class="zone-title">' + s.title + '</div>'
+      + '<p style="margin-top:var(--space-2);">' + s.subtitle + '</p>'
+      + '<div class="weapon-grid" style="margin-top:var(--space-4);">'
+      + zoneWeapons.map(function(w) {
+        return '<a href="/weapons/' + w.slug + '/" class="weapon-card">'
+          + '<div class="weapon-title">' + w.title + '</div>'
+          + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
+          + '</a>';
+      }).join('')
+      + '</div></div>';
+  }).join('')
+  + '</section>';
+
+const casesContent = '<section class="content-page">'
+  + '<h1>Полевые дневники</h1>'
+  + '<p class="weapon-subtitle">Реальные истории с заводов.</p>'
+  + '<div class="case-grid">'
+  + cases.map(function(c) {
+    return '<div class="case-card">'
+      + '<div class="case-headline"><span>⚔️</span>' + c.title + '</div>'
+      + '<p class="weapon-subtitle" style="margin-top:var(--space-2);">' + c.desc + '</p>'
+      + '<div class="case-readtime">⏱ ' + (c.readtime || '5 минут') + '</div>'
+      + '</div>';
+  }).join('')
+  + '</div></section>';
+
+const hqContent = '<section class="content-page" style="text-align:center;padding-top:var(--space-16);">'
+  + '<h1>Штаб</h1>'
+  + '<p class="weapon-subtitle">Закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
+  + '<p style="color:var(--color-steel);margin:var(--space-4) 0;">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
+  + '<a href="https://t.me/antimanager" class="btn btn-crisis" style="margin-top:var(--space-6);">💬 ВСТУПИТЬ В TELEGRAM</a>'
+  + '</section>';
+
+const aboutContent = '<section class="content-page">'
+  + '<h1>О проекте</h1>'
+  + '<p class="weapon-subtitle">Антименеджер — это не метод. Это присяга.</p>'
+  + '<div class="weapon-block" style="margin:var(--space-6) 0;">'
+  + '<p>Мы не изобретаем велосипед. Мы просто снимаем консалтинговую упаковку с идей Деминга, Тейлора, Богданова, Оно, Медоуз, Хапрова, Клаузевица... И адаптируем их к твоему конвейеру.</p>'
+  + '</div>'
+  + '<p style="color:var(--color-steel);">Единственный способ изменить систему — начать думать и делать осознанно.</p>'
+  + '</section>';
+
+// === LANDING PAGE ===
+
+const landingContent = '<section class="hero">'
+  + '<div class="hero-challenge">'
+  + '<h1 class="hero-heading">ТЫ ПРИШЁЛ ЗА ТАБЛЕТКОЙ?</h1>'
+  + '<h2 class="hero-answer">ЕЁ НЕТ.</h2>'
+  + '</div>'
+  + '<div class="hero-mckinsey">'
+  + '<p>Хочешь красивый совет? Иди к McKinsey. Они нарисуют тебе 100 слайдов. Ты заплатишь 10 миллионов. Через год всё вернётся.</p>'
+  + '<p class="hero-stay">Хочешь понять, как на самом деле работают великие идеи управления? <strong>Оставайся.</strong></p>'
+  + '</div>'
+  + '<div class="hero-thinkers">'
+  + '<p>Мы просто снимаем слой консалтинговой пыли с идей Деминга, Тейлора, Богданова, Оно, Медоуз, Хапрова, Клаузевица...</p>'
+  + '<p class="hero-quote">«Сначала среда, потом требования». «Сложность управляется сложностью». «Любая система лжёт». Просто консультанты забыли это сказать.</p>'
+  + '</div>'
+  + '<div class="hero-cta">'
+  + '<a href="/scenarios/" class="btn btn-crisis">🔥 У МЕНЯ КРИЗИС</a>'
+  + '<a href="#system-map" class="btn btn-primary">🗺️ ХОЧУ ПОНЯТЬ СИСТЕМУ</a>'
+  + '</div>'
+  + '</section>'
+
+  + '<section class="section archaeology">'
+  + '<h2 class="section-title">МЫ — АРХЕОЛОГИ УПРАВЛЕНИЯ</h2>'
+  + '<p class="section-desc">Каждый инструмент Антименеджера — это раскопка. Мы находим изначальную идею великого мыслителя. Очищаем её от консалтинговой упаковки. И адаптируем к твоему конвейеру.</p>'
+  + '<div class="thinker-chain">'
+  + thinkers.slice(0, 5).map(function(t) { return '<span>' + t.name.split(' ').pop() + ' → ' + t.weapon + '</span>'; }).join('')
+  + '</div>'
+  + '<a href="/archive/" class="btn" style="margin-top:var(--space-4);">🏛️ ВЕСЬ АРХИВ</a>'
+  + '</section>'
+
+  + '<section class="section" id="weapons-section">'
+  + '<h2 class="section-title">ЭТО — ОРУЖИЕ. А НЕ ЕЩЁ ОДНА КНИГА</h2>'
+  + '<p class="section-desc">Антименеджер — это не метод. Это способ думать. Метод можно скопировать. Способ думать — нельзя.</p>'
+  + '<p class="section-desc">Разница простая: метод даёт тебе инструкцию. Способ думать даёт тебе критерий: «Как понять, что инструкция врёт».</p>'
+  + '<div class="weapon-grid">' + featuredWeaponsHtml + '</div>'
+  + '<a href="/arsenal/" class="btn btn-primary">🔫 ВЕСЬ АРСЕНАЛ</a>'
+  + '</section>'
+
+  + '<section class="section" id="system-map">'
+  + '<h2 class="section-title">КАРТА СИСТЕМЫ</h2>'
+  + '<div class="map-container">' + starSvg() + '</div>'
+  + '</section>'
+
+  + '<section class="section">'
+  + '<h2 class="section-title">ВЫБЕРИ СВОЙ УЧАСТОК ФРОНТА</h2>'
+  + '<div class="zone-grid">'
+  + scenarios.map(function(s) {
+    var count = s.weapons.filter(function(id) { return weaponById(id); }).length;
+    return '<a href="/scenarios/" class="zone-card zone-' + s.id + '">'
+      + '<div class="zone-icon">' + s.icon + '</div>'
+      + '<div class="zone-title">' + s.title + '</div>'
+      + '<div class="zone-subtitle">' + s.subtitle + '</div>'
+      + '<span class="zone-count">' + count + '</span>'
+      + '</a>';
+  }).join('')
+  + '</div>'
+  + '</section>'
+
+  + '<section class="section manifesto-teaser">'
+  + '<h2 class="section-title">МАНИФЕСТ ИМПЕРИИ РАЦИОНАЛЬНОГО</h2>'
+  + '<p class="section-desc">Это не просто слова. Это конституция Антименеджера.</p>'
+  + '<div class="manifesto-values">'
+  + '<div class="manifesto-value"><span>1.</span> Люди и их потенциал над слепым исполнением</div>'
+  + '<div class="manifesto-value"><span>2.</span> Работающая система над героизмом и авралами</div>'
+  + '<div class="manifesto-value"><span>3.</span> Сотрудничество и доверие над тотальным контролем</div>'
+  + '<div class="manifesto-value"><span>4.</span> Постоянное улучшение процессов над поиском виноватых</div>'
+  + '<div class="manifesto-value"><span>5.</span> Смысл и осознанность над слепым следованием трендам</div>'
+  + '<div class="manifesto-value"><span>6.</span> Прозрачность и конституция над кулуарными решениями</div>'
+  + '<div class="manifesto-value"><span>7.</span> Ментальное здоровье над когнитивным перегрузом</div>'
+  + '<div class="manifesto-value"><span>8.</span> Конфликт мнений над уютным консенсусом</div>'
+  + '<div class="manifesto-value"><span>9.</span> Антихрупкость над хрупкой эффективностью</div>'
+  + '<div class="manifesto-value"><span>10.</span> Открытая политика над неформальной властью</div>'
+  + '</div>'
+  + '<a href="/manifesto/" class="btn">📜 ЧИТАТЬ ПОЛНОСТЬЮ</a>'
+  + '</section>'
+
+  + '<section class="section">'
+  + '<h2 class="section-title">ПОЛЕВЫЕ ДНЕВНИКИ</h2>'
+  + '<p class="section-desc">Реальные истории с заводов.</p>'
+  + '<div class="case-grid">'
+  + cases.slice(0, 3).map(function(c) {
+    return '<a href="/cases/" class="case-card">'
+      + '<div class="case-headline"><span>⚔️</span>' + c.title + '</div>'
+      + '<div class="weapon-subtitle">' + c.desc + '</div>'
+      + '<div class="case-readtime">⏱ ' + (c.readtime || '5 минут') + '</div>'
+      + '</a>';
+  }).join('')
+  + '</div>'
+  + '<a href="/cases/" class="btn" style="margin-top:var(--space-4);">📖 ВСЕ ИСТОРИИ</a>'
+  + '</section>'
+
+  + '<section class="section hq-section">'
+  + '<h2 class="section-title">ВСТУПАЙ В ШТАБ</h2>'
+  + '<p class="section-desc">Это закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
+  + '<p class="section-desc">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
+  + '<a href="https://t.me/antimanager" class="btn btn-primary">💬 ВСТУПИТЬ В TELEGRAM</a>'
+  + '</section>'
+
+  + '<section class="section stats-section">'
+  + '<h2 class="section-title">СЕГОДНЯ В ОКОПЕ</h2>'
+  + '<div class="stats-grid">'
+  + '<div class="stats-item"><strong>2 847</strong>управленцев читают</div>'
+  + '<div class="stats-item"><strong>113</strong>внедрили «правило трёх вопросов»</div>'
+  + '<div class="stats-item"><strong>47</strong>вышли из кризиса за 90 дней</div>'
+  + '</div>'
+  + '</section>'
+  + '<section style="text-align:center;padding-bottom:var(--space-8);">'
+  + '<p style="color:var(--color-steel);">Ты либо берёшь ответственность за хаос, либо продолжаешь заполнять таблички.</p>'
+  + '</section>';
+
+// === WEAPON TEMPLATE ===
+
+const weaponTemplate = '<div class="content-page">'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/arsenal/">Арсенал</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+  + '<section class="weapon-hero">'
+  + '{{zone_badge}}'
+  + '<h1>{{title}}</h1>'
+  + '<p class="weapon-subtitle">{{subtitle}}</p>'
+  + '{{status_badge}}'
+  + '</section>'
+  + '{{content_body}}'
+  + '{{thinker_block}}'
+  + '{{download_section}}'
+  + '{{related_weapons}}'
+  + '</div>';
+
+// === BUILD: MAIN ===
+
+console.log('\n🚀 AntiManager Brutalist Build\n');
+
+// Landing
+write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: 5 контуров, ' + weapons.length + ' глав, инструментов и кейсов для руководителя производства', landingContent));
+
+// Static pages
+write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent));
+write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent));
+write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent));
+write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent));
+write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent));
+write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent));
+write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent));
+write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', '', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true }));
+write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true }));
+
+// Weapon pages
+for (var wi = 0; wi < weapons.length; wi++) {
+  var w = weapons[wi];
+  var contentPath = path.join(__dirname, 'src', 'content', w.id + '-' + w.slug + '.html');
+  var hasContent = fs.existsSync(contentPath);
+  var contentBody = hasContent ? fs.readFileSync(contentPath, 'utf-8') : '<div class="empty-state"><h3>Статья в разработке</h3><p>Эта статья ещё не готова. Скоро здесь появится текст.</p><p style="margin-top:var(--space-4);"><a href="/arsenal/" class="btn" style="display:inline-flex;">← Вернуться в арсенал</a></p></div>';
+
+  var zoneBadge = w.zone ? '<span class="badge badge-zone badge-zone-' + w.zone + '">' + (zoneLabels[w.zone] || w.zone) + '</span>' : '';
+  var statusSpan = statusBadgeHtml(w.status);
+
+  var thinker = thinkers.find(function(t) { return t.id === w.thinker; });
+  var thinkerBlock = thinker
+    ? '<div class="thinker-block"><strong>Изначальная идея:</strong> ' + thinker.name + ' (' + thinker.years + ') → ' + thinker.weapon + '</div>'
+    : '';
+
+  var downloadSection = '<div class="download-section">'
+    + '<h3>Скачать материалы</h3>'
+    + '<p>Хотите получить дополнительные материалы к этой статье? Оставьте заявку — мы сообщим, когда формат будет готов.</p>'
+    + '<button class="btn download-btn" data-article="' + w.slug + '">Скачать</button>'
+    + '<p class="download-feedback" style="display:none;margin-top:var(--space-3);color:var(--color-steel);font-size:var(--text-sm);"></p>'
+    + '</div>';
+
+  var related = weapons.filter(function(r) { return r.zone !== null && r.zone === w.zone && r.slug !== w.slug; });
+  var relatedHtml = '';
+  if (related.length > 0) {
+    relatedHtml = '<h2 class="section-title" style="margin-top:var(--space-10);">В том же окопе</h2><div class="weapon-grid">'
+      + related.slice(0, 4).map(function(r) {
+        return '<a href="/weapons/' + r.slug + '/" class="weapon-card">'
+          + '<div class="weapon-title">' + r.title + '</div>'
+          + '<div class="weapon-subtitle">' + (r.subtitle || '') + '</div>'
+          + '</a>';
+      }).join('')
+      + '</div>';
   }
-  html += '</div>';
 
-  const scripts = `<script>
-    document.addEventListener('DOMContentLoaded', function(){
-      const filters = document.querySelectorAll('#catalogFilters .filter-btn');
-      const cards = document.querySelectorAll('#catalogGrid .chapter-card');
-      const sections = document.querySelectorAll('#catalogGrid .catalog-section');
-      filters.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          filters.forEach(function(b){b.classList.remove('active');});
-          this.classList.add('active');
-          const f = this.dataset.filter;
-          sections.forEach(function(section){
-            const sectionCards = section.querySelectorAll('.chapter-card');
-            let hasVisible = false;
-            sectionCards.forEach(function(c){
-              if(f === 'all' || c.dataset.ray === f) { c.style.display = ''; hasVisible = true; }
-              else { c.style.display = 'none'; }
-            });
-            section.style.display = hasVisible ? '' : 'none';
-          });
-        });
-      });
-      cards.forEach(function(c){
-        c.addEventListener('click', function(){ const slug = this.dataset.slug; if (slug) { window.location.href = '/books/' + slug + '/'; } });
-        c.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const slug = this.dataset.slug; if(slug) window.location.href = '/books/' + slug + '/'; } });
-      });
-    });
-  </script>`;
+  var html = weaponTemplate;
+  html = html.replace(/{{title}}/g, w.title);
+  html = html.replace('{{subtitle}}', w.subtitle || '');
+  html = html.replace('{{zone_badge}}', zoneBadge);
+  html = html.replace('{{status_badge}}', statusSpan);
+  html = html.replace('{{content_body}}', contentBody);
+  html = html.replace('{{thinker_block}}', thinkerBlock);
+  html = html.replace('{{download_section}}', downloadSection);
+  html = html.replace('{{related_weapons}}', relatedHtml);
 
-  const page = renderPage('Каталог глав | AntiManager', 'Все ' + chapters.length + ' глав системы управления производством', html, { scripts, bodyClass: 'content-page', canonical: SITE_URL + '/catalog/', og: { type: 'website', title: 'Каталог глав | AntiManager', desc: 'Все ' + chapters.length + ' глав системы управления производством' } });
-  write(path.join('catalog', 'index.html'), page);
-  console.log('  ✓ catalog');
+  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html));
+  console.log('  ✓ ' + w.id + ' ' + w.slug);
 }
 
-function buildAbout() {
-  const manifestRu = `
-    <div class="manifesto" lang="ru" id="manifesto-ru">
-      <p class="manifesto-preamble">Мы — инженеры человеческих управленческих систем, архитекторы порядка и гаранты справедливости. Мы больше не «менеджеры» в старом смысле этого слова. Наша задача — проектировать и запускать социальные машины, которые раскрывают потенциал каждого для достижения общих целей.</p>
-      <h2>10 ценностей — выбор в пользу развития, а не догмы</h2>
-      <ol class="manifesto-values">
-        <li><strong>Люди и их потенциал</strong> над слепым исполнением инструкций.</li>
-        <li><strong>Работающая и справедливая система</strong> над героизмом и авралами.</li>
-        <li><strong>Сотрудничество и доверие</strong> над тотальным контролем и подозрительностью.</li>
-        <li><strong>Постоянное улучшение процессов</strong> над поиском виноватых.</li>
-        <li><strong>Смысл и осознанность</strong> над слепым следованием трендам.</li>
-        <li><strong>Прозрачность и конституция</strong> над устными указаниями и кулуарными решениями.</li>
-        <li><strong>Ментальное здоровье</strong> над когнитивным перегрузом.</li>
-        <li><strong>Конфликт мнений</strong> над уютным консенсусом.</li>
-        <li><strong>Антихрупкость</strong> над хрупкой эффективностью.</li>
-        <li><strong>Открытая политика</strong> над неформальной властью.</li>
-      </ol>
-      <h2>Принципы — правила нашей повседневной практики</h2>
-      <ol class="manifesto-principles" start="1">
-        <li>Наша высшая цель — построить самовоспроизводящуюся систему, которая стабильно даёт результат, даже когда нас нет на месте.</li>
-        <li>Мы выходим в <em>гембу</em> не для того, чтобы найти виноватых, а чтобы понять и улучшить процесс.</li>
-        <li>Мы — гаранты конституции. Наша роль — защищать правила игры для всех, включая себя.</li>
-        <li>Мы создаём среду, где любая проблема может быть озвучена без страха.</li>
-        <li>Мы платим за вклад и результат, а не за время, проведённое на работе.</li>
-        <li>Мы платим и за результат, и за смелость остановить сломанный процесс.</li>
-        <li>Мы инвестируем в развитие «сообразительных умов», а не эксплуатируем «тёплые тела».</li>
-        <li>Мы строим конкретные пути роста, а не учим «вообще полезному».</li>
-        <li>Настоящая команда — когда каждый так делает свою работу, что другим легко делать свою.</li>
-        <li>Мы не ждём и не догоняем — сами задаём стандарты в своей отрасли.</li>
-        <li>Люди проводят на работе большую часть жизни — мы строим место силы и уважения.</li>
-        <li>Мы относимся к кулуарным решениям как к симптому загнивания системы.</li>
-        <li>Любой кризис — стресс-тест правил. Нарушил правило в кризисе — измени правило.</li>
-        <li>Мы защищаем фокус команды: нововведение внедряется взамен старого.</li>
-        <li>Мы постоянно совершенствуем архитектуру управления, соизмеряя с нашими ценностями.</li>
-      </ol>
-      <div class="manifesto-closing"><p>Мы призываем лидеров принять эту эволюционную парадигму. Оставить в прошлом эпоху надсмотрщиков и вступить в эру инженеров человеческих управленческих систем. Наш инструмент — не приказ, а конституция. Наша сила — не в героях-одиночках, а в системе, которая тиражирует героизм как стандартную практику.</p><p>Этот манифест — живой документ. Для тех, кто готов брать на себя ответственность за созидание порядка из хаоса.</p></div>
-    </div>`;
-
-  const manifestEn = `
-    <div class="manifesto" lang="en" id="manifesto-en" style="display:none">
-      <p class="manifesto-preamble">We are the engineers of human management systems, the architects of order, and the guarantors of justice. We are no longer "managers" in the old sense of the word. Our task is to design and launch social machines that unlock each individual's potential to achieve common goals.</p>
-      <h2>10 Values — A Choice for Evolution, Not Dogma</h2>
-      <ol class="manifesto-values">
-        <li><strong>People and their potential</strong> over blind adherence to instructions.</li>
-        <li><strong>A working and fair system</strong> over heroism and firefighting.</li>
-        <li><strong>Collaboration and trust</strong> over total control and suspicion.</li>
-        <li><strong>Continuous process improvement</strong> over blame-seeking.</li>
-        <li><strong>Meaning and intentionality</strong> over blind trend-following.</li>
-        <li><strong>Transparency and constitution</strong> over oral directives and backroom decisions.</li>
-        <li><strong>Mental health</strong> over cognitive overload.</li>
-        <li><strong>Conflict of opinions</strong> over comfortable consensus.</li>
-        <li><strong>Antifragility</strong> over fragile efficiency.</li>
-        <li><strong>Open politics</strong> over informal power.</li>
-      </ol>
-      <h2>Principles — The Rules of Our Daily Practice</h2>
-      <ol class="manifesto-principles" start="1">
-        <li>Our ultimate goal is to build a self-sustaining system that delivers results consistently, even in our absence.</li>
-        <li>We go to the <em>gemba</em> not to find someone to blame, but to understand and improve the process.</li>
-        <li>We are the guarantors of the constitution — protecting the rules of the game for all, including ourselves.</li>
-        <li>We create an environment where any problem can be voiced without fear.</li>
-        <li>We pay for contribution and results, not for time spent at work.</li>
-        <li>We pay for both results and the courage to stop a broken process.</li>
-        <li>We invest in developing "capable minds," not exploiting "warm bodies."</li>
-        <li>We build concrete growth paths, not teach "generally useful" things.</li>
-        <li>A real team is when everyone does their work so well that others can do theirs easily.</li>
-        <li>We don't wait or catch up — we set the standards within our industry.</li>
-        <li>People spend most of their lives at work — we build a place of strength and respect.</li>
-        <li>We treat backroom decisions as a symptom of a decaying system.</li>
-        <li>Any crisis is a stress test for the rules. Break a rule in a crisis — change the rule.</li>
-        <li>We protect the team's focus: any new implementation must replace something old.</li>
-        <li>We continuously refine our management architecture, aligning with our values.</li>
-      </ol>
-      <div class="manifesto-closing"><p>We call on leaders to embrace this evolutionary paradigm — to leave the era of overseers and enter the era of engineers of human management systems. Our tool is not an order, but a constitution. Our strength is not in lone heroes, but in a system that replicates heroism as a standard practice.</p><p>This manifesto is a living document. It is for those ready to take responsibility for creating order out of chaos.</p></div>
-    </div>`;
-
-  const content = `
-    <h1>AntiManager Manifesto</h1>
-    <p class="text-muted" style="margin-bottom:var(--space-4);">Manifestum Imperii Rationalis — Манифест рационального управления</p>
-    <div class="lang-switch" style="display:flex;gap:var(--space-2);margin-bottom:var(--space-8);">
-      <button class="filter-btn active" id="langRu" onclick="switchLang('ru')">Русский</button>
-      <button class="filter-btn" id="langEn" onclick="switchLang('en')">English</button>
-    </div>
-    ${manifestRu}${manifestEn}
-    <hr style="margin:var(--space-10) 0;border-color:var(--color-border-light);">
-    <script>function switchLang(lang){document.getElementById('langRu').classList.toggle('active',lang==='ru');document.getElementById('langEn').classList.toggle('active',lang==='en');document.getElementById('manifesto-ru').style.display=lang==='ru'?'':'none';document.getElementById('manifesto-en').style.display=lang==='en'?'':'none';}</script>`;
-
-  const page = renderPage('AntiManager Manifesto | AntiManager', 'Manifestum Imperii Rationalis — Манифест рационального управления', content, { bodyClass: 'content-page', canonical: SITE_URL + '/about/', og: { type: 'article', title: 'AntiManager Manifesto', desc: 'Manifestum Imperii Rationalis — 10 ценностей и 15 принципов рационального управления' } });
-  write(path.join('about', 'index.html'), page);
-  console.log('  ✓ about (manifesto RU/EN)');
-}
-
-function buildTools() {
-  let html = '<h1>Инструменты</h1><p>' + tools.length + ' инструментов управления производством.</p><div class="filters" id="toolFilters">';
-  html += '<button class="filter-btn active" data-filter="all">Все</button>';
-  html += Object.entries(RAYS).map(([k, v]) => `<button class="filter-btn" data-filter="${k}">${v.name}</button>`).join('');
-  html += '</div><div class="card-grid" id="toolGrid">';
-  for (const t of tools) {
-    html += `<div class="chapter-card" data-rays="${t.rays.join(',')}" style="cursor:default;">
-      <div class="meta"><span class="badge badge-ray-${t.rays[0]}" style="font-size:var(--text-xs)">${RAYS[t.rays[0]].name}</span></div>
-      <h3>${t.name}</h3><p>${t.desc || ''}</p></div>`;
+// Sitemap
+var sitemapUrls = [
+  { loc: SITE_URL + '/', priority: '1.0' },
+  { loc: SITE_URL + '/arsenal/', priority: '0.9' },
+  { loc: SITE_URL + '/manifesto/', priority: '0.8' },
+  { loc: SITE_URL + '/archive/', priority: '0.7' },
+  { loc: SITE_URL + '/scenarios/', priority: '0.7' },
+  { loc: SITE_URL + '/cases/', priority: '0.7' },
+  { loc: SITE_URL + '/headquarters/', priority: '0.5' },
+  { loc: SITE_URL + '/about/', priority: '0.5' },
+];
+for (var si = 0; si < weapons.length; si++) {
+  if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
+    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9' });
   }
-  html += '</div>';
-
-  const scripts = `<script>
-    document.addEventListener('DOMContentLoaded', function(){
-      const filters = document.querySelectorAll('#toolFilters .filter-btn');
-      const cards = document.querySelectorAll('#toolGrid .chapter-card');
-      filters.forEach(function(b){b.addEventListener('click', function(){
-        filters.forEach(function(f){f.classList.remove('active');});
-        this.classList.add('active'); const f=this.dataset.filter;
-        cards.forEach(function(c){if(f==='all'||c.dataset.rays.includes(f))c.style.display='';else c.style.display='none';});
-      });});
-    });
-  </script>`;
-
-  const page = renderPage('Инструменты | AntiManager', tools.length + ' инструментов управления производством', html, { scripts, bodyClass: 'content-page', canonical: SITE_URL + '/tools/', og: { type: 'website', title: 'Инструменты | AntiManager', desc: tools.length + ' инструментов управления производством' } });
-  write(path.join('tools', 'index.html'), page);
-  console.log('  ✓ tools');
 }
-
-function buildPrivacy() {
-  const content = `<h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы. Данные о посещениях (Яндекс.Метрика) обезличены и используются для статистики.</p><p>Если у вас есть вопросы — свяжитесь с нами.</p>`;
-  const page = renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', content, { bodyClass: 'content-page', canonical: SITE_URL + '/privacy/' });
-  write(path.join('privacy', 'index.html'), page);
-  console.log('  ✓ privacy');
+var sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+for (var si2 = 0; si2 < sitemapUrls.length; si2++) {
+  sitemap += '  <url>\n    <loc>' + sitemapUrls[si2].loc + '</loc>\n    <priority>' + sitemapUrls[si2].priority + '</priority>\n  </url>\n';
 }
+sitemap += '</urlset>';
+write('sitemap.xml', sitemap);
+write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
-function build404() {
-  const content = `<div class="empty-state"><h1>404</h1><p>Страница не найдена.</p><p><a href="/" class="btn btn-outline">← На главную</a></p></div>`;
-  const page = renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена', content, { bodyClass: 'content-page', noindex: true });
-  write(path.join('404', 'index.html'), page);
-  console.log('  ✓ 404');
-}
-
-function generateSitemap() {
-  const urls = [];
-  urls.push({ loc: SITE_URL + '/', priority: '1.0' });
-  urls.push({ loc: SITE_URL + '/catalog/', priority: '0.8' });
-  urls.push({ loc: SITE_URL + '/tools/', priority: '0.7' });
-  for (const ch of chapters) { if (hasContentFile(ch)) urls.push({ loc: SITE_URL + '/books/' + ch.slug + '/', priority: '0.9' }); }
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
-  for (const u of urls) xml += '  <url>\n    <loc>' + u.loc + '</loc>\n    <priority>' + u.priority + '</priority>\n  </url>\n';
-  xml += '</urlset>';
-  write('sitemap.xml', xml);
-  console.log('  ✓ sitemap.xml');
-}
-
-function generateRobots() {
-  const robots = 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n';
-  write('robots.txt', robots);
-  console.log('  ✓ robots.txt');
-}
-
-// --- MAIN ---
-console.log('\n🚀 AntiManager Build\n');
-
-for (const ch of chapters) buildChapter(ch);
-
-buildIndex();
-buildCatalog();
-buildTools();
-buildAbout();
-buildPrivacy();
-build404();
-
-generateSitemap();
-generateRobots();
-
-console.log('\n📁 Copying assets...');
+// Copy assets
 copyDir('css', 'css');
 copyDir('js', 'js');
 copyDir('fonts', 'fonts');
