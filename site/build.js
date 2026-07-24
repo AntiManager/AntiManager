@@ -66,20 +66,22 @@ function makeStructuredData(pageType, data) {
     });
   }
   if (pageType === 'weapon') {
+    var article = {
+      '@type': 'Article',
+      'headline': data.title,
+      'description': data.subtitle || data.title,
+      'url': data.canonicalUrl,
+      'datePublished': BUILD_DATE,
+      'dateModified': BUILD_DATE,
+      'inLanguage': 'ru',
+      'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
+      'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
+    };
+    if (data.articleSection) article.articleSection = data.articleSection;
     return json({
       '@context': 'https://schema.org',
       '@graph': [
-        {
-          '@type': 'Article',
-          'headline': data.title,
-          'description': data.subtitle || data.title,
-          'url': data.canonicalUrl,
-          'datePublished': BUILD_DATE,
-          'dateModified': BUILD_DATE,
-          'inLanguage': 'ru',
-          'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
-          'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
-        },
+        article,
         {
           '@type': 'BreadcrumbList',
           'itemListElement': [
@@ -128,6 +130,13 @@ function renderPage(title, description, content, opts) {
     + '<meta name="twitter:image" content="' + ogImage + '">';
 
   if (opts.structuredData) headTags += opts.structuredData;
+
+  if (ogType === 'article') {
+    if (opts.ogArticleSection) headTags += '\n<meta property="article:section" content="' + escapeHtml(opts.ogArticleSection) + '">';
+    headTags += '\n<meta property="article:published_time" content="' + BUILD_DATE + '">';
+    headTags += '\n<meta property="article:author" content="' + SITE_URL + '/about/">';
+  }
+
   if (opts.headExtra) headTags += '\n' + opts.headExtra;
 
   const scripts = '<script src="/js/brutalist.js" defer></script>'
@@ -491,7 +500,8 @@ for (var wi = 0; wi < weapons.length; wi++) {
   html = html.replace('{{related_weapons}}', relatedHtml);
 
   var canonicalUrl = SITE_URL + '/weapons/' + w.slug + '/';
-  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl }) }));
+  var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
+  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
 }
 
