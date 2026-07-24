@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const SITE_URL = 'https://antimanager.pro';
+const BUILD_DATE = '2026-07-24';
 
 function read(name) { return fs.readFileSync(path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
@@ -46,18 +47,100 @@ function statusBadgeHtml(status) {
   return `<span class="badge badge-status badge-status-${status}">${statusLabels[status] || status}</span>`;
 }
 
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function makeStructuredData(pageType, data) {
+  data = data || {};
+  function json(ld) {
+    return '\n<script type="application/ld+json">' + JSON.stringify(ld, null, 2) + '</script>';
+  }
+  if (pageType === 'landing') {
+    return json({
+      '@context': 'https://schema.org',
+      '@graph': [
+        { '@type': 'WebSite', 'name': 'AntiManager', 'url': SITE_URL, 'inLanguage': 'ru' },
+        { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL, 'sameAs': ['https://t.me/antimanager'] }
+      ]
+    });
+  }
+  if (pageType === 'weapon') {
+    return json({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Article',
+          'headline': data.title,
+          'description': data.subtitle || data.title,
+          'url': data.canonicalUrl,
+          'datePublished': BUILD_DATE,
+          'dateModified': BUILD_DATE,
+          'inLanguage': 'ru',
+          'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
+          'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
+        },
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+            { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' },
+            { '@type': 'ListItem', 'position': 3, 'name': data.title }
+          ]
+        }
+      ]
+    });
+  }
+  if (pageType === 'static') {
+    return json({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      'name': 'AntiManager',
+      'url': SITE_URL,
+      'inLanguage': 'ru'
+    });
+  }
+  return '';
+}
+
 // === RENDER ===
 
 function renderPage(title, description, content, opts) {
   opts = opts || {};
+
+  const desc = description || title;
+  const canonicalUrl = opts.canonicalUrl || SITE_URL + '/';
+  const ogType = opts.ogType || 'website';
+  const ogImage = opts.ogImage || SITE_URL + '/og-image.png';
+
+  let headTags = ''
+    + '<link rel="canonical" href="' + canonicalUrl + '">\n'
+    + '<meta property="og:title" content="' + escapeHtml(title) + '">\n'
+    + '<meta property="og:description" content="' + escapeHtml(desc) + '">\n'
+    + '<meta property="og:url" content="' + canonicalUrl + '">\n'
+    + '<meta property="og:type" content="' + ogType + '">\n'
+    + '<meta property="og:image" content="' + ogImage + '">\n'
+    + '<meta property="og:site_name" content="AntiManager">\n'
+    + '<meta property="og:locale" content="ru_RU">\n'
+    + '<meta name="twitter:card" content="summary_large_image">\n'
+    + '<meta name="twitter:title" content="' + escapeHtml(title) + '">\n'
+    + '<meta name="twitter:description" content="' + escapeHtml(desc) + '">\n'
+    + '<meta name="twitter:image" content="' + ogImage + '">';
+
+  if (opts.structuredData) headTags += opts.structuredData;
+  if (opts.headExtra) headTags += '\n' + opts.headExtra;
+
+  const scripts = '<script src="/js/brutalist.js" defer></script>'
+    + (opts.scripts ? '\n' + opts.scripts : '');
+
   let html = base;
   html = html.replace('{{title}}', title);
   html = html.replace('{{description}}', description);
   html = html.replace('{{header}}', headerHtml);
   html = html.replace('{{content}}', content);
   html = html.replace('{{footer}}', footerHtml.replace('{{year}}', '2026'));
-  html = html.replace('{{head_extra}}', opts.headExtra || '');
-  html = html.replace('{{scripts}}', opts.scripts || '');
+  html = html.replace('{{head_extra}}', headTags);
+  html = html.replace('{{scripts}}', scripts);
   if (opts.noindex) html = html.replace('</head>', '<meta name="robots" content="noindex"></head>');
   return html;
 }
@@ -349,18 +432,18 @@ const weaponTemplate = '<div class="content-page">'
 console.log('\n🚀 AntiManager Brutalist Build\n');
 
 // Landing
-write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: 5 контуров, ' + weapons.length + ' глав, инструментов и кейсов для руководителя производства', landingContent));
+write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: 5 контуров, ' + weapons.length + ' глав, инструментов и кейсов для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
 
 // Static pages
-write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent));
-write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent));
-write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent));
-write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent));
-write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent));
-write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent));
-write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent));
-write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', '', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true }));
-write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true }));
+write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static') }));
+write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static') }));
+write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static') }));
+write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static') }));
+write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static') }));
+write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static') }));
+write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static') }));
+write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', '', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
+write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
 
 // Weapon pages
 for (var wi = 0; wi < weapons.length; wi++) {
@@ -407,29 +490,30 @@ for (var wi = 0; wi < weapons.length; wi++) {
   html = html.replace('{{download_section}}', downloadSection);
   html = html.replace('{{related_weapons}}', relatedHtml);
 
-  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html));
+  var canonicalUrl = SITE_URL + '/weapons/' + w.slug + '/';
+  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
 }
 
 // Sitemap
 var sitemapUrls = [
-  { loc: SITE_URL + '/', priority: '1.0' },
-  { loc: SITE_URL + '/arsenal/', priority: '0.9' },
-  { loc: SITE_URL + '/manifesto/', priority: '0.8' },
-  { loc: SITE_URL + '/archive/', priority: '0.7' },
-  { loc: SITE_URL + '/scenarios/', priority: '0.7' },
-  { loc: SITE_URL + '/cases/', priority: '0.7' },
-  { loc: SITE_URL + '/headquarters/', priority: '0.5' },
-  { loc: SITE_URL + '/about/', priority: '0.5' },
+  { loc: SITE_URL + '/', priority: '1.0', changefreq: 'daily', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/arsenal/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/manifesto/', priority: '0.8', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/archive/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/scenarios/', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/cases/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/headquarters/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/about/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
 ];
 for (var si = 0; si < weapons.length; si++) {
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
-    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9' });
+    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE });
   }
 }
 var sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 for (var si2 = 0; si2 < sitemapUrls.length; si2++) {
-  sitemap += '  <url>\n    <loc>' + sitemapUrls[si2].loc + '</loc>\n    <priority>' + sitemapUrls[si2].priority + '</priority>\n  </url>\n';
+  sitemap += '  <url>\n    <loc>' + sitemapUrls[si2].loc + '</loc>\n    <lastmod>' + sitemapUrls[si2].lastmod + '</lastmod>\n    <changefreq>' + sitemapUrls[si2].changefreq + '</changefreq>\n    <priority>' + sitemapUrls[si2].priority + '</priority>\n  </url>\n';
 }
 sitemap += '</urlset>';
 write('sitemap.xml', sitemap);
@@ -439,5 +523,8 @@ write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitema
 copyDir('css', 'css');
 copyDir('js', 'js');
 copyDir('fonts', 'fonts');
+write('favicon.svg', read('favicon.svg'));
+write('og-image.svg', read('src/templates/og-image.svg'));
+write('yandex_XXXXXXXXXXXXXXXX.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: XXXXXXXXXXXXXXXX</body></html>');
 
 console.log('\n✅ Build complete. Output: ' + path.join(__dirname, 'dist') + '\n');
