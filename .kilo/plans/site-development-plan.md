@@ -1,47 +1,37 @@
 ﻿# План сайта antimanager.pro
 
-> Актуально на 05.07.2026. Предыдущая версия плана заменена в связи с изменением концепции.
+> Актуально на 28.07.2026. Бруталистский ребрендинг + UI/UX-фиксы завершены и задеплоены.
 
 ---
 
 ## 1. Концепция
 
-**Цель:** Показать руководителям производств системность управления через 5 управленческих контуров.
+**Цель:** Показать руководителям производств системность управления через 4 зоны боевых действий (Crisis, Team, Changes, System).
 
-**Центральная метафора:** Колесо баланса пяти лучей (скрыто: Компас/Двигатель/Нервы/Кровь/Иммунитет; пользователю: Стратегия и смысл / Процессы и структура / Информация и данные / Люди и мотивация / Изменения и адаптация)
+**Дизайн:** Брутализм — чёрно-бело-красная палитра, шумовая текстура, конструктивистские приёмы.
 
-**Навигация:** Интерактивная звезда (SVG) — 5 лучей из центра. Нажатие на луч → список глав сектора.
+**Навигация:** Динамическая SVG-карта зон (star map) на главной. 22 статьи-«оружия» без нумерации.
 
-## 2. Статус (05.07.2026)
+## 2. Статус (28.07.2026)
 
-### Развёрнуто
-- https://antimanager.pro — HTTPS (Caddy + Let's Encrypt)
-- VPS: {{REMOTE_HOST}}, nginx:alpine (Docker), Caddy
-- Исходники: vault → `build.js` → `dist/` → VPS
+### Проделано (июль 2026)
 
-### Готово
-- [x] Дизайн-система (common.css): Sajid 4-color HSL, 8px grid, glassmorphism, классовая тёмная тема
-- [x] Сборочная система (build.js): компоненты + шаблоны + контент → чистые URL
-- [x] Данные: chapters.json (22 главы, привязка к 5 лучам), tools.json (22 инструмента), cases.json (10 кейсов)
-- [x] Главная: SVG-звезда с анимированными лучами, клик → главы сектора
-- [x] Каталог: группировка по лучам + фильтры
-- [x] Инструменты: все 22, фильтр по лучам
-- [x] Страница главы 21 (Два типа управления): диагностический тест Run/Change, концепции, кейс, чеклист
-- [x] 22 страницы глав (заглушки для ненаписанных)
-- [x] 404, privacy, about (заглушка, noindex)
+- [x] **Бруталистский ребрендинг** — `brutalist.css` (400 строк), `build.js` переписан под новую архитектуру
+- [x] **Данные**: `weapons.json` (23 статьи), `scenarios.json` (4 зоны), `thinkers.json` (9 мыслителей + фото)
+- [x] **Страницы**: landing, manifesto, archive, arsenal (с фильтрами), scenarios, cases, headquarters, about, 404, privacy
+- [x] **22 страницы оружия** — каждая с шаблоном (зона, контент, мыслитель с фото, related, download-CTA)
+- [x] **Интерактивные виджеты**: диагностика Run/Change (гл. 21), Pre-Mortem (гл. 16)
+- [x] **SEO**: Schema.org (Article, BreadcrumbList, WebSite), OG (article:section, article:published_time), canonical, sitemap, robots.txt
+- [x] **UI/UX-фиксы (28.07)**: skip-link + focus-visible + reduced-motion (A11y), touch targets 44px, crisis CTA shortcut, responsive breakpoints (640px/1024px), hover guards, download CTA text, фото мыслителей, hamburger menu, scroll-to-top, word-break
+- [x] **Playwright**: 66 e2e-тестов (mobile/tablet/desktop), все проходят
 
-### В работе / следующий приоритет
-- [ ] Страница главы 02 (Сложность) — диагностика 7 уровней
-- [ ] Страница главы 04 (PDCA) — генератор эксперимента
-- [ ] Страница главы 06 (Процессы) — SIPOC-конструктор
-- [ ] Страница главы 16 (Хаос) — Pre-Mortem + A3
-- [ ] Страница главы 11 (Культура) — диагностика ритуалов
+### Следующий приоритет
 
-### Не начато
-- [ ] cases.html — кейсы 24 истории
-- [ ] knowledge.html — FAQ 30+ вопросов
-- [ ] entry.html — диагностика за 3 минуты
-- [ ] Скачиваемые материалы (PDF, иерархии)
+- [ ] Контент глав: 02 (Сложность), 04 (PDCA), 06 (Процессы), 11 (Культура)
+- [ ] Интерактивные инструменты для написанных глав
+- [ ] Полнотекстовые страницы кейсов
+- [ ] Скачиваемые материалы (PDF чек-листов)
+- [ ] Lighthouse ≥ 90
 
 ## 3. Технологический стек
 
@@ -49,43 +39,54 @@
 |---|---|
 | Vanilla HTML/CSS/JS | Без фреймворков |
 | node build.js | Сборка страниц из компонентов |
-| CSS Custom Properties | Дизайн-токены, тёмная тема |
-| SVG + CSS animations | Звезда 5 лучей (анимированный поток) |
+| CSS Custom Properties | Дизайн-токены (ch: 0A0A0A, red: DC2626, steel: 6B7280) |
+| Golos Text + PT Serif + JetBrains Mono | Типографика (woff2, Cyrillic/Latin split) |
+| SVG (data-driven) | Динамическая карта зон (star map) |
 | nginx:alpine (Docker) | Раздача статики |
-| Caddy (Docker) | HTTPS, reverse proxy |
+| Caddy (Docker) | HTTPS termination, reverse proxy |
+| Playwright | e2e-тесты 3 вьюпорта |
 
 ## 4. Архитектура
 
 ```
-00_Сайт/
-├── src/
-│   ├── components/   ← header, footer, sidebar
-│   ├── templates/    ← base.html, chapter.html
-│   ├── data/         ← chapters.json, tools.json, cases.json
-│   └── content/      ← HTML-контент глав
-├── build.js          ← сборка → dist/
-├── css/common.css    ← дизайн-система
-├── js/               ← common.js, map.js, interactive/
-├── deploy/           ← deploy.ps1, nginx.conf
-└── dist/             ← собранный сайт (на VPS)
+AntiManager/
+├── Фото_мыслителей/          ← фото мыслителей (копируются в dist/)
+├── manifesto-ru.md / -en.md  ← манифесты
+├── site/
+│   ├── src/
+│   │   ├── components/       ← header.html, footer.html
+│   │   ├── templates/        ← base.html, og-image.svg
+│   │   ├── data/             ← weapons.json, scenarios.json, thinkers.json, cases.json
+│   │   └── content/          ← HTML-контент 22 статей
+│   ├── build.js              ← сборка → dist/
+│   ├── css/brutalist.css     ← дизайн-система (400 строк)
+│   ├── css/fonts.css         ← @font-face (10 woff2)
+│   ├── js/brutalist.js       ← flash, reveal, download, menu, scroll-top
+│   ├── fonts/                ← woff2 (Golos Text, PT Serif, JetBrains Mono)
+│   ├── tests/                ← ux-critical.spec.js (66 тестов)
+│   ├── deploy/               ← deploy.ps1, nginx.conf
+│   └── dist/                 ← собранный сайт (gitignored)
 ```
 
-Чистые URL: `/books/slug/` → `dist/books/slug/index.html`
+Чистые URL: `/weapons/slug/` → `dist/weapons/slug/index.html`
 
 ## 5. Деплой
 
 ```powershell
 cd site
 node build.js
-# Или используй deploy.ps1 (читает .env)
+.\deploy.ps1      # Сборка + SCP + chmod + Docker restart
 ```
 
-Или `deploy.ps1` (делает сборку + деплой).
+Или `.\deploy.ps1 -SkipBuild` если dist уже собран.
+
+После деплоя CSS/JS кешируются на 7 дней с `must-revalidate`. Cache-busting: `?v=YYYYMMDD` в URL стилей/скриптов.
 
 ## 6. Следующие итерации
 
-1. **Контент глав** — переработать .md → HTML по приоритету из п.2
+1. **Контент глав** — переработать .md → HTML: 02, 04, 06, 11, 13
 2. **Интерактивные инструменты** — для каждой готовой главы свой виджет
-3. **Контекстные слои** — доработать фильтры на карте (по ролям, проблемам)
-4. **Остальные страницы** — cases, knowledge, entry, about
-5. **Производительность** — Lighthouse ≥ 90
+3. **Кейсы** — полнотекстовые страницы полевых дневников
+4. **PDF-материалы** — чек-листы и шаблоны для загрузки
+5. **Производительность** — Critical CSS inline, Lighthouse ≥ 90
+6. **Star map interactive** — кликабельные лучи → статьи зоны

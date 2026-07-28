@@ -8,8 +8,8 @@
   <meta name="theme-color" content="#0A0A0A">
   <meta name="msapplication-TileColor" content="#DC2626">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/fonts.css">
-  <link rel="stylesheet" href="/css/brutalist.css">
+  <link rel="stylesheet" href="/css/fonts.css?v={{version}}">
+  <link rel="stylesheet" href="/css/brutalist.css?v={{version}}">
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -26,9 +26,12 @@
   {{head_extra}}
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Перейти к содержимому</a>
   <div class="red-corner" aria-hidden="true"></div>
   {{header}}
-  {{content}}
+  <main id="main-content">
+    {{content}}
+  </main>
   {{footer}}
   {{scripts}}
 </body>

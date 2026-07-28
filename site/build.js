@@ -4,7 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 const SITE_URL = 'https://antimanager.pro';
-const BUILD_DATE = '2026-07-24';
+const BUILD_DATE = '2026-07-28';
+const VERSION = '20260728b';
 
 function read(name) { return fs.readFileSync(path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
@@ -139,10 +140,11 @@ function renderPage(title, description, content, opts) {
 
   if (opts.headExtra) headTags += '\n' + opts.headExtra;
 
-  const scripts = '<script src="/js/brutalist.js" defer></script>'
+  const scripts = '<script src="/js/brutalist.js?v=' + VERSION + '" defer></script>'
     + (opts.scripts ? '\n' + opts.scripts : '');
 
   let html = base;
+  html = html.replace(/\{\{version\}\}/g, VERSION);
   html = html.replace('{{title}}', title);
   html = html.replace('{{description}}', description);
   html = html.replace('{{header}}', headerHtml);
@@ -228,6 +230,7 @@ const archiveContent = '<section class="content-page">'
   + '<div class="thinker-grid">'
   + thinkers.map(function(t) {
     return '<div class="thinker-card">'
+      + (t.photo ? '<img src="/images/thinkers/' + t.photo + '" alt="' + t.name + ' — фото" class="thinker-photo" loading="lazy">' : '')
       + '<div class="thinker-name">' + t.name + '</div>'
       + '<div class="thinker-years">' + t.years + '</div>'
       + '<div class="thinker-idea">' + t.idea + '</div>'
@@ -326,7 +329,7 @@ const landingContent = '<section class="hero">'
   + '<p class="hero-quote">«Сначала среда, потом требования». «Сложность управляется сложностью». «Любая система лжёт». Просто консультанты забыли это сказать.</p>'
   + '</div>'
   + '<div class="hero-cta">'
-  + '<a href="/scenarios/" class="btn btn-crisis">🔥 У МЕНЯ КРИЗИС</a>'
+  + '<a href="/weapons/antikrizis/" class="btn btn-crisis">🔥 У МЕНЯ КРИЗИС</a>'
   + '<a href="#system-map" class="btn btn-primary">🗺️ ХОЧУ ПОНЯТЬ СИСТЕМУ</a>'
   + '</div>'
   + '</section>'
@@ -466,13 +469,15 @@ for (var wi = 0; wi < weapons.length; wi++) {
 
   var thinker = thinkers.find(function(t) { return t.id === w.thinker; });
   var thinkerBlock = thinker
-    ? '<div class="thinker-block"><strong>Изначальная идея:</strong> ' + thinker.name + ' (' + thinker.years + ') → ' + thinker.weapon + '</div>'
+    ? '<div class="thinker-block">'
+      + (thinker.photo ? '<img src="/images/thinkers/' + thinker.photo + '" alt="' + thinker.name + ' — фото" class="thinker-photo-sm" loading="lazy">' : '')
+      + '<div class="thinker-block-text"><strong>Изначальная идея:</strong> ' + thinker.name + ' (' + thinker.years + ') → ' + thinker.weapon + '</div></div>'
     : '';
 
   var downloadSection = '<div class="download-section">'
-    + '<h3>Скачать материалы</h3>'
-    + '<p>Хотите получить дополнительные материалы к этой статье? Оставьте заявку — мы сообщим, когда формат будет готов.</p>'
-    + '<button class="btn download-btn" data-article="' + w.slug + '">Скачать</button>'
+    + '<h3>Материалы к статье</h3>'
+    + '<p>Готовим PDF с чек-листами и шаблонами. Оставьте заявку — сообщим, когда будет готово.</p>'
+    + '<button class="btn download-btn" data-article="' + w.slug + '">Хочу PDF</button>'
     + '<p class="download-feedback" style="display:none;margin-top:var(--space-3);color:var(--color-steel);font-size:var(--text-sm);"></p>'
     + '</div>';
 
@@ -533,7 +538,8 @@ write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitema
 copyDir('css', 'css');
 copyDir('js', 'js');
 copyDir('fonts', 'fonts');
-write('favicon.svg', read('favicon.svg'));
+  copyDir('../Фото_мыслителей', 'images/thinkers');
+  write('favicon.svg', read('favicon.svg'));
 write('og-image.svg', read('src/templates/og-image.svg'));
 write('yandex_XXXXXXXXXXXXXXXX.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: XXXXXXXXXXXXXXXX</body></html>');
 

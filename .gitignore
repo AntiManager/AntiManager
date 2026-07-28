@@ -19,3 +19,6 @@ site/tests/snapshots/**/*.png
 
 # Kilo plan files (local development artifacts)
 .kilo/plans/
+
+# Thinker photos — large binary files, copied to VPS directly
+Фото_мыслителей/

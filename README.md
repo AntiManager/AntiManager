@@ -24,23 +24,30 @@
 
 - Vanilla HTML/CSS/JS — без фреймворков
 - Статическая генерация через Node.js (`site/build.js`)
-- Self-hosted шрифты Inter + Manrope (woff2)
-- Playwright UX-тесты (3 вьюпорта × 16 тестов)
-- Классовая тёмная тема, дизайн-токены Sajid
+- Self-hosted шрифты: Golos Text, PT Serif, JetBrains Mono (woff2, Cyrillic/Latin split)
+- Бруталистская дизайн-система: чёрно-красно-белая палитра, шум
+- Playwright e2e-тесты (3 вьюпорта × 22 тест-сьюта = 66 тестов)
+- Docker: nginx:alpine + Caddy на VPS
 
 ## Структура
 
 ```
-manifesto-ru.md     # Манифест (русский)
-manifesto-en.md     # Manifesto (English)
-site/               # Код и деплой сайта
-  build.js          # Статический билдер
-  src/              # Шаблоны, данные, контент глав
-  css/              # Дизайн-система
-  js/               # Интерактив (карта, виджеты)
-  fonts/            # Inter + Manrope woff2
-  tests/            # Playwright
-  deploy/           # nginx, деплой-скрипт
+Фото_мыслителей/     # Фотографии мыслителей (копируются в dist/images/thinkers/)
+manifesto-ru.md      # Манифест (русский)
+manifesto-en.md      # Manifesto (English)
+site/                # Код и деплой сайта
+  build.js           # Статический билдер
+  src/
+    components/      # header, footer (HTML-компоненты)
+    templates/       # base.html, og-image.svg
+    data/            # weapons.json, scenarios.json, thinkers.json, cases.json
+    content/         # HTML-контент 22 глав
+  css/               # brutalist.css, fonts.css
+  js/                # brutalist.js (flash, scroll-reveal, menu, scroll-top)
+  fonts/             # Golos Text, PT Serif, JetBrains Mono (woff2 × 10)
+  tests/             # Playwright (ux-critical.spec.js — 66 тестов)
+  deploy/            # deploy.ps1, nginx.conf
+  dist/              # Build output (gitignored)
 ```
 
 ## Разработка
