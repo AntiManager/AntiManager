@@ -1,0 +1,27 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "deepseek/deepseek-v4-flash",
+  "small_model": "deepseek/deepseek-v4-flash",
+  "instructions": [
+    ".memory/project_brief.md",
+    ".memory/active_context.md",
+    ".memory/progress.md",
+    ".memory/tech_context.md",
+    ".memory/system_patterns.md"
+  ],
+  "permission": {
+    "bash": "allow",
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "edit": {
+      "site/**": "allow",
+      "*.md": "allow",
+      "manifesto-*.md": "allow",
+      "*": "ask"
+    },
+    "webfetch": "allow",
+    "task": "allow"
+  },
+  "snapshot": false
+}
