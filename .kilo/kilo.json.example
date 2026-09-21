@@ -2,12 +2,6 @@
   "$schema": "https://app.kilo.ai/config.json",
   "permission": {
     "bash": "allow",
-    "read": {
-      "*": "allow"
-    },
-    "edit": {
-      "*": "allow"
-    },
     "external_directory": {
       "C:\\Users\\{{USERNAME}}\\Documents\\Python\\AntiManager\\*": "allow",
       "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}\\*": "allow",

@@ -8,13 +8,13 @@ Detects THREE corruption types:
 
 Usage:
   python guard_encoding.py <file>          -- check a single file
-  python guard_encoding.py --vault         -- check all vault .md files
+  python guard_encoding.py --vault         -- check all vault .md files (requires VAULT_DIR; prints a hint and exits 0 if unset)
   python guard_encoding.py --project       -- check project .md files
   python guard_encoding.py --backup <file> -- backup then check
   python guard_encoding.py --fix <file>    -- fix double-encoding with ftfy
 
 Exit codes:
-  0 = file is healthy
+  0 = file is healthy (or the requested scan was skipped, e.g. --vault without VAULT_DIR)
   1 = file has encoding issues
   2 = usage error
 """
@@ -22,9 +22,12 @@ import os
 import sys
 import shutil
 from datetime import datetime
+from pathlib import Path
 
-VAULT = r'C:\Users\evgeniy.bogdanov\Documents\Personal Vault'
-PROJECT = r'C:\Users\evgeniy.bogdanov\Documents\Python\AntiManager'
+# Project root is derived from this script's location: <root>/.kilo/scripts/guard_encoding.py
+PROJECT = str(Path(__file__).resolve().parents[2])
+# Vault path is environment-specific; set VAULT_DIR to enable --vault.
+VAULT = os.environ.get('VAULT_DIR')
 BACKUP_DIR = os.path.join(os.environ.get('TEMP', r'C:\Windows\Temp'), 'kilo', 'backups')
 
 def check_file(filepath):
@@ -220,6 +223,10 @@ def main():
     cmd = sys.argv[1]
     
     if cmd == '--vault':
+        if not VAULT:
+            print("VAULT_DIR is not set; skipping vault scan. "
+                  "Set the VAULT_DIR environment variable to the vault path.")
+            return 0
         return check_vault()
     elif cmd == '--project':
         return check_project()
