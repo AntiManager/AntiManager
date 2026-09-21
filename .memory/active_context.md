@@ -13,10 +13,10 @@ Cascade «Harness audit & optimization» (`.kilo/plans/1790002457744-harness-aud
 - V01 first run flagged one fence false positive in `web-developer/SKILL.md:59` (prose starting with inline code) → rephrased; final run all-green.
 - V04 review LOW fixes: `guard_encoding.py` docstring updated (VAULT_DIR + exit-0 skip); `web-developer/SKILL.md` structure gained `js/common.js`, `js/map.js`.
 - Harness lessons folded: `plan-lifecycle` (measure must not contain the measured) and `playwright-e2e` (hermetic tests / no `networkidle` behind analytics).
-- No commit yet — working tree holds the cascade changes (25 modified + 3 new). Remote: GitHub + GitVerse.
+- Cascade changes committed in 5 logical commits (164199e docs/skills, 431ca28 config/guard_encoding, 879fe2f commands/run-script, 66ccdba hermetic E2E, 67f8f05 memory). Not pushed yet. Remote: GitHub + GitVerse.
 
 ## Open Questions / Follow-ups
-- [ ] Commit the cascade changes? (not requested yet)
+- [ ] Push commits to GitHub + GitVerse? (not requested yet)
 - [ ] F16.3 — `config_validation ERROR` when writing `.kilo/command|agent/*.md` (environment/validator, not content).
 - [ ] F16.8 — `.kilo/scripts/add-fm-00.py` hardcoded absolute user path (out of cascade scope).
 - [ ] QA follow-up: hamburger / arsenal filter / star-map role scenarios absent from the Playwright spec.
