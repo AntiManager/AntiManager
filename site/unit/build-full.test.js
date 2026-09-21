@@ -57,20 +57,25 @@ test('full-text page ships read-more path, TOC, materials and sitemap entry', fu
   }
 });
 
-test('rollout: article 02 landing links to its full text page', function() {
+test('rollout: migrated landings link to their full text pages', function() {
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    const landing = readDist('weapons', 'slozhnye-sistemy', 'index.html');
-    assert.ok(landing.includes('class="read-more-card"'), '02 landing must offer a read-more path');
-    assert.ok(landing.includes('/weapons/slozhnye-sistemy/full/'), '02 read-more must link to the full text');
-    assert.ok(!landing.includes('Тезисный отрывок'), '02 lite thesis excerpt must be gone');
+    [['slozhnye-sistemy', '02'], ['sistemnaya-dinamika', '03']].forEach(function(pair) {
+      const slug = pair[0];
+      const label = pair[1];
 
-    const full = readDist('weapons', 'slozhnye-sistemy', 'full', 'index.html');
-    assert.ok(full.includes('article-toc'), '02 full page needs a table of contents');
-    assert.ok(full.includes('materials-section'), '02 full page needs a materials block');
-    assert.ok(full.includes('/materials/slozhnye-sistemy.pdf'), '02 article PDF must be linked');
-    assert.ok(!/\{\{[a-z_]+\}\}/.test(full), 'no template tokens may remain in the 02 full page');
+      const landing = readDist('weapons', slug, 'index.html');
+      assert.ok(landing.includes('class="read-more-card"'), label + ' landing must offer a read-more path');
+      assert.ok(landing.includes('/weapons/' + slug + '/full/'), label + ' read-more must link to the full text');
+      assert.ok(!landing.includes('Тезисный отрывок'), label + ' lite thesis excerpt must be gone');
+
+      const full = readDist('weapons', slug, 'full', 'index.html');
+      assert.ok(full.includes('article-toc'), label + ' full page needs a table of contents');
+      assert.ok(full.includes('materials-section'), label + ' full page needs a materials block');
+      assert.ok(full.includes('/materials/' + slug + '.pdf'), label + ' article PDF must be linked');
+      assert.ok(!/\{\{[a-z_]+\}\}/.test(full), 'no template tokens may remain in the ' + label + ' full page');
+    });
   } finally {
     runBuild();
   }

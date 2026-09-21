@@ -378,6 +378,7 @@ tr:hover td { background: rgba(220, 38, 38, 0.05); }
 .full-article h2 { margin-top: var(--space-10); }
 .full-article h3 { margin-top: var(--space-8); }
 .full-article p, .full-article li { font-size: var(--text-base); }
+.full-part-lede { color: var(--color-steel); font-size: var(--text-sm); margin: calc(var(--space-2) * -1) 0 var(--space-5); }
 
 /* Materials on the full-text page */
 .materials-section { margin: var(--space-12) 0; padding: var(--space-6); border: 2px solid var(--color-accent); }
