@@ -11,4 +11,4 @@ npx playwright test
 Pop-Location
 ```
 
-Return the `passed`/`failed` counts from the Playwright summary. The suite is expected to be 66 passed (22 per project: mobile, tablet, desktop).
+Return the `passed`/`failed` counts from the Playwright summary. The suite is expected to be 84 passed (28 per project: mobile, tablet, desktop).

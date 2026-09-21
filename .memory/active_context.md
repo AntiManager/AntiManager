@@ -13,12 +13,16 @@ Cascade «Harness audit & optimization» (`.kilo/plans/1790002457744-harness-aud
 - V01 first run flagged one fence false positive in `web-developer/SKILL.md:59` (prose starting with inline code) → rephrased; final run all-green.
 - V04 review LOW fixes: `guard_encoding.py` docstring updated (VAULT_DIR + exit-0 skip); `web-developer/SKILL.md` structure gained `js/common.js`, `js/map.js`.
 - Harness lessons folded: `plan-lifecycle` (measure must not contain the measured) and `playwright-e2e` (hermetic tests / no `networkidle` behind analytics).
-- Cascade changes committed in 5 logical commits (164199e docs/skills, 431ca28 config/guard_encoding, 879fe2f commands/run-script, 66ccdba hermetic E2E, 67f8f05 memory). Not pushed yet. Remote: GitHub + GitVerse.
+- Cascade changes committed in 5 logical commits and **pushed** to GitHub + GitVerse (`origin` has both push URLs).
+
+## Follow-up QA (2026-09-21) — done
+- Added AX08 mobile-nav (hamburger), AX09 arsenal zone-filter, AX10 system-map presence to `site/tests/ux-critical.spec.js`.
+- Suite now **84 passed (28 × 3 viewports)**.
+- Finding: `site/js/map.js` and `site/js/common.js` are **not loaded** by `base.html` (only `brutalist.js`). The "star map" is a static SVG from `build.js starSvg()`; interactive ray behaviour exists only in the dead `map.js`.
 
 ## Open Questions / Follow-ups
-- [ ] Push commits to GitHub + GitVerse? (not requested yet)
-- [ ] F16.3 — `config_validation ERROR` when writing `.kilo/command|agent/*.md` (environment/validator, not content).
+- [ ] F16.3 — `config_validation ERROR` when writing `.kilo/command|agent/*.md` (environment/validator, not content). Reproduced on this task's `check-site.md` edit.
 - [ ] F16.8 — `.kilo/scripts/add-fm-00.py` hardcoded absolute user path (out of cascade scope).
-- [ ] QA follow-up: hamburger / arsenal filter / star-map role scenarios absent from the Playwright spec.
+- [ ] Dead code: `site/js/map.js`, `site/js/common.js`, `site/js/interactive/*` are unreferenced by the build. Either wire the star map interactivity or remove them.
 - [ ] Next content update for the site?
 - [ ] SEO optimisation follow-up?
