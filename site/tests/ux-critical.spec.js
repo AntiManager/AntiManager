@@ -286,3 +286,117 @@ test.describe('AX07 — Thinker photos', () => {
     alts.forEach(function(a) { expect(a).toContain('фото'); });
   });
 });
+
+// === AX08 — Mobile navigation (hamburger) ===
+test.describe('AX08 — Mobile navigation', () => {
+  test('hamburger toggles the mobile nav and aria-expanded', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const toggle = page.locator('.menu-toggle');
+    const nav = page.locator('.header-nav');
+
+    await expect(toggle).toBeVisible();
+    await expect(nav).toBeHidden();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await toggle.click();
+    await expect(nav).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveText('✕');
+
+    await toggle.click();
+    await expect(nav).toBeHidden();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toHaveText('☰');
+  });
+
+  test('menu closes after selecting a nav link', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await page.locator('.menu-toggle').click();
+    await expect(page.locator('.header-nav')).toBeVisible();
+
+    await page.locator('.header-nav a', { hasText: 'Арсенал' }).click();
+    await page.waitForURL('**/arsenal/');
+    expect(page.url()).toContain('/arsenal/');
+    await expect(page.locator('.header-nav')).toBeHidden();
+  });
+});
+
+// === AX09 — Arsenal zone filter ===
+test.describe('AX09 — Arsenal zone filter', () => {
+  test('zone filter shows only weapons of that zone', async ({ page }) => {
+    await page.goto('/arsenal/');
+    await page.waitForLoadState('networkidle');
+
+    const zoneBtn = page.locator('.filters .filter-btn:not([data-filter="all"])').first();
+    const zone = await zoneBtn.getAttribute('data-filter');
+    expect(zone).toBeTruthy();
+    await zoneBtn.click();
+
+    const state = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll('#arsenalGrid .weapon-card'));
+      const shown = cards.filter(function(c) { return c.style.display !== 'none'; });
+      return {
+        total: cards.length,
+        shown: shown.length,
+        zones: Array.from(new Set(shown.map(function(c) { return c.dataset.zone; }))),
+      };
+    });
+
+    expect(state.shown).toBeGreaterThan(0);
+    expect(state.zones).toEqual([zone]);
+    expect(state.shown).toBeLessThan(state.total);
+    await expect(zoneBtn).toHaveClass(/active/);
+  });
+
+  test('"ВСЕ" restores every weapon', async ({ page }) => {
+    await page.goto('/arsenal/');
+    await page.waitForLoadState('networkidle');
+
+    const total = await page.locator('#arsenalGrid .weapon-card').count();
+    expect(total).toBeGreaterThan(0);
+
+    await page.locator('.filters .filter-btn:not([data-filter="all"])').first().click();
+    const allBtn = page.locator('.filters .filter-btn[data-filter="all"]');
+    await allBtn.click();
+
+    const shown = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('#arsenalGrid .weapon-card'))
+        .filter(function(c) { return c.style.display !== 'none'; }).length;
+    });
+    expect(shown).toBe(total);
+    await expect(allBtn).toHaveClass(/active/);
+  });
+});
+
+// === AX10 — System map presence ===
+// The landing "star map" is a static, data-driven SVG (build.js starSvg()).
+// map.js is not loaded by base.html, so there is no interactive ray behaviour to test.
+test.describe('AX10 — System map', () => {
+  test('home renders the system map with an accessible label', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const section = page.locator('#system-map');
+    await expect(section).toBeVisible();
+
+    const svg = section.locator('svg[role="img"]');
+    await expect(svg).toHaveCount(1);
+    await expect(svg).toHaveAttribute('aria-label', /Карта зон/);
+  });
+
+  test('map labels every zone from scenarios.json', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const labels = await page.locator('#system-map svg text').allTextContents();
+    for (const zone of ['КРИЗИС', 'КОМАНДА', 'ИЗМЕНЕНИЯ', 'СИСТЕМА']) {
+      expect(labels).toContain(zone);
+    }
+  });
+});
