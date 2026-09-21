@@ -2,17 +2,18 @@
 > Updated: 2026-09-21
 
 ## Current Task
-**Two-tier theme pages** (landing → full text → materials) — implemented, **not yet
-committed/deployed**. The topic landing `/weapons/<slug>/` stays interactive and now
-shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead of the
-dead «Тезисный отрывок»; the new full page carries the complete article (static
-H2/H3 TOC, reading progress, 4-level breadcrumb) plus an honest `.materials-section`
-(article PDF + declared extras, print fallback). The fake site-wide «Материалы к
-статье / Хочу PDF» block is gone. **Pilot: article 00** (`content/full/00-*.html`,
-464-line vault conversion; PDF 414 KB). Plan + log:
+**Two-tier theme pages** (landing → full text → materials) — implemented, committed
+(`0e4e511`) and **deployed** (live-verified 2026-09-21). The topic landing
+`/weapons/<slug>/` stays interactive and now shows a `.read-more-card`
+(`{{read_more}}` → `/weapons/<slug>/full/`) instead of the dead «Тезисный отрывок»;
+the new full page carries the complete article (static H2/H3 TOC, reading progress,
+4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
+extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
+gone. **Pilot: article 00** (`content/full/00-*.html`, 464-line vault conversion; PDF
+423 KB). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track (parked pending deploy): 00/01/02/03 → 12/12; 00/01 deployed.
+Publish-readiness track: 00/01/02/03 → 12/12; 00/01 deployed; article-00 `/full/` live.
 Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
@@ -34,12 +35,13 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- **Deploy the two-tier article 00**: commit + `.\deploy.ps1`, then verify live
-  `/weapons/mayatnik-upravleniya/` (read-more card) and `/full/` (TOC, PDF download).
-- Roll `/full/` out article-by-article as vault readiness allows (article 01 has no
-  weapon entry — its full text is `/manifesto/`).
+- Roll `/full/` out article-by-article as vault readiness allows: convert
+  `src/content/full/XX-slug.html`, replace the landing excerpt with `{{read_more}}`,
+  `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01 has no weapon
+  entry — its full text is `/manifesto/`.)
 - Continue article-by-article readiness: article **04 «Управление как эксперимент»**
-  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync.
+  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync and
+  the corresponding `/full/` rollout.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
