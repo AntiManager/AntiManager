@@ -12,7 +12,7 @@ Full inventory of the Obsidian vault: structure, links, health.
 ### `/vault-index [full|quick|health]`
 
 **full** — full vault audit:
-1. Scan all `.md` files (excluding `.obsidian/`, `.kilo/`, `.gigacode/`, `node_modules/`, `.trash/`, `Attachment/`)
+1. Scan all `.md` files (excluding `.obsidian/`, `.kilo/`, `node_modules/`, `.trash/`, `Attachment/`)
 2. For each file check:
    - Frontmatter: `tags`, `status`, `created`, `updated`
    - Presence of `#`-tags inside the text (if there is no frontmatter)

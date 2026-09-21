@@ -1,14 +1,17 @@
 ---
-description: Check the site — build and run the Playwright suite
+description: Check the site — build and run the full test suite
 ---
 
-Build the static site and run the full Playwright regression suite.
+Build the static site and run the full test suite (unit + Playwright).
 
 ```powershell
 Push-Location site
 node build.js
-npx playwright test
+npm test
 Pop-Location
 ```
 
-Return the `passed`/`failed` counts from the Playwright summary. The suite is expected to be 84 passed (28 per project: mobile, tablet, desktop).
+`npm test` = `npm run test:unit` (Node test runner, `--test-concurrency=1`) followed by
+`npx playwright test`. Return the unit pass/fail counts and the Playwright
+`passed`/`failed` counts. Expected: 5 unit tests; 96 Playwright tests
+(32 per project: mobile, tablet, desktop).

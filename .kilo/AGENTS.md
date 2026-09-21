@@ -13,17 +13,18 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - Russian literals that are real product UI strings or vault paths inside agent docs stay verbatim.
 - Existing Russian plans, execution log, and `.memory` are kept as history.
 
-## Skills (7)
+## Skills (8)
 
 - web-developer — design system, page template, performance
 - content-publisher — move Obsidian articles into HTML
 - book-writing — article writing and editing
+- article-readiness — publish-readiness screen + editorial checklist
 - vault-indexer — full vault inventory (structure, links, health)
 - site-designer — site design and UX for antimanager.pro
 - diagram-architect — Mermaid diagrams
 - management-research — concept research
 
-## Commands (8)
+## Commands (9)
 
 - `/fix-encoding` — check and repair broken encoding in vault `.md` files
 - `/link-ideas` — link ideas across notes
@@ -32,7 +33,8 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - `/new-tool` — create a tool note
 - `/vault-audit` — audit vault structure
 - `/vault-index` — full vault inventory
-- `/check-site` — build the site and run the Playwright suite
+- `/check-site` — build the site and run the full test suite (unit + Playwright)
+- `/article-readiness` — score vault articles for publish-readiness
 
 ## Agents (2)
 

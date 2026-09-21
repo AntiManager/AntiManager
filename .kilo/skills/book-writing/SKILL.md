@@ -8,6 +8,7 @@ description: Writing and editing the book — structure, tags, encoding, links b
 ### Frontmatter
 - Required fields: `tags`, `status` (draft/review/published), `created`, `updated`
 - On transition `draft→review→published`:
+  - Run the `article-readiness` skill first (objective screen + editorial checklist)
   - Remove `#book/draft` (if present)
   - On published: add `aliases` (key names for [[wiki links]])
   - Update `updated` to the current date

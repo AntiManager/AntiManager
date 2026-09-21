@@ -2,37 +2,35 @@
 > Updated: 2026-09-21
 
 ## Current Task
-Security hardening cascade (`.kilo/plans/1790006200000-security-hardening.md`) — **DONE** (committed `789755c`, pushed GitHub+GitVerse, deployed 2026-09-21).
+SEO & content hardening (`.kilo/plans/1790008000000-seo-content.md`) — **Phase 1 DONE**,
+Phase 2 pending a user decision.
 
-- Trigger: security audit of the public repo + site (report-only, 2026-09-21).
-- Done: `build.js` output escaping (text fields via `sanitize`, slug/zone/status, JSON-LD `\u003c`); DOM-XSS fixed in live widgets 04/16/19 with local `escHtml()`; **AX11** regression added to `ux-critical.spec.js` (falsifiability-checked — fails on the unfixed widget); dead JS removed (`map.js`, `common.js`, `interactive/*` — 682 lines) + `dist/` clean step in `build.js`; nginx security headers; broken OG image (`/og-image.png` → `/og-image.svg`); username leak removed from `add-fm-00.py`.
-- Verification: `node build.js` exit 0; `npx playwright test` → **93 passed** (31 × 3 viewports).
-- Log: `.kilo/plans/1790006200000-security-hardening-execution-log.md`.
+- Phase 1 (was uncommitted): dynamic `BUILD_DATE` → sitemap `lastmod` + JSON-LD dates;
+  landing featured block = 4 cards; related-links fallback for 6 zone-less weapons;
+  `article:modified_time`/`article:tag`, `og:image` dims, static `BreadcrumbList`;
+  landing meta «4 контура, 22 главы»; raster `og-image.png`
+  (`site/scripts/render-og.js`, `npm run render:og`).
+- Tests: unit 5/5; Playwright 96/96 (32 × 3). Run all: `cd site; npm test`.
+- Log: `.kilo/plans/1790008000000-seo-content-execution-log.md`.
 
-## Recent Activity
-- User decisions: Metrika/Webvisor **untouched** (compliance risk remains); dead JS **removed**.
-- Negative test: reverting one widget made AX11 fail (`window.__xss` set), proving the test is not vacuous.
-- Skills updated to drop references to deleted JS (`web-developer`, `site-designer`).
-- Committed `789755c` and pushed to GitHub + GitVerse; deployed via `site/deploy.ps1`; verified `https://antimanager.pro/` → 200 with all new security headers.
-- Deploy note: final optional Caddy-reload SSH step hit a transient timeout; the site/headers are live, no impact.
+## Harness state (this session)
+- New: skill `article-readiness`, command `/article-readiness`,
+  script `.kilo/scripts/article_readiness.py` (report in gitignored `.kilo/reports/`);
+  wired into `book-writing` + `book-editor`.
+- `.kilo/AGENTS.md` map: skills 8, commands 9.
+- `/check-site` now runs the full suite (`npm test`); `vault-indexer` stale `.gigacode/`
+  exclusion removed.
+- Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
-## Manual / deferred
-- [ ] **GitVerse token** in `.git/config` `origin.pushurl` (plaintext) — user must rotate + switch to credential helper/SSH. HIGH priority.
-- [ ] Metrika `webvisor:true` vs `/privacy/` wording — deferred by user.
+## Next step
+- Phase 2 decision gates: publish 21 `review` weapons; replace fabricated
+  landing stats (2 847 / 113 / 47).
+- Deploy after commit (site/deploy.ps1) if the SEO Phase 1 output should go live.
 
-## Review findings — resolved (follow-up session)
-- [x] `site/build.js:483` — weapon-page zone badge now uses `zoneBadgeHtml(w.zone)`.
-- [x] `site/build.js:523` — `canonicalUrl` now uses `escapeHtml(w.slug)`.
-- [x] `site/build.js:36-39` — build-time escaping now has automated regression tests:
-  `site/src/lib/escape.js` + `site/unit/escape.test.js` (unit) and
-  `site/unit/build-escape.test.js` (integration, `WEAPONS_FILE` seam, falsifiability-checked).
-- [x] Slug validation (`assertSlug`) closes the traversal path via the output dir.
-- [ ] Accepted residual risk: `content_body` is raw HTML (malicious PR to `src/content/*.html`);
-  mitigate via PR review/branch protection.
-- [ ] COSMETIC: generate PNG og-image; JSON-LD pre-escaped; `escHtml` duplication; nginx header duplication.
-- Verification: `node build.js` exit 0; `npm run test:unit` → 4 passed; Playwright → 93 passed.
-
-## Open Questions / Follow-ups
-- [ ] F16.3 — `config_validation ERROR` when writing `.kilo/command|agent/*.md` (environment/validator, not content).
-- [ ] Next content update for the site?
-- [ ] SEO optimisation follow-up?
+## Hot rules / deferred
+- Metrika/Webvisor untouched; `webvisor:true` vs `/privacy/` wording — deferred by user (compliance risk).
+- `yandex-verification` meta needs the user's code.
+- GitVerse token in `.git/config` `origin.pushurl` (plaintext) — rotate + move to credential helper/SSH (HIGH).
+- `chapters.json`/`tools.json` — unreferenced dead data (remove or wire), decide separately.
+- `build.js` `VERSION` static vs dynamic `BUILD_DATE` — couple on next release.
+- Residual: `content_body` is raw HTML (malicious PR to `src/content/*.html`); rely on PR review/branch protection.

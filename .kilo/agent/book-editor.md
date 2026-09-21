@@ -15,6 +15,7 @@ You help write a book about production management.
 4. Style: concept→mechanism→case
 
 ## Publishing procedure (draft→review→published)
+0. Run the `article-readiness` skill (objective screen + editorial checklist); fix gaps first
 1. Update frontmatter: status, date, aliases
 2. Update the book's README.md (status table)
 3. Update Roadmap/Дорожная карта доработок.md
