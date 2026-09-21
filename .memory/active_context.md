@@ -3,10 +3,10 @@
 
 ## Current Task
 Publish-readiness hardening of source vault articles, **one at a time** (Layer 1
-screen + Layer 2 editorial). Articles **00 «Маятник управления»** and
-**01 «Manifestum Imperii Rationalis» DONE → 12/12** (see `progress.md`).
-Next: article **02** (Управление сложными системами — already 12/12 structurally;
-do the Layer 2 editorial pass).
+screen + Layer 2 editorial). Articles **00 «Маятник управления»**, **01 «Manifestum
+Imperii Rationalis»**, **02 «Управление сложными системами» DONE → 12/12**, and
+**00/01 are DEPLOYED** to `antimanager.pro` (verified live). Next: article **03**
+«Системная динамика в производстве» — Layer 2 editorial pass.
 Parked: SEO plan Phase 2 (publish 21 `review` weapons; replace fabricated landing stats).
 
 - Phase 1 (was uncommitted): dynamic `BUILD_DATE` → sitemap `lastmod` + JSON-LD dates;
@@ -32,11 +32,12 @@ Parked: SEO plan Phase 2 (publish 21 `review` weapons; replace fabricated landin
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Continue article-by-article readiness: article **02** (Управление сложными системами,
-  vault already 12/12 structurally) — Layer 2 editorial pass (facts, related tools/
-  chapters, style), then site sync if the content changes.
-- Articles 00/01 site work: DONE (00 `content/00-*.html`; 01 full `/manifesto/` page).
-  Build OK, suite 99/99. Deploy not run — decide separately.
+- Continue article-by-article readiness: article **03 «Системная динамика в производстве»**
+  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync if
+  the content changes.
+- Articles 00/01 site work: DONE and **deployed** (00 `content/00-*.html`; 01 full
+  `/manifesto/` page). Build OK, suite 99/99.
+- Article 02: vault Layer 2 done (no site sync needed — no content change).
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
   fabricated landing stats 2 847 / 113 / 47).
 
