@@ -1,5 +1,12 @@
 const { test, expect } = require('@playwright/test');
 
+// Hermetic tests: block external analytics (Yandex.Metrika) so the network
+// reaches idle deterministically. Without this, `waitForLoadState('networkidle')`
+// hangs on the external mc.yandex.ru request (F16.6).
+test.beforeEach(async ({ page }) => {
+  await page.route('**/mc.yandex.ru/**', (route) => route.abort());
+});
+
 // === AX01 — A11y foundation ===
 test.describe('AX01 — A11y foundation', () => {
   test('skip-link visible on Tab, focuses main', async ({ page }) => {
