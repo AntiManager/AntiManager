@@ -446,3 +446,14 @@ test.describe('AX11 — Widget input escaped (XSS)', () => {
     expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   });
 });
+
+// === AX12 — Landing featured weapons ===
+test.describe('AX12 — Landing featured weapons', () => {
+  test('landing features four weapon cards', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const cards = page.locator('#weapons-section .weapon-card');
+    await expect(cards).toHaveCount(4);
+  });
+});

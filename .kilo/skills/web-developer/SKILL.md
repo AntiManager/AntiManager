@@ -80,6 +80,16 @@ Domain: https://antimanager.pro
 - Explicit width/height for images and containers (CLS)
 - Lighthouse target: Performance / Accessibility / SEO ≥ 90
 
+## SEO / social sharing
+
+- `og:image` must be a raster PNG: social networks (VK, Telegram, Facebook) do not render SVG.
+  build.js prefers `/og-image.png` and falls back to the SVG only if the PNG is missing.
+- Regenerate the PNG after editing `src/templates/og-image.svg`: `npm run render:og`
+  (Playwright chromium, 1200×630, no extra dependency).
+- Sitemap `lastmod` and JSON-LD `datePublished`/`dateModified` come from the build date;
+  `BUILD_DATE` env is the test seam. Never hardcode a date.
+- Landing "featured" block tops up to four cards from published + review weapons.
+
 ## Responsiveness and accessibility
 
 - Semantic markup, aria attributes, `:focus-visible`

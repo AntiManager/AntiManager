@@ -5,8 +5,14 @@ const fs = require('fs');
 const path = require('path');
 const { escapeHtml, sanitize, assertSlug } = require('./src/lib/escape');
 const SITE_URL = 'https://antimanager.pro';
-const BUILD_DATE = '2026-07-28';
+// Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
+// test seam so output stays deterministic.
+const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
 const VERSION = '20260728b';
+// Social platforms do not render SVG OG images; prefer the rasterized PNG and
+// fall back to the SVG when it has not been generated yet.
+const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
+const OG_IMAGE_URL = fs.existsSync(OG_IMAGE_PNG) ? SITE_URL + '/og-image.png' : SITE_URL + '/og-image.svg';
 
 function read(name) { return fs.readFileSync(path.isAbsolute(name) ? name : path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
@@ -48,6 +54,15 @@ weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlu
 
 const zoneLabels = { crisis: 'КРИЗИС', team: 'КОМАНДА', changes: 'ИЗМЕНЕНИЯ', system: 'СИСТЕМА' };
 const statusLabels = { published: 'Опубликовано', review: 'На ревью', draft: 'Черновик' };
+
+// Russian plural form: 1 → one, 2–4 → few, otherwise many (11–14 take many).
+function plural(n, one, few, many) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return n + ' ' + one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return n + ' ' + few;
+  return n + ' ' + many;
+}
 
 function weaponById(id) { return weapons.find(w => w.id === id); }
 
@@ -106,10 +121,16 @@ function makeStructuredData(pageType, data) {
   if (pageType === 'static') {
     return json({
       '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      'name': 'AntiManager',
-      'url': SITE_URL,
-      'inLanguage': 'ru'
+      '@graph': [
+        { '@type': 'WebSite', 'name': 'AntiManager', 'url': SITE_URL, 'inLanguage': 'ru' },
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+            { '@type': 'ListItem', 'position': 2, 'name': data.name || 'Раздел', 'item': data.url || SITE_URL + '/' }
+          ]
+        }
+      ]
     });
   }
   return '';
@@ -123,7 +144,12 @@ function renderPage(title, description, content, opts) {
   const desc = description || title;
   const canonicalUrl = opts.canonicalUrl || SITE_URL + '/';
   const ogType = opts.ogType || 'website';
-  const ogImage = opts.ogImage || SITE_URL + '/og-image.svg';
+  const ogImage = opts.ogImage || OG_IMAGE_URL;
+  // Dimensions are only known for the built-in 1200×630 card; a caller-provided
+  // override may differ, so do not claim its size.
+  const ogImageMeta = opts.ogImage
+    ? ''
+    : '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n';
 
   let headTags = ''
     + '<link rel="canonical" href="' + canonicalUrl + '">\n'
@@ -132,6 +158,7 @@ function renderPage(title, description, content, opts) {
     + '<meta property="og:url" content="' + canonicalUrl + '">\n'
     + '<meta property="og:type" content="' + ogType + '">\n'
     + '<meta property="og:image" content="' + ogImage + '">\n'
+    + ogImageMeta
     + '<meta property="og:site_name" content="AntiManager">\n'
     + '<meta property="og:locale" content="ru_RU">\n'
     + '<meta name="twitter:card" content="summary_large_image">\n'
@@ -144,7 +171,11 @@ function renderPage(title, description, content, opts) {
   if (ogType === 'article') {
     if (opts.ogArticleSection) headTags += '\n<meta property="article:section" content="' + escapeHtml(opts.ogArticleSection) + '">';
     headTags += '\n<meta property="article:published_time" content="' + BUILD_DATE + '">';
+    headTags += '\n<meta property="article:modified_time" content="' + BUILD_DATE + '">';
     headTags += '\n<meta property="article:author" content="' + SITE_URL + '/about/">';
+    if (opts.ogTags && opts.ogTags.length) {
+      opts.ogTags.forEach(function(t) { headTags += '\n<meta property="article:tag" content="' + escapeHtml(t) + '">'; });
+    }
   }
 
   if (opts.headExtra) headTags += '\n' + opts.headExtra;
@@ -204,10 +235,12 @@ function starSvg() {
 
 // === CONTENT GENERATORS ===
 
-const publishedWeapons = weapons.filter(function(w) { return w.status === 'published'; });
-const featuredWeapons = publishedWeapons.length > 0
-  ? publishedWeapons.slice(0, 4)
-  : weapons.filter(function(w) { return w.status === 'review'; }).slice(0, 4);
+// Feature published weapons first, then top up with review ones so the landing
+// block always shows four cards.
+const featuredWeapons = weapons
+  .filter(function(w) { return w.status === 'published'; })
+  .concat(weapons.filter(function(w) { return w.status === 'review'; }))
+  .slice(0, 4);
 
 const featuredWeaponsHtml = featuredWeapons.map(function(w) {
   return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card">'
@@ -453,16 +486,16 @@ const weaponTemplate = '<div class="content-page">'
 console.log('\n🚀 AntiManager Brutalist Build\n');
 
 // Landing
-write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: 5 контуров, ' + weapons.length + ' глав, инструментов и кейсов для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
+write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: ' + plural(scenarios.length, 'контур', 'контура', 'контуров') + ', ' + plural(weapons.length, 'глава', 'главы', 'глав') + ', инструментов и кейсов для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
 
 // Static pages
-write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static') }));
-write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static') }));
-write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static') }));
-write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static') }));
-write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static') }));
-write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static') }));
-write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static') }));
+write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static', { name: 'Манифест', url: SITE_URL + '/manifesto/' }) }));
+write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static', { name: 'Архив великих идей', url: SITE_URL + '/archive/' }) }));
+write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static', { name: 'Арсенал', url: SITE_URL + '/arsenal/' }) }));
+write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static', { name: 'Сценарии', url: SITE_URL + '/scenarios/' }) }));
+write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static', { name: 'Полевые дневники', url: SITE_URL + '/cases/' }) }));
+write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
+write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
 write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', '', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
 write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
 
@@ -490,11 +523,26 @@ for (var wi = 0; wi < weapons.length; wi++) {
     + '<p class="download-feedback" style="display:none;margin-top:var(--space-3);color:var(--color-steel);font-size:var(--text-sm);"></p>'
     + '</div>';
 
+  // Prefer same zone; fall back to same thinker, then shared tags, then other
+  // zone-less weapons so every article keeps at least one internal link.
   var related = weapons.filter(function(r) { return r.zone !== null && r.zone === w.zone && r.slug !== w.slug; });
+  if (related.length === 0) {
+    related = weapons.filter(function(r) { return r.slug !== w.slug && w.thinker && r.thinker === w.thinker; });
+  }
+  if (related.length === 0) {
+    var wTags = w.tags || [];
+    related = weapons.filter(function(r) {
+      return r.slug !== w.slug && (r.tags || []).some(function(t) { return wTags.indexOf(t) !== -1; });
+    });
+  }
+  if (related.length === 0) {
+    related = weapons.filter(function(r) { return r.slug !== w.slug && !r.zone; });
+  }
+  related = related.slice(0, 4);
   var relatedHtml = '';
   if (related.length > 0) {
     relatedHtml = '<h2 class="section-title" style="margin-top:var(--space-10);">В том же окопе</h2><div class="weapon-grid">'
-      + related.slice(0, 4).map(function(r) {
+      + related.map(function(r) {
         return '<a href="/weapons/' + escapeHtml(r.slug) + '/" class="weapon-card">'
           + '<div class="weapon-title">' + r.title + '</div>'
           + '<div class="weapon-subtitle">' + (r.subtitle || '') + '</div>'
@@ -515,7 +563,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
 
   var canonicalUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/';
   var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
-  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
+  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
 }
 
@@ -549,6 +597,7 @@ copyDir('js', 'js');
 copyDir('fonts', 'fonts');
   copyDir('../Фото_мыслителей', 'images/thinkers');
   write('favicon.svg', read('favicon.svg'));
+if (fs.existsSync(OG_IMAGE_PNG)) write('og-image.png', read(OG_IMAGE_PNG));
 write('og-image.svg', read('src/templates/og-image.svg'));
 write('yandex_XXXXXXXXXXXXXXXX.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: XXXXXXXXXXXXXXXX</body></html>');
 

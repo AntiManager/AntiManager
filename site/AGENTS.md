@@ -48,9 +48,16 @@ When creating new lite chapter content:
 cd site
 node build.js           # Build site into dist/
 npx serve dist          # Local preview
-npm test                # Playwright tests
+npm test                # unit + Playwright tests
+npm run test:unit       # unit tests only
+npm run test:e2e        # Playwright only
+npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
 .\deploy.ps1            # Deploy to VPS (reads .env)
 ```
+
+Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
+writes the shared `dist/`, so parallel test files would race. Keep that flag.
+`build.js` accepts a `BUILD_DATE` env override (used by tests for deterministic dates).
 
 ## SSH / Deploy
 
@@ -65,3 +72,6 @@ nginx container: antimanager-web, root: {{REMOTE_DIR}}/current/
 - Lite-first content: principle + model + thesis + widget + download button
 - All 22 chapters indexed
 - Widgets: one question per screen, back button, step counter, progress bar
+- SEO: `og:image` must be the raster `/og-image.png` (social networks do not render SVG);
+  run `npm run render:og` after editing `src/templates/og-image.svg`
+- Sitemap `lastmod` and JSON-LD dates derive from the build date, not hardcoded constants
