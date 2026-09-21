@@ -9,15 +9,18 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Pilot: article 00** (`content/full/00-*.html`, 464-line vault conversion; PDF
-423 KB). Plan + log:
+gone. **Rollout:** article 00 (pilot) deployed; article 02 «Управление сложными
+системами» completed this session (vault Layer 2 → landing `{{read_more}}` → `/full/`
++ `materials/slozhnye-sistemy.pdf`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03 → 12/12; 00/01 deployed; article-00 `/full/` live.
+Publish-readiness track: 00/01/02/03 → 12/12; 00/01 deployed; articles 00 + 02 have
+`/full/`. Caveat: article 03's recorded pass was cosmetic-only (same overstatement as
+02) — give it the full cycle before treating it done.
 Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
-- Tests: unit **7/7**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
+- Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
 - New scripts: `npm run render:pdf` (`site/scripts/render-pdf.js`, Playwright print);
   `materials.json` `href` validated; `MATERIALS_FILE` env seam for tests.
 
@@ -35,13 +38,13 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows: convert
-  `src/content/full/XX-slug.html`, replace the landing excerpt with `{{read_more}}`,
-  `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01 has no weapon
-  entry — its full text is `/manifesto/`.)
-- Continue article-by-article readiness: article **04 «Управление как эксперимент»**
-  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync and
-  the corresponding `/full/` rollout.
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02 done):
+  convert `src/content/full/XX-slug.html`, replace the landing excerpt with
+  `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
+  has no weapon entry — its full text is `/manifesto/`.)
+- **Article 03 «Системная динамика» — full cycle next** (recorded pass was cosmetic;
+  same correction as 02: Layer 2 → site sync → `/full/`).
+- Then article **04 «Управление как эксперимент»** — Layer 2 editorial pass.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
