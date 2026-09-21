@@ -61,7 +61,7 @@ test('rollout: migrated landings link to their full text pages', function() {
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    [['slozhnye-sistemy', '02'], ['sistemnaya-dinamika', '03']].forEach(function(pair) {
+    [['slozhnye-sistemy', '02'], ['sistemnaya-dinamika', '03'], ['upravlenie-eksperiment', '04']].forEach(function(pair) {
       const slug = pair[0];
       const label = pair[1];
 
