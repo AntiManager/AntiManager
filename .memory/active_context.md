@@ -10,14 +10,14 @@ the new full page carries the complete article (static H2/H3 TOC, reading progre
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
 gone. **Rollout:** article 00 (pilot) deployed; article 02 «Управление сложными
-системами» done; article 03 «Системная динамика в производстве» full cycle done
-this session (Layer 2 → landing `{{read_more}}` → `/full/` +
-`materials/sistemnaya-dinamika.pdf`). Plan + log:
+системами» done; article 03 «Системная динамика в производстве» done; article 04
+«Управление как эксперимент» full cycle done this session (Layer 2 → landing
+`{{read_more}}` → `/full/` + `materials/upravlenie-eksperiment.pdf`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03 → 12/12. Articles 00, 02, 03 have deployed
-`/full/` pages (commit `d1d82ce`).
-Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass + site sync.
+Publish-readiness track: 00/01/02/03/04 → 12/12. Articles 00, 02, 03, 04 have
+deployed `/full/` pages (commit `277cf8b`).
+Next editorial: article **05 «Каскадирование целей»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
@@ -41,11 +41,11 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03 done):
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03, 04 done):
   convert `src/content/full/XX-slug.html`, replace the landing excerpt with
   `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
   has no weapon entry — its full text is `/manifesto/`.)
-- Then article **04 «Управление как эксперимент»** — Layer 2 editorial pass + site sync.
+- Then article **05 «Каскадирование целей»** — Layer 2 editorial pass + site sync.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
