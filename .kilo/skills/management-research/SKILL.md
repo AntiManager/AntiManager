@@ -1,6 +1,6 @@
-﻿---
-name: management-research
-description: Исследование концепций — формат карточки, интеграция в vault
 ---
-Формат: ## Концепция → Определение, Механизм, Контекст (когда да/нет), Связи → [[заметка]], Источники, Кейс
-Процесс: webfetch → анализ (проблема/механизм/ограничения/связи) → grep по vault → backlinks → если нужно — карточка в `03 - Инструменты/`
+name: management-research
+description: Researching concepts — card format, vault integration
+---
+Format: ## Concept → Definition, Mechanism, Context (when yes/no), Links → [[заметка]], Sources, Case
+Process: webfetch → analysis (problem/mechanism/constraints/links) → grep the vault → backlinks → if needed — a card in `03 - Инструменты/`

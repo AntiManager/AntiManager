@@ -1,32 +1,35 @@
-﻿---
+---
 name: book-writing
-description: Написание и редактура книги — структура, теги, кодировка, связи между заметками
+description: Writing and editing the book — structure, tags, encoding, links between notes
 ---
 
-## Правила
+## Rules
 
 ### Frontmatter
-- Обязательные поля: `tags`, `status` (draft/review/published), `created`, `updated`
-- При переходе `draft→review→published`:
-  - Удалить `#book/draft` (если есть)
-  - При published: добавить `aliases` (ключевые названия для [[вики-ссылок]])
-  - Обновить `updated` на текущую дату
-- Теги: `#book #book/chapter #book/draft #tool #case #system-dynamics #production #lean #digital`
+- Required fields: `tags`, `status` (draft/review/published), `created`, `updated`
+- On transition `draft→review→published`:
+  - Remove `#book/draft` (if present)
+  - On published: add `aliases` (key names for [[wiki links]])
+  - Update `updated` to the current date
+- Tags: `#book #book/chapter #book/draft #tool #case #system-dynamics #production #lean #digital`
 
-### Кодировка
-- Все .md файлы должны быть в **UTF-8 без BOM**
-- **Перед публикацией** проверять кодировку:
-  - Симптом битой кодировки: текст вида «Р”РІР° С‚РёРїР°» вместо «Два типа»
-  - Исправление: decode как UTF-8 → encode как Windows-1251 → записать байты (без BOM)
-- Новая команда: `/fix-encoding` для пакетной проверки
+### Encoding
+- All .md files must be in **UTF-8 without BOM**
+- Guard Encoding — mandatory before and after any edit:
 
-### Связанность
-- При упоминании инструмента → `[[Название инструмента]]`
-- При упоминании главы → `[[NN_Название_главы]]` или `[[Название]]` (если есть aliases)
-- Терминология: сверять с `Книга/03 - Инструменты/` (все файлы)
+1. Before editing: `python .kilo/scripts/guard_encoding.py --backup <file>`
+2. After editing: `python .kilo/scripts/guard_encoding.py <file>`
+3. On `CORRUPT` — roll back from the backup; fix only via `python .kilo/scripts/guard_encoding.py --fix <file>` (ftfy)
 
-### После публикации
-1. Обновить `README.md` книги (статус в таблице)
-2. Обновить `Roadmap/Дорожная карта доработок.md`
-3. Добавить backlinks: grep по связанным темам, добавить `[[NN_Название]]` в секцию «Связанные главы»
-4. Создать/обновить backlinks в связанных статьях (если у них есть encoding issues — сначала исправить их)
+- Batch check: `/fix-encoding`
+
+### Linking
+- When mentioning a tool → `[[Название инструмента]]`
+- When mentioning a chapter → `[[NN_Название_главы]]` or `[[Название]]` (if aliases exist)
+- Terminology: verify against `Книга/03 - Инструменты/` (all files)
+
+### After publication
+1. Update the book's `README.md` (status in the table)
+2. Update `Roadmap/Дорожная карта доработок.md`
+3. Add backlinks: grep related topics, add `[[NN_Название]]` to the "Связанные главы" section
+4. Create/update backlinks in related articles (if they have encoding issues — fix those first)

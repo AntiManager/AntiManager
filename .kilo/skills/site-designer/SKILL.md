@@ -1,92 +1,82 @@
+---
+name: site-designer
+description: Site design and UX for antimanager.pro
+---
+
 # site-designer
 
-Дизайн и UX сайта antimanager.pro.
+Design and UX of the antimanager.pro site.
 
-## Концепция
+## Concept
 
-AntiManager — интерактивная книга-инструмент для руководителей производства.
-Дизайн должен передавать: **системность, инженерный подход, ясность**.
+AntiManager — an interactive book-tool for production managers.
+The design must convey: **systematicity, engineering approach, clarity**.
 
-### Тональность
-- Деловой, без излишней строгости
-- Техничный, но доступный
-- Цвета — приглушённые, акцентные (Sajid 4-color HSL)
-- Минимум украшательства, максимум информации
+### Tone
 
-### Текущая дизайн-система
-- `site/css/common.css` — CSS Custom Properties (Sajid 4-color HSL)
-- 8px сетка, glassmorphism, классовая тёмная тема
-- Шрифты: Inter (body) + Manrope (headings), self-hosted woff2
-- Breakpoints: 768px (sidebar collapse), 480px (nav hide)
+- Businesslike, without excessive severity
+- Technical, yet accessible
+- Minimal decoration, maximum information
 
-## Проблемы текущего дизайна (по feedback)
+### Visual language
 
-Собрать и поддерживать список:
-- [ ] наблюдения пользователя
-- [ ] узкие места UX
-- [ ] проблемы производительности (Lighthouse)
-- [ ] несоответствия бренду
+- Brutalism: black background, red accent, white text, monochrome "steel"
+- The single source of tokens, components, and themes is `site/css/brutalist.css`; do not duplicate values in this skill
+- Pages: `site/src/templates/base.html` (skeleton), `site/src/content/` (content)
 
-## Референсы
+## Current design issues (from feedback)
 
-При редизайне искать референсы через web-search MCP по запросам:
-- "интерактивная книга сайт дизайн"
+Collect and maintain a list:
+
+- [ ] user observations
+- [ ] UX bottlenecks
+- [ ] performance issues (Lighthouse)
+- [ ] brand inconsistencies
+
+## References
+
+When redesigning, look for references via the web-search MCP using the queries:
+
+- "interactive book website design"
 - "production management dashboard design"
 - "lean manufacturing website design"
 - "technical documentation website UX"
-- "Sajid color system examples"
 
-## Компоненты
+## Pages and components
 
-### Главная
-- SVG-звезда 5 лучей (существующая) — оценить, переработать или заменить
-- Счётчики: глав, инструментов, кейсов
-- Вызовы к действию: «Исследовать карту», «Смотреть каталог»
+- **Home** — hero, dynamic star map (`.map-container` + `site/js/map.js`), counters, CTA
+- **Arsenal/catalog** — zone filters (`.filters`/`.filter-btn`), `.weapon-card` cards
+- **Article page** — hero, principle/thesis/case blocks (`.block-*`), widget, download
+- **Tool page** — description, when to use, related articles
 
-### Каталог глав
-- Фильтры по лучам (контурам)
-- Карточки: номер + название + контур + статус
-- Группировка по частям книги (Пролог / I-VI)
+## UX patterns
 
-### Страница главы
-- Боковая навигация по главам контура
-- Содержание: принцип → модель → тезис → виджет → скачать
-- Интерактивные виджеты (диагностики, калькуляторы, тесты)
+### Widgets (single-screen)
 
-### Страница инструмента
-- Описание + когда применять + связанные главы
-- Mermaid-диаграмма визуализации
+- One question per screen
+- «Назад» (Back) button + step counter (N/M)
+- Progress bar (`.progress-bar` / `.progress-fill`)
+- Result with interpretation
 
-## UX-паттерны
+### Accessibility
 
-### Виджеты (одноэкранные)
-- Один вопрос на экран
-- Кнопка «Назад» + шагомер (N/M)
-- Progress bar
-- Результат с интерпретацией
+- Semantic markup, aria attributes
+- Visible focus (`:focus-visible`), skip-link
+- Respect `prefers-reduced-motion`
 
-### Карта системы
-- Интерактивная SVG с кликабельными лучами
-- При клике — список глав контура
-- Показать количество глав/инструментов на каждом луче
+## Design review
 
-### Тёмная тема
-- Классовая (`.dark` на `<html>`) — переключение без Flash of Unstyled Content
-- Следовать `prefers-color-scheme`
-- Все цвета — через CSS Custom Properties
+Before changes:
 
-## Дизайн-ревью
+1. Load `site/css/brutalist.css` and analyze the current tokens
+2. Check contrast (WCAG AA/AAA)
+3. Check responsiveness (375/768/1280)
+4. Check performance (Lighthouse)
 
-Перед изменениями:
-1. Загрузить `common.css` и проанализировать текущие токены
-2. Проверить контрастность (WCAG AA/AAA)
-3. Проверить адаптивность (375/768/1280)
-4. Проверить производительность (Lighthouse)
-
-## Деплой изменений
+## Deploying changes
 
 ```bash
 cd site
-node build.js       # сборка
-.\deploy.ps1        # деплой на antimanager.pro
+node build.js       # build into dist/
+.\deploy.ps1        # deploy to antimanager.pro
 ```

@@ -33,7 +33,7 @@ AntiManager только ссылается на них.
 
 ## 3. Целевая структура
 
-`
+```
 AntiManager/
 ├── README.md           ← хаб: описание, ссылки на сайт, GitHub-репозитории, Telegram
 ├── site/               ← исходники antimanager.ru (главный контент репо)
@@ -50,7 +50,7 @@ AntiManager/
 │   └── APQC_PCF_7.4_ru.xlsx
 └── docs/               ← документация проекта
     └── ARCHITECTURE.md
-`
+```
 
 ---
 
@@ -94,7 +94,7 @@ AntiManager/
 
 ## 6. Шаблон README
 
-`markdown
+```markdown
 # AntiManager
 
 Система управления производственными предприятиями:
@@ -122,7 +122,7 @@ Telegram: [@...](ссылка)
 ## Лицензия
 
 MIT
-`
+```
 
 ---
 

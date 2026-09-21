@@ -1,4 +1,4 @@
-﻿---
-description: Создать карточку инструмента в 03 - Инструменты
 ---
-Создай `Книга/03 - Инструменты/$1.md`. Разделы: Суть, Когда применять, Как (пошагово), Ошибки, Связи → [[заметки]]. Формат — как в существующих файлах папки.
+description: Create a tool card in 03 - Инструменты
+---
+Create `Книга/03 - Инструменты/$1.md`. Sections: Essence, When to apply, How (step by step), Mistakes, Connections → [[заметки]]. Format — as in the existing files of the folder.

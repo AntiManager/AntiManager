@@ -1,7 +1,7 @@
-﻿---
-description: Аудит структуры vault
+---
+description: Vault structure audit
 mode: subagent
 color: "#43A047"
 hidden: true
 ---
-Проверь orphan-заметки, пустые папки, заметки без тегов, битые ссылки, дубликаты. Отчёт: сколько, критичные/важные/косметика.
+Check for orphan notes, empty folders, notes without tags, broken links, duplicates. Report: counts, critical/important/cosmetic.

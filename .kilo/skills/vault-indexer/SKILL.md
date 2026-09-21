@@ -1,25 +1,30 @@
+---
+name: vault-indexer
+description: Full vault inventory (structure, links, health)
+---
+
 # vault-indexer
 
-Полная инвентаризация Obsidian vault: структура, связи, здоровье.
+Full inventory of the Obsidian vault: structure, links, health.
 
-## Команды
+## Commands
 
 ### `/vault-index [full|quick|health]`
 
-**full** — полный аудит vault:
-1. Сканировать все `.md` файлы (исключая `.obsidian/`, `.kilo/`, `.gigacode/`, `node_modules/`, `.trash/`, `Attachment/`)
-2. Для каждого файла проверить:
+**full** — full vault audit:
+1. Scan all `.md` files (excluding `.obsidian/`, `.kilo/`, `.gigacode/`, `node_modules/`, `.trash/`, `Attachment/`)
+2. For each file check:
    - Frontmatter: `tags`, `status`, `created`, `updated`
-   - Наличие `#`-тегов внутри текста (если нет frontmatter)
-   - Кодировку (UTF-8 BOM, mojibake)
-3. Извлечь все `[[wiki-ссылки]]` и построить граф:
-   - Какие заметки на что ссылаются
-   - Какие заметки имеют входящие ссылки
-   - Список orphan-заметок (0 входящих + 0 исходящих)
-   - Список битых ссылок (target не существует)
-   - mojibake в ссылках (текст вида `Р¦РёРєР»` вместо русского)
-4. Проверить дубликаты (SHA256 содержимого)
-5. Отчёт:
+   - Presence of `#`-tags inside the text (if there is no frontmatter)
+   - Encoding (UTF-8 BOM, mojibake)
+3. Extract all `[[wiki links]]` and build a graph:
+   - Which notes link to what
+   - Which notes have incoming links
+   - List of orphan notes (0 incoming + 0 outgoing)
+   - List of broken links (target does not exist)
+   - mojibake in links (text like `Р¦РёРєР»` instead of Russian)
+4. Check for duplicates (SHA256 of content)
+5. Report:
 
 ```
 === VAULT INDEX ===
@@ -32,12 +37,12 @@ Orphan-заметки: N
 Проблемы кодировки: N
 ```
 
-**quick** — только статистика (без графа):
+**quick** — statistics only (no graph):
 ```
 Файлы: N | Frontmatter: N | Теги: N | Orphans: N
 ```
 
-**health** — только проблемы:
+**health** — problems only:
 ```
 ❌ N файлов без frontmatter
 ❌ N битых ссылок
@@ -45,25 +50,25 @@ Orphan-заметки: N
 ❌ N дубликатов
 ```
 
-## Формат отчёта
+## Report format
 
-После каждого аудита создавать/обновлять:
+After each audit create/update:
 ```
 Roadmap/VAULT_INDEX.md
 ```
-Со структурой:
-- Дата аудита
-- Статистика
-- Список критических проблем
-- Список важных проблем
-- Рекомендации (по приоритету)
+With the structure:
+- Audit date
+- Statistics
+- List of critical issues
+- List of important issues
+- Recommendations (by priority)
 
-## Интеграция с другими скиллами
+## Integration with other skills
 
-- `book-writing` — после index проверять frontmatter статей
-- `management-research` — после index добавлять связи между концепциями
-- `fix-encoding` — перед index проверять кодировку
+- `book-writing` — after index, check article frontmatter
+- `management-research` — after index, add links between concepts
+- `fix-encoding` — before index, check encoding
 
-## Автоматизация в AGENTS.md
+## Automation in AGENTS.md
 
-При каждом старте сессии, связанной с vault, выполнять `/vault-index quick` для контекста.
+On every session start related to the vault, run `/vault-index quick` for context.

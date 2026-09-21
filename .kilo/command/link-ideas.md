@@ -1,4 +1,4 @@
-﻿---
-description: Найти связи между двумя заметками
 ---
-Проанализируй $1 и $2: общие темы, пересечение тегов, общие инструменты. Предложи [[кросс-ссылки]] и MOC-заметку если нужно.
+description: Find connections between two notes
+---
+Analyze $1 and $2: shared topics, tag overlap, shared tools. Suggest [[кросс-ссылки]] and a MOC note if needed.

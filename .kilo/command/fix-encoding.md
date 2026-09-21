@@ -1,67 +1,67 @@
-﻿---
-description: Проверить и исправить битую кодировку в .md файлах vault
+---
+description: Check and fix broken encoding in vault .md files
 ---
 
-# ПРОТОКОЛ БЕЗОПАСНОСТИ: перед любым изменением файлов — бекап
+# SECURITY PROTOCOL: back up before any file change
 
-`powershell
- = "C:\Users\EVGENI~1.BOG\AppData\Local\Temp\kilo\backups\20260721_174058"
-New-Item -ItemType Directory -Path  -Force | Out-Null
-Copy-Item -Path "target\*" -Destination  -Recurse -Force
-Write-Host "Backup: "
-`
+```powershell
+$backup = Join-Path $env:TEMP ("kilo\backups\" + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+Copy-Item -Path "target\*" -Destination $backup -Recurse -Force
+Write-Host "Backup: $backup"
+```
 
-Никогда не применять неоттестированный алгоритм к production-файлам.
-Всегда: бекап → тест на копии → применение → верификация.
-
----
-
-## Диагностика: как определить проблему
-
-Использовать ТОЛЬКО Python — PowerShell криво работает с кириллицей.
-
-**Быстрая проверка:** `python .kilo/scripts/guard_encoding.py --vault`
-
-Три типа повреждений:
-1. **UTF-8 decode error** — файл не читается как UTF-8 (редко)
-2. **U+FFFD replacement chars** — частичная потеря данных при decode c `errors='replace'`
-3. **Double-encoding** — самый частый: валидный UTF-8, но русский текст стал кракозяброй.
-
-Признак double-encoding: доля заглавных кириллических символов (А-Я).
-- Нормальный текст: 2-5% заглавной кириллицы
-- Заголовки/диаграммы: 5-15%
-- **Double-encoding: 50-99% заглавной кириллицы** (надёжный детект)
-- 15-50% при >1000 Cyrillic chars: WARNING (возможна порча)
-
-Гард проверяет все три типа автоматически.
+Never apply an untested algorithm to production files.
+Always: backup → test on a copy → apply → verify.
 
 ---
 
-## Единственный рабочий алгоритм: ftfy
+## Diagnostics: how to identify the problem
 
-Библиотека ftfy (fix text for you) — Mozilla-алгоритм, единственный надёжный.
+Use ONLY Python — PowerShell handles Cyrillic poorly.
 
-`python
+**Quick check:** `python .kilo/scripts/guard_encoding.py --vault`
+
+Three types of corruption:
+1. **UTF-8 decode error** — the file does not read as UTF-8 (rare)
+2. **U+FFFD replacement chars** — partial data loss when decoding with `errors='replace'`
+3. **Double-encoding** — the most common: valid UTF-8, but Russian text has turned into mojibake.
+
+Sign of double-encoding: the share of uppercase Cyrillic characters (А-Я).
+- Normal text: 2-5% uppercase Cyrillic
+- Headings/diagrams: 5-15%
+- **Double-encoding: 50-99% uppercase Cyrillic** (reliable detection)
+- 15-50% with >1000 Cyrillic chars: WARNING (possible corruption)
+
+The guard checks all three types automatically.
+
+---
+
+## The only working algorithm: ftfy
+
+The ftfy (fix text for you) library — the Mozilla algorithm, the only reliable one.
+
+```python
 from ftfy import fix_text
 
-# Бекап
+# Backup
 import shutil, os
 backup = os.path.join(os.environ['TEMP'], 'kilo', 'backups',
                       __import__('datetime').datetime.now().strftime('%Y%m%d_%H%M%S'))
 os.makedirs(backup, exist_ok=True)
 shutil.copy2(path, os.path.join(backup, os.path.basename(path)))
 
-# Чтение
+# Read
 with open(path, 'rb') as f:
     data = f.read()
 if data[:3] == b'\xef\xbb\xbf':
     data = data[3:]
 
-# Фикс
+# Fix
 text = data.decode('utf-8', errors='replace')
 fixed = fix_text(text)
 
-# Верификация
+# Verification
 cyr_new = sum(1 for c in fixed if '\u0410' <= c <= '\u042F')
 ratio_new = cyr_new / len(fixed) * 100 if len(fixed) > 0 else 0
 if ratio_new < 8:
@@ -70,16 +70,16 @@ if ratio_new < 8:
     print(f'OK: {ratio_new:.0f}% — clean')
 else:
     print(f'FAIL: {ratio_new:.0f}% — still mojibake, revert from backup')
-`
+```
 
 ---
 
-## Правила безопасности (learned the hard way)
+## Safety rules (learned the hard way)
 
-1. Бекап всегда. Перед ЛЮБЫМ изменением файлов.
-2. Не использовать PowerShell для кириллицы. Только Python 3.14+.
-3. Тест на копии. Если файл уникальный — скопировать, потестить.
-4. Два прохода ftfy. Если не помогло — не изобретать, передать пользователю.
-5. Верификация после фикса. Проверить долю заглавной кириллицы.
-6. По одному файлу. Не трогать пачкой — проверить — закоммитить.
-7. Файлы с BOM (EF BB BF) почти всегда требуют специальной обработки.
+1. Always back up. Before ANY file change.
+2. Do not use PowerShell for Cyrillic. Python 3.14+ only.
+3. Test on a copy. If the file is unique — copy it, test it.
+4. Two passes of ftfy. If it did not help — do not improvise, hand it over to the user.
+5. Verify after the fix. Check the share of uppercase Cyrillic.
+6. One file at a time. Do not batch — verify — commit.
+7. Files with BOM (EF BB BF) almost always require special handling.
