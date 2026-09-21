@@ -5,7 +5,9 @@
   "description": "AntiManager — production management system site",
   "scripts": {
     "build": "node build.js",
-    "test": "playwright test",
+    "test": "node --test \"unit/**/*.test.js\" && playwright test",
+    "test:unit": "node --test \"unit/**/*.test.js\"",
+    "test:e2e": "playwright test",
     "test:ui": "playwright test --ui",
     "test:update-snapshots": "playwright test --update-snapshots"
   },

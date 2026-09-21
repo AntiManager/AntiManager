@@ -44,10 +44,7 @@ site/
   css/brutalist.css   # design system
   css/fonts.css        # @font-face
   fonts/              # woff2 (Cyrillic/Latin)
-  js/brutalist.js     # shared script (defer)
-  js/common.js        # shared utilities
-  js/map.js           # dynamic star map
-  js/interactive/     # JS widgets
+  js/brutalist.js     # the only loaded script (defer); per-page widgets are inline in src/content/
   src/templates/      # base.html + og-image.svg
   src/components/     # header.html, footer.html
   src/data/           # chapters/weapons/cases/scenarios/thinkers/tools .json

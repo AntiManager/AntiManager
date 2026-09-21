@@ -60,6 +60,11 @@
 </section>
 
 <script>
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
 function runPremortem() {
   var decision = document.getElementById('pmDecision').value.trim();
   var reasons = document.getElementById('pmReasons').value.trim();
@@ -76,16 +81,16 @@ function runPremortem() {
   var result = document.getElementById('pmResult');
   var text = document.getElementById('pmResultText');
   var html = '<div style="margin-bottom:var(--space-3)"><strong>Ваш Pre‑Mortem:</strong></div>';
-  html += '<p style="font-size:var(--text-sm);">Вы планируете: <strong>' + decision + '</strong></p>';
+  html += '<p style="font-size:var(--text-sm);">Вы планируете: <strong>' + escHtml(decision) + '</strong></p>';
   html += '<p style="font-size:var(--text-sm);margin-bottom:var(--space-3);"><br><strong>Риски (причины провала):</strong></p><ol style="font-size:var(--text-sm);padding-left:var(--space-4);">';
   for (var i = 0; i < risks.length && i < (actions.length || 99); i++) {
-    html += '<li style="margin-bottom:var(--space-2);">' + risks[i];
-    if (actions[i]) html += '<br><span style="color:var(--color-tertiary);">→ ' + actions[i] + '</span>';
+    html += '<li style="margin-bottom:var(--space-2);">' + escHtml(risks[i]);
+    if (actions[i]) html += '<br><span style="color:var(--color-tertiary);">→ ' + escHtml(actions[i]) + '</span>';
     html += '</li>';
   }
   if (risks.length > actions.length) {
     for (var j = actions.length; j < risks.length; j++) {
-      html += '<li style="margin-bottom:var(--space-2);">' + risks[j] + '<br><span style="color:#B34A6E;">→ Нет плана предотвращения!</span></li>';
+      html += '<li style="margin-bottom:var(--space-2);">' + escHtml(risks[j]) + '<br><span style="color:#B34A6E;">→ Нет плана предотвращения!</span></li>';
     }
   }
   html += '</ol><p style="font-size:var(--text-sm);margin-top:var(--space-2);"><strong>Вывод:</strong> ';

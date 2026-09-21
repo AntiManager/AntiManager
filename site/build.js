@@ -3,16 +3,21 @@
 
 const fs = require('fs');
 const path = require('path');
+const { escapeHtml, sanitize, assertSlug } = require('./src/lib/escape');
 const SITE_URL = 'https://antimanager.pro';
 const BUILD_DATE = '2026-07-28';
 const VERSION = '20260728b';
 
-function read(name) { return fs.readFileSync(path.join(__dirname, name), 'utf-8'); }
+function read(name) { return fs.readFileSync(path.isAbsolute(name) ? name : path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
   const dir = path.dirname(path.join(__dirname, 'dist', filepath));
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'dist', filepath), content, 'utf-8');
 }
+// Clean output so removed source files do not linger in dist/ (deploy copies dist/*).
+const DIST_DIR = path.join(__dirname, 'dist');
+if (fs.existsSync(DIST_DIR)) fs.rmSync(DIST_DIR, { recursive: true, force: true });
+
 function copyDir(src, dst) {
   const s = path.join(__dirname, src);
   if (!fs.existsSync(s)) return;
@@ -29,10 +34,17 @@ const base = read('src/templates/base.html');
 const headerHtml = read('src/components/header.html');
 const footerHtml = read('src/components/footer.html');
 
-const weapons = JSON.parse(read('src/data/weapons.json'));
-const scenarios = JSON.parse(read('src/data/scenarios.json'));
-const thinkers = JSON.parse(read('src/data/thinkers.json'));
-const cases = JSON.parse(read('src/data/cases.json'));
+// Text fields are HTML-escaped at load time so authored data can never inject
+// markup (defense in depth for a public repo). id/slug/zone/thinker stay raw:
+// they are used for lookups and filesystem paths and must not be encoded.
+const weapons = sanitize(JSON.parse(read(process.env.WEAPONS_FILE || 'src/data/weapons.json')), ['title', 'subtitle']);
+const scenarios = sanitize(JSON.parse(read('src/data/scenarios.json')), ['title', 'subtitle', 'icon']);
+const thinkers = sanitize(JSON.parse(read('src/data/thinkers.json')), ['name', 'years', 'idea', 'weapon', 'photo']);
+const cases = sanitize(JSON.parse(read('src/data/cases.json')), ['title', 'desc', 'readtime']);
+
+// slug/id become output paths and URL segments — fail the build on anything
+// that could traverse directories or break out of markup.
+weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlug(w.id, 'weapons.json id'); });
 
 const zoneLabels = { crisis: 'КРИЗИС', team: 'КОМАНДА', changes: 'ИЗМЕНЕНИЯ', system: 'СИСТЕМА' };
 const statusLabels = { published: 'Опубликовано', review: 'На ревью', draft: 'Черновик' };
@@ -41,21 +53,18 @@ function weaponById(id) { return weapons.find(w => w.id === id); }
 
 function zoneBadgeHtml(zone) {
   if (!zone) return '';
-  return `<span class="badge badge-zone badge-zone-${zone}">${zoneLabels[zone] || zone}</span>`;
+  return `<span class="badge badge-zone badge-zone-${escapeHtml(zone)}">${escapeHtml(zoneLabels[zone] || zone)}</span>`;
 }
 
 function statusBadgeHtml(status) {
-  return `<span class="badge badge-status badge-status-${status}">${statusLabels[status] || status}</span>`;
-}
-
-function escapeHtml(s) {
-  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return `<span class="badge badge-status badge-status-${escapeHtml(status)}">${escapeHtml(statusLabels[status] || status)}</span>`;
 }
 
 function makeStructuredData(pageType, data) {
   data = data || {};
   function json(ld) {
-    return '\n<script type="application/ld+json">' + JSON.stringify(ld, null, 2) + '</script>';
+    // Escape "<" so a value containing "</script>" cannot break out of the tag.
+    return '\n<script type="application/ld+json">' + JSON.stringify(ld, null, 2).replace(/</g, '\\u003c') + '</script>';
   }
   if (pageType === 'landing') {
     return json({
@@ -114,7 +123,7 @@ function renderPage(title, description, content, opts) {
   const desc = description || title;
   const canonicalUrl = opts.canonicalUrl || SITE_URL + '/';
   const ogType = opts.ogType || 'website';
-  const ogImage = opts.ogImage || SITE_URL + '/og-image.png';
+  const ogImage = opts.ogImage || SITE_URL + '/og-image.svg';
 
   let headTags = ''
     + '<link rel="canonical" href="' + canonicalUrl + '">\n'
@@ -201,7 +210,7 @@ const featuredWeapons = publishedWeapons.length > 0
   : weapons.filter(function(w) { return w.status === 'review'; }).slice(0, 4);
 
 const featuredWeaponsHtml = featuredWeapons.map(function(w) {
-  return '<a href="/weapons/' + w.slug + '/" class="weapon-card">'
+  return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card">'
     + '<div class="weapon-title">' + w.title + '</div>'
     + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
     + (w.zone ? '<span class="weapon-status">' + zoneLabels[w.zone] + '</span>' : '')
@@ -244,11 +253,11 @@ const arsenalContent = '<section class="content-page">'
   + '<p class="weapon-subtitle">' + weapons.filter(function(w) { return w.status === 'published'; }).length + ' опубликовано, ' + weapons.length + ' всего. Выбери оружие.</p>'
   + '<div class="filters">'
   + '<button class="filter-btn active" data-filter="all">ВСЕ</button>'
-  + scenarios.map(function(s) { return '<button class="filter-btn" data-filter="' + s.id + '">' + s.title + '</button>'; }).join('')
+  + scenarios.map(function(s) { return '<button class="filter-btn" data-filter="' + escapeHtml(s.id) + '">' + s.title + '</button>'; }).join('')
   + '</div>'
   + '<div class="weapon-grid" id="arsenalGrid">'
   + weapons.map(function(w) {
-    return '<a href="/weapons/' + w.slug + '/" class="weapon-card" data-zone="' + (w.zone || '') + '">'
+    return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card" data-zone="' + escapeHtml(w.zone || '') + '">'
       + '<div class="weapon-title">' + w.title + '</div>'
       + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
       + (w.zone ? zoneBadgeHtml(w.zone) : '')
@@ -269,13 +278,13 @@ const scenariosContent = '<section class="content-page">'
   + '<p class="weapon-subtitle">Выбери свой участок фронта — получи набор оружия.</p>'
   + scenarios.map(function(s) {
     var zoneWeapons = s.weapons.map(function(id) { return weaponById(id); }).filter(Boolean);
-    return '<div class="zone-card zone-' + s.id + '" style="margin-bottom:var(--space-6);">'
+    return '<div class="zone-card zone-' + escapeHtml(s.id) + '" style="margin-bottom:var(--space-6);">'
       + '<div class="zone-icon">' + s.icon + '</div>'
       + '<div class="zone-title">' + s.title + '</div>'
       + '<p style="margin-top:var(--space-2);">' + s.subtitle + '</p>'
       + '<div class="weapon-grid" style="margin-top:var(--space-4);">'
       + zoneWeapons.map(function(w) {
-        return '<a href="/weapons/' + w.slug + '/" class="weapon-card">'
+        return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card">'
           + '<div class="weapon-title">' + w.title + '</div>'
           + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
           + '</a>';
@@ -361,7 +370,7 @@ const landingContent = '<section class="hero">'
   + '<div class="zone-grid">'
   + scenarios.map(function(s) {
     var count = s.weapons.filter(function(id) { return weaponById(id); }).length;
-    return '<a href="/scenarios/" class="zone-card zone-' + s.id + '">'
+    return '<a href="/scenarios/" class="zone-card zone-' + escapeHtml(s.id) + '">'
       + '<div class="zone-icon">' + s.icon + '</div>'
       + '<div class="zone-title">' + s.title + '</div>'
       + '<div class="zone-subtitle">' + s.subtitle + '</div>'
@@ -464,7 +473,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
   var hasContent = fs.existsSync(contentPath);
   var contentBody = hasContent ? fs.readFileSync(contentPath, 'utf-8') : '<div class="empty-state"><h3>Статья в разработке</h3><p>Эта статья ещё не готова. Скоро здесь появится текст.</p><p style="margin-top:var(--space-4);"><a href="/arsenal/" class="btn" style="display:inline-flex;">← Вернуться в арсенал</a></p></div>';
 
-  var zoneBadge = w.zone ? '<span class="badge badge-zone badge-zone-' + w.zone + '">' + (zoneLabels[w.zone] || w.zone) + '</span>' : '';
+  var zoneBadge = zoneBadgeHtml(w.zone);
   var statusSpan = statusBadgeHtml(w.status);
 
   var thinker = thinkers.find(function(t) { return t.id === w.thinker; });
@@ -477,7 +486,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
   var downloadSection = '<div class="download-section">'
     + '<h3>Материалы к статье</h3>'
     + '<p>Готовим PDF с чек-листами и шаблонами. Оставьте заявку — сообщим, когда будет готово.</p>'
-    + '<button class="btn download-btn" data-article="' + w.slug + '">Хочу PDF</button>'
+    + '<button class="btn download-btn" data-article="' + escapeHtml(w.slug) + '">Хочу PDF</button>'
     + '<p class="download-feedback" style="display:none;margin-top:var(--space-3);color:var(--color-steel);font-size:var(--text-sm);"></p>'
     + '</div>';
 
@@ -486,7 +495,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
   if (related.length > 0) {
     relatedHtml = '<h2 class="section-title" style="margin-top:var(--space-10);">В том же окопе</h2><div class="weapon-grid">'
       + related.slice(0, 4).map(function(r) {
-        return '<a href="/weapons/' + r.slug + '/" class="weapon-card">'
+        return '<a href="/weapons/' + escapeHtml(r.slug) + '/" class="weapon-card">'
           + '<div class="weapon-title">' + r.title + '</div>'
           + '<div class="weapon-subtitle">' + (r.subtitle || '') + '</div>'
           + '</a>';
@@ -504,7 +513,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
   html = html.replace('{{download_section}}', downloadSection);
   html = html.replace('{{related_weapons}}', relatedHtml);
 
-  var canonicalUrl = SITE_URL + '/weapons/' + w.slug + '/';
+  var canonicalUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/';
   var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
   write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);

@@ -1,7 +1,17 @@
+import os
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
-path = r'C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Книга\01_Статьи\00_Маятник_управления.md'
+# Path is environment-specific: pass it as argv[1], or set VAULT_DIR.
+# The vault-relative location is the same for everyone.
+REL_PATH = os.path.join('Книга', '01_Статьи', '00_Маятник_управления.md')
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+elif os.environ.get('VAULT_DIR'):
+    path = os.path.join(os.environ['VAULT_DIR'], REL_PATH)
+else:
+    print('Usage: add-fm-00.py <note.md>  (or set VAULT_DIR)')
+    sys.exit(2)
 
 with open(path, 'r', encoding='utf-8') as f:
     text = f.read()

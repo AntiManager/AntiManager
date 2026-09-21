@@ -68,6 +68,11 @@
 </section>
 
 <script>
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
 function buildOop() {
   var cls = document.getElementById('oopClass').value;
   var name = document.getElementById('oopName').value.trim();
@@ -77,14 +82,14 @@ function buildOop() {
   var result = document.getElementById('oopResult');
   var text = document.getElementById('oopResultText');
   var html = '<strong>Карта объекта:</strong><br><br>';
-  html += '<strong>Класс:</strong> ' + cls + '<br>';
-  html += '<strong>Объект:</strong> ' + name + '<br>';
-  if (attrs) html += '<strong>Атрибуты:</strong> ' + attrs + '<br>';
-  if (links) html += '<strong>Связи:</strong> ' + links + '<br><br>';
+  html += '<strong>Класс:</strong> ' + escHtml(cls) + '<br>';
+  html += '<strong>Объект:</strong> ' + escHtml(name) + '<br>';
+  if (attrs) html += '<strong>Атрибуты:</strong> ' + escHtml(attrs) + '<br>';
+  if (links) html += '<strong>Связи:</strong> ' + escHtml(links) + '<br><br>';
   html += '<strong>Что это даёт:</strong><br>';
-  html += '• Другой ' + cls + ' с похожими атрибутами можно настраивать по аналогии — класс один.<br>';
-  html += '• Знание о ' + name + ' теперь не в голове одного человека, а в карте.<br>';
-  html += '• При поломке ' + name + ' видно, с какими объектами он связан — можно оценить последствия.<br>';
+  html += '• Другой ' + escHtml(cls) + ' с похожими атрибутами можно настраивать по аналогии — класс один.<br>';
+  html += '• Знание о ' + escHtml(name) + ' теперь не в голове одного человека, а в карте.<br>';
+  html += '• При поломке ' + escHtml(name) + ' видно, с какими объектами он связан — можно оценить последствия.<br>';
   html += '• Новичок может прочитать карту и понять систему связей за 5 минут.';
   text.innerHTML = html;
   result.style.display = 'block';

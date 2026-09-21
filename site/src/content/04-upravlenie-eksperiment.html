@@ -88,6 +88,11 @@
 </section>
 
 <script>
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
 function buildHypothesis() {
   var action = document.getElementById('hbAction').value.trim();
   var behavior = document.getElementById('hbBehavior').value.trim();
@@ -102,10 +107,10 @@ function buildHypothesis() {
   var result = document.getElementById('hbResult');
   var text = document.getElementById('hbResultText');
   text.innerHTML = '<strong>Ваша гипотеза:</strong><br><br>'
-    + '«Если мы <em>' + action + '</em>,<br>'
-    + 'то <em>' + behavior + '</em>,<br>'
-    + 'потому что <em>' + why + '</em>,<br>'
-    + 'тогда <em>' + metric + '</em>».';
+    + '«Если мы <em>' + escHtml(action) + '</em>,<br>'
+    + 'то <em>' + escHtml(behavior) + '</em>,<br>'
+    + 'потому что <em>' + escHtml(why) + '</em>,<br>'
+    + 'тогда <em>' + escHtml(metric) + '</em>».';
   result.style.display = 'block';
   document.querySelector('#hypothesisBuilder .btn-primary').style.display = 'none';
 }
