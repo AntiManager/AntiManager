@@ -15,8 +15,8 @@ gone. **Rollout:** article 00 (pilot) deployed; article 02 «Управлени�
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
 Publish-readiness track: 00/01/02/03 → 12/12; 00/01 deployed; articles 00 + 02 have
-`/full/`. Caveat: article 03's recorded pass was cosmetic-only (same overstatement as
-02) — give it the full cycle before treating it done.
+deployed `/full/` pages. Caveat: article 03's recorded pass was cosmetic-only (same
+overstatement as 02) — give it the full cycle before treating it done.
 Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
