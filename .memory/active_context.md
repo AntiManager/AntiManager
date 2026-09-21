@@ -2,21 +2,23 @@
 > Updated: 2026-09-21
 
 ## Current Task
-Publish-readiness hardening of source vault articles, **one at a time** (Layer 1
-screen + Layer 2 editorial). Articles **00 «Маятник управления»**, **01 «Manifestum
-Imperii Rationalis»**, **02 «Управление сложными системами»**, **03 «Системная динамика
-в производстве» DONE → 12/12**, and **00/01 are DEPLOYED** to `antimanager.pro`
-(verified live). Next: article **04 «Управление как эксперимент»** — Layer 2 editorial pass.
-Parked: SEO plan Phase 2 (publish 21 `review` weapons; replace fabricated landing stats).
+**Two-tier theme pages** (landing → full text → materials) — implemented, **not yet
+committed/deployed**. The topic landing `/weapons/<slug>/` stays interactive and now
+shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead of the
+dead «Тезисный отрывок»; the new full page carries the complete article (static
+H2/H3 TOC, reading progress, 4-level breadcrumb) plus an honest `.materials-section`
+(article PDF + declared extras, print fallback). The fake site-wide «Материалы к
+статье / Хочу PDF» block is gone. **Pilot: article 00** (`content/full/00-*.html`,
+464-line vault conversion; PDF 414 KB). Plan + log:
+`.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-- Phase 1 (was uncommitted): dynamic `BUILD_DATE` → sitemap `lastmod` + JSON-LD dates;
-  landing featured block = 4 cards; related-links fallback for 6 zone-less weapons;
-  `article:modified_time`/`article:tag`, `og:image` dims, static `BreadcrumbList`;
-  landing meta «4 контура, 22 главы»; raster `og-image.png`
-  (`site/scripts/render-og.js`, `npm run render:og`).
-- Tests: unit 5/5; Playwright 99/99 (33 × 3). Run all: `cd site; npm test`.
-- Log: `.kilo/plans/1790008000000-seo-content-execution-log.md`; article-readiness
-  log: `.kilo/plans/1790010500000-article-readiness-execution-log.md`.
+Publish-readiness track (parked pending deploy): 00/01/02/03 → 12/12; 00/01 deployed.
+Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass.
+Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
+
+- Tests: unit **7/7**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
+- New scripts: `npm run render:pdf` (`site/scripts/render-pdf.js`, Playwright print);
+  `materials.json` `href` validated; `MATERIALS_FILE` env seam for tests.
 
 ## Harness state (this session)
 - Article 01 site: `build.js` manifesto now rendered from structured
@@ -32,12 +34,14 @@ Parked: SEO plan Phase 2 (publish 21 `review` weapons; replace fabricated landin
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
+- **Deploy the two-tier article 00**: commit + `.\deploy.ps1`, then verify live
+  `/weapons/mayatnik-upravleniya/` (read-more card) and `/full/` (TOC, PDF download).
+- Roll `/full/` out article-by-article as vault readiness allows (article 01 has no
+  weapon entry — its full text is `/manifesto/`).
 - Continue article-by-article readiness: article **04 «Управление как эксперимент»**
-  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync if
-  the content changes.
-- Articles 00/01 site work: DONE and **deployed** (00 `content/00-*.html`; 01 full
-  `/manifesto/` page). Build OK, suite 99/99.
-- Articles 02/03: vault Layer 2 done (no site sync needed — no content/factual changes).
+  — Layer 2 editorial pass (facts, related tools/chapters, style), then site sync.
+- Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
+  entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
   fabricated landing stats 2 847 / 113 / 47).
 

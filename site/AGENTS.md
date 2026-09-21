@@ -13,6 +13,10 @@ AntiManager/
   site/              # Website source code
     build.js         # Static site builder
     src/             # Templates, data, chapter content
+    src/content/     # Topic-landing partials (XX-slug.html)
+    src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
+    materials/       # Downloadable assets: <slug>.pdf (generated) + <slug>/ (authored extras)
+    scripts/         # render-og.js, render-pdf.js
     css/             # Stylesheets
     js/              # JavaScript
     fonts/           # Self-hosted woff2
@@ -34,13 +38,24 @@ Configure the path in `.env` (`ARTICLES_DIR`). Default location:
 
 Chapters are numbered `XX_Title.md` and map to chapters in `site/src/data/chapters.json`.
 
-When creating new lite chapter content:
+Two-tier content per theme: the topic landing at `/weapons/<slug>/` carries the
+interactive model/diagnostic; the full text at `/weapons/<slug>/full/` carries the
+complete article plus a materials block (article PDF + extras). The landing shows a
+read-more card only when a full-text partial exists, and the full page is generated
+only then too.
+
+When creating new lite (landing) chapter content:
 1. Read the source `.md` from vault
-2. Extract: principle, model/table, thesis excerpt
+2. Extract: principle, model/table; put `{{read_more}}` where the path to the full text belongs
 3. Create interactive widget (diagnostic/calculator)
 4. Write HTML partial to `site/src/content/XX-slug.html`
 5. Run `node site/build.js` to rebuild
-6. Run `.\deploy.ps1` from `site/` directory to deploy
+
+When publishing the full text:
+1. Convert the vault `.md` into `site/src/content/full/XX-slug.html` (headings H2/H3 drive the TOC)
+2. Replace the landing's `Тезисный отрывок` section with the `{{read_more}}` placeholder
+3. Run `node site/build.js`, then `npm run render:pdf` to regenerate `materials/<slug>.pdf`
+4. Rebuild so the materials block picks up the PDF, then run `.\deploy.ps1`
 
 ## Commands
 
@@ -52,6 +67,7 @@ npm test                # unit + Playwright tests
 npm run test:unit       # unit tests only
 npm run test:e2e        # Playwright only
 npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
+npm run render:pdf      # render materials/<slug>.pdf from each /full/ page (run after build)
 .\deploy.ps1            # Deploy to VPS (reads .env)
 ```
 
@@ -69,7 +85,10 @@ nginx container: antimanager-web, root: {{REMOTE_DIR}}/current/
 
 ## Conventions
 - Vanilla HTML/CSS/JS — no frameworks
-- Lite-first content: principle + model + thesis + widget + download button
+- Two-tier content: topic landing (principle + model + widget) → `/full/` (full text + materials)
+- Materials are honest: only real files are linked (`materials/<slug>.pdf`, declared extras); never "coming soon"
+- `materials.json` `href` must match `/materials/<slug>/<file>` (build rejects anything else)
+- Print stylesheet (`@media print` in `brutalist.css`) strips site chrome for the PDF; regenerate PDFs with `npm run render:pdf`
 - All 22 chapters indexed
 - Widgets: one question per screen, back button, step counter, progress bar
 - SEO: `og:image` must be the raster `/og-image.png` (social networks do not render SVG);

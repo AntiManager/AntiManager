@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   initFlash();
   initScrollReveal();
-  initDownloadButtons();
+  initReadingProgress();
   initAccordions();
   initMenuToggle();
   initScrollTop();
@@ -31,21 +31,22 @@ function initScrollReveal() {
   for (var j = 0; j < els.length; j++) obs.observe(els[j]);
 }
 
-function initDownloadButtons() {
-  var btns = document.querySelectorAll('.download-btn');
-  for (var i = 0; i < btns.length; i++) {
-    btns[i].addEventListener('click', function() {
-      var feedback = this.parentNode.querySelector('.download-feedback');
-      if (feedback) {
-        feedback.textContent = 'Спасибо! Мы записали ваш интерес к статье. Когда материалы будут готовы — сообщим.';
-        feedback.style.display = 'block';
-      }
-      this.textContent = 'Заявка отправлена ✓';
-      this.classList.remove('btn');
-      this.style.opacity = '0.5';
-      this.style.cursor = 'default';
-    });
+function initReadingProgress() {
+  var bar = document.querySelector('.reading-progress-fill');
+  var article = document.querySelector('.full-article');
+  if (!bar || !article) return;
+
+  function update() {
+    var start = article.offsetTop;
+    var total = article.offsetHeight - window.innerHeight;
+    if (total <= 0) { bar.style.width = '100%'; return; }
+    var pct = ((window.scrollY - start) / total) * 100;
+    bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
   }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 }
 
 function initAccordions() {

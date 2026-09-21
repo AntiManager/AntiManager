@@ -52,6 +52,33 @@ const cases = sanitize(JSON.parse(read('src/data/cases.json')), ['title', 'desc'
 // that could traverse directories or break out of markup.
 weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlug(w.id, 'weapons.json id'); });
 
+// Per-article downloadable materials. The article PDF itself is auto-detected
+// from site/materials/<slug>.pdf; this file holds the extra hand-authored
+// artifacts (checklists, templates). The href is restricted so authored data
+// can never point outside /materials/ or smuggle a javascript: URL.
+const materials = (function() {
+  const raw = JSON.parse(read(process.env.MATERIALS_FILE || 'src/data/materials.json'));
+  if (!Array.isArray(raw)) throw new Error('materials.json must be a JSON array');
+  const bySlug = {};
+  raw.forEach(function(entry) {
+    assertSlug(entry.slug, 'materials.json slug');
+    const items = Array.isArray(entry.items) ? entry.items : [];
+    bySlug[entry.slug] = items.map(function(it) {
+      const href = String(it.href || '');
+      if (!/^\/materials\/[a-z0-9-]+\/[A-Za-z0-9._-]+$/.test(href)) {
+        throw new Error('Invalid materials.json href: ' + JSON.stringify(it.href));
+      }
+      return {
+        kind: escapeHtml(String(it.kind || 'file')),
+        title: escapeHtml(String(it.title || '')),
+        meta: escapeHtml(String(it.meta || '')),
+        href: href,
+      };
+    });
+  });
+  return bySlug;
+})();
+
 const zoneLabels = { crisis: 'КРИЗИС', team: 'КОМАНДА', changes: 'ИЗМЕНЕНИЯ', system: 'СИСТЕМА' };
 const statusLabels = { published: 'Опубликовано', review: 'На ревью', draft: 'Черновик' };
 
@@ -73,6 +100,78 @@ function zoneBadgeHtml(zone) {
 
 function statusBadgeHtml(status) {
   return `<span class="badge badge-status badge-status-${escapeHtml(status)}">${escapeHtml(statusLabels[status] || status)}</span>`;
+}
+
+// Plain-text word count → reading time estimate (~180 wpm), minimum 1 minute.
+function readMinutes(html) {
+  const text = String(html).replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 180));
+}
+
+// Inject anchor ids into H2/H3 and return { html, toc } so the full-text page
+// ships a static, no-JS table of contents.
+function withToc(html) {
+  const items = [];
+  let n = 0;
+  const out = String(html).replace(/<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi, function(m, level, attrs, inner) {
+    const text = inner.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (!text) return m;
+    n++;
+    const idMatch = (attrs || '').match(/\bid="([^"]+)"/);
+    let id;
+    if (idMatch) {
+      id = idMatch[1];
+    } else {
+      id = 'sec-' + n;
+      attrs = (attrs || '') + ' id="' + id + '"';
+    }
+    items.push({ level: level, id: id, text: text });
+    return '<h' + level + attrs + '>' + inner + '</h' + level + '>';
+  });
+  if (items.length < 2) return { html: out, toc: '' };
+  const toc = '<nav class="article-toc" aria-label="Содержание"><div class="article-toc-title">Содержание</div><ol>'
+    + items.map(function(it) {
+        return '<li class="toc-level-' + it.level + '"><a href="#' + it.id + '">' + it.text + '</a></li>';
+      }).join('')
+    + '</ol></nav>';
+  return { html: out, toc: toc };
+}
+
+// Honest materials block: the article PDF is offered only when a real file
+// exists; declared extras are listed after it. Never promises future files.
+function materialsBlockHtml(w) {
+  const extras = materials[w.slug] || [];
+  const hasPdf = fs.existsSync(path.join(__dirname, 'materials', w.slug + '.pdf'));
+  let items = '';
+  if (hasPdf) {
+    items += '<li class="material-item">'
+      + '<span class="material-icon" aria-hidden="true">📄</span>'
+      + '<span class="material-body"><span class="material-title">Статья «' + w.title + '»</span>'
+      + '<span class="material-meta">PDF · полный текст</span></span>'
+      + '<a class="btn btn-primary btn-sm" href="/materials/' + escapeHtml(w.slug) + '.pdf" download>Скачать</a></li>';
+  }
+  extras.forEach(function(it) {
+    items += '<li class="material-item">'
+      + '<span class="material-icon" aria-hidden="true">🧰</span>'
+      + '<span class="material-body"><span class="material-title">' + it.title + '</span>'
+      + '<span class="material-meta">' + (it.meta || it.kind) + '</span></span>'
+      + '<a class="btn btn-ghost btn-sm" href="' + it.href + '" download>Скачать</a></li>';
+  });
+  const empty = (!hasPdf && !extras.length)
+    ? '<p class="materials-empty">Печатные материалы к статье готовятся. Пока — сохраните страницу в PDF или придите за разбором в Штаб.</p>'
+    : '';
+  const printBtn = hasPdf
+    ? ''
+    : '<button type="button" class="btn btn-ghost btn-sm print-pdf-btn" onclick="window.print()">Сохранить в PDF</button>';
+  return '<section class="materials-section" id="materials">'
+    + '<h2>Материалы по теме</h2>'
+    + '<p class="materials-desc">Статья целиком и рабочие артефакты — для скачивания и печати.</p>'
+    + (items ? '<ul class="materials-list">' + items + '</ul>' : '')
+    + empty
+    + '<div class="materials-actions">' + printBtn
+    + '<a class="btn btn-ghost btn-sm" href="https://t.me/antimanager">Новые материалы — в Штабе</a></div>'
+    + '</section>';
 }
 
 function makeStructuredData(pageType, data) {
@@ -113,6 +212,35 @@ function makeStructuredData(pageType, data) {
             { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
             { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' },
             { '@type': 'ListItem', 'position': 3, 'name': data.title }
+          ]
+        }
+      ]
+    });
+  }
+  if (pageType === 'articleFull') {
+    var fullArticle = {
+      '@type': 'Article',
+      'headline': data.title,
+      'description': data.subtitle || data.title,
+      'url': data.canonicalUrl,
+      'datePublished': BUILD_DATE,
+      'dateModified': BUILD_DATE,
+      'inLanguage': 'ru',
+      'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
+      'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
+    };
+    if (data.articleSection) fullArticle.articleSection = data.articleSection;
+    return json({
+      '@context': 'https://schema.org',
+      '@graph': [
+        fullArticle,
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+            { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' },
+            { '@type': 'ListItem', 'position': 3, 'name': data.title, 'item': SITE_URL + '/weapons/' + data.slug + '/' },
+            { '@type': 'ListItem', 'position': 4, 'name': 'Полный текст' }
           ]
         }
       ]
@@ -512,7 +640,23 @@ const weaponTemplate = '<div class="content-page">'
   + '</section>'
   + '{{content_body}}'
   + '{{thinker_block}}'
-  + '{{download_section}}'
+  + '{{related_weapons}}'
+  + '</div>';
+
+const fullTemplate = '<div class="content-page full-article-page">'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/arsenal/">Арсенал</a> <span class="sep">→</span> <a href="/weapons/{{slug}}/">{{title}}</a> <span class="sep">→</span> <span>Полный текст</span></nav>'
+  + '<div class="reading-progress" aria-hidden="true"><div class="reading-progress-fill"></div></div>'
+  + '<header class="full-hero">'
+  + '{{zone_badge}}'
+  + '<h1>{{title}}</h1>'
+  + '<p class="weapon-subtitle">{{subtitle}}</p>'
+  + '<p class="full-meta">⏱ {{read_minutes}} мин чтения · Полный текст</p>'
+  + '<a class="btn btn-ghost btn-sm" href="/weapons/{{slug}}/">← К интерактивной модели</a>'
+  + '</header>'
+  + '{{toc}}'
+  + '<article class="full-article">{{content_body}}</article>'
+  + '{{materials_section}}'
+  + '{{thinker_block}}'
   + '{{related_weapons}}'
   + '</div>';
 
@@ -551,12 +695,26 @@ for (var wi = 0; wi < weapons.length; wi++) {
       + '<div class="thinker-block-text"><strong>Изначальная идея:</strong> ' + thinker.name + ' (' + thinker.years + ') → ' + thinker.weapon + '</div></div>'
     : '';
 
-  var downloadSection = '<div class="download-section">'
-    + '<h3>Материалы к статье</h3>'
-    + '<p>Готовим PDF с чек-листами и шаблонами. Оставьте заявку — сообщим, когда будет готово.</p>'
-    + '<button class="btn download-btn" data-article="' + escapeHtml(w.slug) + '">Хочу PDF</button>'
-    + '<p class="download-feedback" style="display:none;margin-top:var(--space-3);color:var(--color-steel);font-size:var(--text-sm);"></p>'
-    + '</div>';
+  var fullPath = path.join(__dirname, 'src', 'content', 'full', w.id + '-' + w.slug + '.html');
+  var hasFull = fs.existsSync(fullPath);
+  var fullBody = hasFull ? fs.readFileSync(fullPath, 'utf-8') : '';
+
+  // Read-more card replaces the old lite "Тезисный отрывок": a short lede from
+  // the full text plus an explicit path to it. Rendered only when the full text
+  // actually exists, so no landing ever links to a missing page.
+  var readMoreHtml = '';
+  if (hasFull) {
+    var ledeMatch = fullBody.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+    var lede = ledeMatch ? ledeMatch[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
+    if (lede.length > 220) lede = lede.slice(0, 217).replace(/\s+\S*$/, '') + '…';
+    if (!lede) lede = w.subtitle || '';
+    readMoreHtml = '<aside class="read-more-card">'
+      + '<div class="read-more-label">Полный текст статьи</div>'
+      + (lede ? '<p class="read-more-hook">' + lede + '</p>' : '')
+      + '<div class="read-more-meta">⏱ ' + readMinutes(fullBody) + ' мин чтения</div>'
+      + '<a class="btn btn-primary" href="/weapons/' + escapeHtml(w.slug) + '/full/">Читать статью полностью →</a>'
+      + '</aside>';
+  }
 
   // Prefer same zone; fall back to same thinker, then shared tags, then other
   // zone-less weapons so every article keeps at least one internal link.
@@ -586,20 +744,43 @@ for (var wi = 0; wi < weapons.length; wi++) {
       + '</div>';
   }
 
+  // Resolve the read-more placeholder inside the authored partial. Function
+  // replacers everywhere: authored text may contain "$" patterns.
+  contentBody = contentBody.replace(/\{\{read_more\}\}/g, function() { return readMoreHtml; });
+
   var html = weaponTemplate;
-  html = html.replace(/{{title}}/g, w.title);
-  html = html.replace('{{subtitle}}', w.subtitle || '');
-  html = html.replace('{{zone_badge}}', zoneBadge);
-  html = html.replace('{{status_badge}}', statusSpan);
-  html = html.replace('{{content_body}}', contentBody);
-  html = html.replace('{{thinker_block}}', thinkerBlock);
-  html = html.replace('{{download_section}}', downloadSection);
-  html = html.replace('{{related_weapons}}', relatedHtml);
+  html = html.replace(/{{title}}/g, function() { return w.title; });
+  html = html.replace('{{subtitle}}', function() { return w.subtitle || ''; });
+  html = html.replace('{{zone_badge}}', function() { return zoneBadge; });
+  html = html.replace('{{status_badge}}', function() { return statusSpan; });
+  html = html.replace('{{content_body}}', function() { return contentBody; });
+  html = html.replace('{{thinker_block}}', function() { return thinkerBlock; });
+  html = html.replace('{{related_weapons}}', function() { return relatedHtml; });
 
   var canonicalUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/';
   var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
   write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
+
+  // Full-text page ships only when its source partial exists.
+  if (hasFull) {
+    var toc = withToc(fullBody);
+    var fullHtml = fullTemplate;
+    fullHtml = fullHtml.replace(/{{title}}/g, function() { return w.title; });
+    fullHtml = fullHtml.replace(/{{slug}}/g, function() { return escapeHtml(w.slug); });
+    fullHtml = fullHtml.replace('{{subtitle}}', function() { return w.subtitle || ''; });
+    fullHtml = fullHtml.replace('{{zone_badge}}', function() { return zoneBadge; });
+    fullHtml = fullHtml.replace('{{read_minutes}}', function() { return String(readMinutes(fullBody)); });
+    fullHtml = fullHtml.replace('{{toc}}', function() { return toc.toc; });
+    fullHtml = fullHtml.replace('{{content_body}}', function() { return toc.html; });
+    fullHtml = fullHtml.replace('{{materials_section}}', function() { return materialsBlockHtml(w); });
+    fullHtml = fullHtml.replace('{{thinker_block}}', function() { return thinkerBlock; });
+    fullHtml = fullHtml.replace('{{related_weapons}}', function() { return relatedHtml; });
+
+    var fullUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/full/';
+    write('weapons/' + w.slug + '/full/index.html', renderPage(w.title + ' — полный текст | AntiManager', w.subtitle || '', fullHtml, { canonicalUrl: fullUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, structuredData: makeStructuredData('articleFull', { title: w.title, subtitle: w.subtitle, canonicalUrl: fullUrl, articleSection: zoneLabel, slug: escapeHtml(w.slug) }) }));
+    console.log('  ✓ ' + w.id + ' ' + w.slug + ' (full)');
+  }
 }
 
 // Sitemap
@@ -617,6 +798,9 @@ for (var si = 0; si < weapons.length; si++) {
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
     sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE });
   }
+  if (fs.existsSync(path.join(__dirname, 'src', 'content', 'full', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
+    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/full/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE });
+  }
 }
 var sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 for (var si2 = 0; si2 < sitemapUrls.length; si2++) {
@@ -630,6 +814,7 @@ write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitema
 copyDir('css', 'css');
 copyDir('js', 'js');
 copyDir('fonts', 'fonts');
+copyDir('materials', 'materials');
   copyDir('../Фото_мыслителей', 'images/thinkers');
   write('favicon.svg', read('favicon.svg'));
 if (fs.existsSync(OG_IMAGE_PNG)) write('og-image.png', read(OG_IMAGE_PNG));

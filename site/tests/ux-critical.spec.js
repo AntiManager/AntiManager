@@ -204,31 +204,51 @@ test.describe('AX05 — Hover guard for case cards', () => {
   });
 });
 
-// === AX06 — Download CTA text ===
-test.describe('AX06 — Download CTA text', () => {
-  test('download button says "Хочу PDF"', async ({ page }) => {
-    await page.goto('/weapons/dva-tipa-upravleniya/');
+// === AX06 — Read-more path and real materials ===
+// Regression: the landing used to show a dead "Тезисный отрывок" excerpt and a
+// fake "Хочу PDF" section that delivered nothing. The landing now links to a
+// real full-text page that carries a downloadable PDF material.
+test.describe('AX06 — Full-text path and materials', () => {
+  const LANDING = '/weapons/mayatnik-upravleniya/';
+  const FULL = '/weapons/mayatnik-upravleniya/full/';
+
+  test('landing offers a read-more path and no fake download', async ({ page }) => {
+    await page.goto(LANDING);
     await page.waitForLoadState('networkidle');
 
-    const btn = page.locator('.download-btn');
-    await expect(btn).toBeVisible();
-    const text = await btn.textContent();
-    expect(text.trim()).toBe('Хочу PDF');
+    const card = page.locator('.read-more-card');
+    await expect(card).toBeVisible();
+    await expect(card.locator('a.btn')).toHaveAttribute('href', FULL);
+    await expect(page.locator('.download-btn')).toHaveCount(0);
+    await expect(page.locator('.download-section')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Тезисный отрывок' })).toHaveCount(0);
   });
 
-  test('download heading does not say "Скачать"', async ({ page }) => {
-    await page.goto('/weapons/dva-tipa-upravleniya/');
-    const heading = page.locator('.download-section h3');
-    await expect(heading).toBeVisible();
-    const text = await heading.textContent();
-    expect(text).not.toContain('Скачать');
+  test('read-more opens the full text with TOC and materials', async ({ page }) => {
+    await page.goto(LANDING);
+    await page.locator('.read-more-card a.btn').click();
+    await page.waitForURL('**/full/');
+
+    await expect(page.locator('.content-page h1')).toHaveText('Маятник управления');
+    await expect(page.locator('.article-toc')).toBeVisible();
+    await expect(page.locator('.full-article')).toBeVisible();
+
+    const firstToc = page.locator('.article-toc a').first();
+    await expect(firstToc).toBeVisible();
+    const href = await firstToc.getAttribute('href');
+    expect(href).toMatch(/^#/);
+    await expect(page.locator(href)).toHaveCount(1);
+
+    await expect(page.locator('.materials-section a[href="/materials/mayatnik-upravleniya.pdf"]')).toBeVisible();
   });
 
-  test('download section exists on weapon pages', async ({ page }) => {
-    await page.goto('/weapons/haos/');
+  test('print media hides site chrome, keeps the article', async ({ page }) => {
+    await page.goto(FULL);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.download-section')).toBeVisible();
-    await expect(page.locator('.download-btn')).toBeVisible();
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('.site-header')).toBeHidden();
+    await expect(page.locator('.article-toc')).toBeHidden();
+    await expect(page.locator('.full-article')).toBeVisible();
   });
 });
 
