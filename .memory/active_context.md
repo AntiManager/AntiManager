@@ -2,7 +2,7 @@
 > Updated: 2026-09-21
 
 ## Current Task
-Security hardening cascade (`.kilo/plans/1790006200000-security-hardening.md`) — **DONE** (uncommitted).
+Security hardening cascade (`.kilo/plans/1790006200000-security-hardening.md`) — **DONE** (committed `789755c`, pushed GitHub+GitVerse, deployed 2026-09-21).
 
 - Trigger: security audit of the public repo + site (report-only, 2026-09-21).
 - Done: `build.js` output escaping (text fields via `sanitize`, slug/zone/status, JSON-LD `\u003c`); DOM-XSS fixed in live widgets 04/16/19 with local `escHtml()`; **AX11** regression added to `ux-critical.spec.js` (falsifiability-checked — fails on the unfixed widget); dead JS removed (`map.js`, `common.js`, `interactive/*` — 682 lines) + `dist/` clean step in `build.js`; nginx security headers; broken OG image (`/og-image.png` → `/og-image.svg`); username leak removed from `add-fm-00.py`.
@@ -13,7 +13,8 @@ Security hardening cascade (`.kilo/plans/1790006200000-security-hardening.md`) �
 - User decisions: Metrika/Webvisor **untouched** (compliance risk remains); dead JS **removed**.
 - Negative test: reverting one widget made AX11 fail (`window.__xss` set), proving the test is not vacuous.
 - Skills updated to drop references to deleted JS (`web-developer`, `site-designer`).
-- Changes are **NOT committed** (not requested).
+- Committed `789755c` and pushed to GitHub + GitVerse; deployed via `site/deploy.ps1`; verified `https://antimanager.pro/` → 200 with all new security headers.
+- Deploy note: final optional Caddy-reload SSH step hit a transient timeout; the site/headers are live, no impact.
 
 ## Manual / deferred
 - [ ] **GitVerse token** in `.git/config` `origin.pushurl` (plaintext) — user must rotate + switch to credential helper/SSH. HIGH priority.
