@@ -59,7 +59,9 @@ For each article that is not `READY`, or when the user asks for a quality pass:
 1. **Thesis** — is the promise stated in the first 1–2 paragraphs, and answered
    by the end? (intro thesis, not just a title).
 2. **Case** — is there a concrete production example with numbers/roles, not
-   only theory? (the `case` gap in the report).
+   only theory? (the `case` gap in the report). Check the numbers are *internally
+   consistent*: baselines vs deltas, losses vs claimed savings (a halved defect
+   rate cannot save more than half the stated losses).
 3. **Action** — does the reader get a checklist/template/protocol they can run
    on Monday?
 4. **Style** — does the article follow concept → mechanism → practice?
