@@ -15,8 +15,8 @@ this session (Layer 2 → landing `{{read_more}}` → `/full/` +
 `materials/sistemnaya-dinamika.pdf`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03 → 12/12; 00/01 deployed; articles 00 + 02 + 03
-have `/full/` pages.
+Publish-readiness track: 00/01/02/03 → 12/12. Articles 00, 02, 03 have deployed
+`/full/` pages (commit `d1d82ce`).
 Next editorial: article **04 «Управление как эксперимент»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
