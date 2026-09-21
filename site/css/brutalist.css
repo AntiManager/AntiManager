@@ -342,9 +342,11 @@ tr:hover td { background: rgba(220, 38, 38, 0.05); }
 .thinker-block-text strong { color: var(--color-accent); display: block; margin-bottom: var(--space-1); }
 
 /* Manifesto values */
+.manifesto-preamble { font-size: var(--text-lg); line-height: 1.7; margin: var(--space-6) 0; }
 .manifesto-values { margin: var(--space-8) 0; }
 .manifesto-value { font-size: var(--text-base); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-steel); }
 .manifesto-value span { color: var(--color-accent); font-family: var(--font-heading); font-weight: 700; margin-right: var(--space-3); }
+.manifesto-value-body { font-size: var(--text-sm); line-height: 1.7; color: var(--color-steel); margin-top: var(--space-1); }
 .manifesto-principles { margin: var(--space-6) 0; padding-left: var(--space-5); }
 .manifesto-principles li { padding: var(--space-2) 0; font-size: var(--text-sm); line-height: 1.7; color: var(--color-steel); }
 .manifesto-principles li::marker { color: var(--color-accent); font-weight: 700; }

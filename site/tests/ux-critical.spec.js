@@ -457,3 +457,21 @@ test.describe('AX12 — Landing featured weapons', () => {
     await expect(cards).toHaveCount(4);
   });
 });
+
+// === AX13 — Manifesto page renders the full document ===
+// Regression: the page used to show only the 10 value titles (no preamble,
+// explanations, principles or closing) while the homepage button says "read in full".
+test.describe('AX13 — Manifesto full content', () => {
+  test('manifesto page shows preamble, 10 values, 15 principles and closing', async ({ page }) => {
+    await page.goto('/manifesto/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.content-page h1')).toHaveText('Манифест');
+    await expect(page.locator('.manifesto-value')).toHaveCount(10);
+    await expect(page.locator('.manifesto-principles li')).toHaveCount(15);
+
+    const content = page.locator('.content-page');
+    await expect(content).toContainText('Мы — инженеры человеческих управленческих систем');
+    await expect(content).toContainText('живой документ');
+  });
+});
