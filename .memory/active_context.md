@@ -1,31 +1,35 @@
 # AntiManager — Active Context
-> Updated: 2026-09-21
+> Updated: 2026-10-03
 
 ## Current Task
 **Two-tier theme pages** (landing → full text → materials) — implemented, committed
-(`0e4e511`) and **deployed** (live-verified 2026-09-21). The topic landing
+(`0e4e511`) and **deployed** (live-verified). The topic landing
 `/weapons/<slug>/` stays interactive and now shows a `.read-more-card`
 (`{{read_more}}` → `/weapons/<slug>/full/`) instead of the dead «Тезисный отрывок»;
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** article 00 (pilot) deployed; article 02 «Управление сложными
-системами» done; article 03 «Системная динамика в производстве» done; article 04
-«Управление как эксперимент» full cycle done this session (Layer 2 → landing
-`{{read_more}}` → `/full/` + `materials/upravlenie-eksperiment.pdf`). Plan + log:
+gone. **Rollout:** articles 00, 02, 03, 04 done; article 05 «Каскадирование целей»
+full cycle done this session (Layer 2 → landing `{{read_more}}` → `/full/` +
+`materials/kaskadirovanie-celey.pdf`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04 → 12/12. Articles 00, 02, 03, 04 have
-deployed `/full/` pages (commit `277cf8b`).
-Next editorial: article **05 «Каскадирование целей»** — Layer 2 pass + site sync.
+Publish-readiness track: 00/01/02/03/04/05 → 12/12. Articles 00, 02, 03, 04, 05 have
+deployed `/full/` pages (commit `3de0e07`).
+Next editorial: article **06 «Процессы, которые работают»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
+- **Env pitfall:** Docker Desktop holds host port 3000, so `npm test`'s Playwright
+  `webServer` may reuse a dead port and abort all tests. If so, run the suite on an
+  alternate port via a temp config (`webServer.port` + `use.baseURL`), and keep test
+  requests relative to `baseURL` (AX07 fixed for this in `1e0c508`).
 - New scripts: `npm run render:pdf` (`site/scripts/render-pdf.js`, Playwright print);
   `materials.json` `href` validated; `MATERIALS_FILE` env seam for tests.
 - Full-page authoring note: the landing read-more lede is auto-extracted from the
   first `<p>` in the full partial — a part subtitle must be a non-`<p>` element
-  (`.full-part-lede`).
+  (`.full-part-lede`). The site has no mermaid runtime: convert source mermaid fences
+  to ordered-list/flow text in full partials.
 
 ## Harness state (this session)
 - Article 01 site: `build.js` manifesto now rendered from structured
@@ -41,11 +45,11 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03, 04 done):
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03, 04, 05 done):
   convert `src/content/full/XX-slug.html`, replace the landing excerpt with
   `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
   has no weapon entry — its full text is `/manifesto/`.)
-- Then article **05 «Каскадирование целей»** — Layer 2 editorial pass + site sync.
+- Then article **06 «Процессы, которые работают»** — Layer 2 editorial pass + site sync.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
