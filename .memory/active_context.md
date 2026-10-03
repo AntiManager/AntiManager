@@ -9,14 +9,15 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09 done. Article 09 «Бей,
-беги, замри» completed this session (Layer 2 → landing `{{read_more}}` → `/full/` +
-`materials/bey-begi-zamri.pdf` 442 KB; commit `c7f2355`, deployed, live-verified).
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10 done. Article 10
+«Ситуационное развитие» completed this session (Layer 2 → landing `{{read_more}}` →
+`/full/` + `materials/situacionnoe-razvitie.pdf` 456 KB; deployed, live-verified).
 Plan + log: `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04/05/06/07/08/09 → 12/12. Articles 00, 02, 03, 04, 05,
-06, 07, 08, 09 have deployed `/full/` pages.
-Next editorial: article **10 «Ситуационное развитие»** — Layer 2 pass + site sync.
+Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10 all READY (article 10 at
+11/12 — the single miss is the `case` heading false gap; its cases are inline). Articles
+00, 02, 03, 04, 05, 06, 07, 08, 09, 10 have deployed `/full/` pages.
+Next editorial: article **11 «Культурный код»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
@@ -46,11 +47,11 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–09 done):
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–10 done):
   convert `src/content/full/XX-slug.html`, replace the landing excerpt with
   `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
   has no weapon entry — its full text is `/manifesto/`.)
-- Then article **10 «Ситуационное развитие»** — Layer 2 editorial pass + site sync.
+- Then article **11 «Культурный код»** — Layer 2 editorial pass + site sync.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
