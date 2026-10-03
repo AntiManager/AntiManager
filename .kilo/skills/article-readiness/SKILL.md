@@ -68,9 +68,15 @@ For each article that is not `READY`, or when the user asks for a quality pass:
 5. **Cross-links** — do `[[…]]` links point to real notes (chapter/tool aliases),
    and are the «Связанные инструменты/главы» lists populated and correct?
 6. **Structure** — heading hierarchy consistent (title, parts, chapters), no
-   monolithic 2000+ word blocks, no empty «Часть X» headers.
+   monolithic 2000+ word blocks, no empty «Часть X» headers. When re-levelling a
+   hierarchy, re-run the Layer 1 screen afterwards: a global shift can create a
+   jump where a `###` sat directly under a top-level `##` (e.g. a conclusion's
+   only subsection) — verify `jumps == 0`, not only the score.
 7. **Vault hygiene** — `book/draft` tag and `status` match reality; `updated`
-   reflects the last real edit; aliases present for wiki links.
+   reflects the last real edit; aliases present for wiki links. Sweep the
+   «Об авторе»/author block for fabricated authority and precision
+   («15 лет… 12 предприятиях… индекс 2,8→4,3») and replace it with the
+   book-standard «**Автор:** Практикующий управленец».
 
 ## Output
 
