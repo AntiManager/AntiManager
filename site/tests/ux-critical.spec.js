@@ -271,7 +271,7 @@ test.describe('AX07 — Thinker photos', () => {
   });
 
   test('photo files exist in dist/', async ({ page }) => {
-    const resp = await page.request.get('http://localhost:3000/images/thinkers/деминг.jpg');
+    const resp = await page.request.get('/images/thinkers/деминг.jpg');
     expect(resp.status()).toBe(200);
     expect(resp.headers()['content-type']).toContain('image');
   });
