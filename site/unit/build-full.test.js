@@ -61,7 +61,7 @@ test('rollout: migrated landings link to their full text pages', function() {
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    [['slozhnye-sistemy', '02'], ['sistemnaya-dinamika', '03'], ['upravlenie-eksperiment', '04'], ['kaskadirovanie-celey', '05'], ['processy', '06'], ['dengi-v-dvizhenii', '07'], ['nervnaya-sistema', '08'], ['bey-begi-zamri', '09'], ['situacionnoe-razvitie', '10']].forEach(function(pair) {
+    [['slozhnye-sistemy', '02'], ['sistemnaya-dinamika', '03'], ['upravlenie-eksperiment', '04'], ['kaskadirovanie-celey', '05'], ['processy', '06'], ['dengi-v-dvizhenii', '07'], ['nervnaya-sistema', '08'], ['bey-begi-zamri', '09'], ['situacionnoe-razvitie', '10'], ['kulturnyy-kod', '11']].forEach(function(pair) {
       const slug = pair[0];
       const label = pair[1];
 
