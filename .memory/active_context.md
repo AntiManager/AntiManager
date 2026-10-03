@@ -9,14 +9,14 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04 done; article 05 «Каскадирование целей»
-full cycle done this session (Layer 2 → landing `{{read_more}}` → `/full/` +
-`materials/kaskadirovanie-celey.pdf`). Plan + log:
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06 done. Articles 05 «Каскадирование
+целей» and 06 «Процессы, которые работают» completed this session (Layer 2 →
+landing `{{read_more}}` → `/full/` + `materials/<slug>.pdf`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04/05 → 12/12. Articles 00, 02, 03, 04, 05 have
-deployed `/full/` pages (commit `3de0e07`).
-Next editorial: article **06 «Процессы, которые работают»** — Layer 2 pass + site sync.
+Publish-readiness track: 00/01/02/03/04/05/06 → 12/12. Articles 00, 02, 03, 04, 05, 06 have
+deployed `/full/` pages (06 commit pending this session).
+Next editorial: article **07 «Деньги в движении»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
@@ -45,11 +45,11 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03, 04, 05 done):
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02, 03, 04, 05, 06 done):
   convert `src/content/full/XX-slug.html`, replace the landing excerpt with
   `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
   has no weapon entry — its full text is `/manifesto/`.)
-- Then article **06 «Процессы, которые работают»** — Layer 2 editorial pass + site sync.
+- Then article **07 «Деньги в движении»** — Layer 2 editorial pass + site sync.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
