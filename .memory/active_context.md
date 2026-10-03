@@ -9,14 +9,14 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04, 05, 06 done. Articles 05 «Каскадирование
-целей» and 06 «Процессы, которые работают» completed this session (Layer 2 →
-landing `{{read_more}}` → `/full/` + `materials/<slug>.pdf`). Plan + log:
-`.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07 done. Article 07 «Деньги в
+движении» completed this session (Layer 2 → landing `{{read_more}}` → `/full/` +
+`materials/dengi-v-dvizhenii.pdf` 296 KB; commit `cc1aaef`, deployed, live-verified).
+Plan + log: `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04/05/06 → 12/12. Articles 00, 02, 03, 04, 05, 06 have
-deployed `/full/` pages (06 commit pending this session).
-Next editorial: article **07 «Деньги в движении»** — Layer 2 pass + site sync.
+Publish-readiness track: 00/01/02/03/04/05/06/07 → 12/12. Articles 00, 02, 03, 04, 05,
+06, 07 have deployed `/full/` pages.
+Next editorial: article **08 «Нервная система компании»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
