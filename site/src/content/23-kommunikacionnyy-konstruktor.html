@@ -1,0 +1,32 @@
+<!-- Глава 23. Коммуникационный конструктор — lite -->
+<section><h2>Принцип модели</h2><div class="block-principle"><strong>Коммуникация — не конвейер, где на входе подаёшь модель, а на выходе получаешь результат. Это диагностика: сначала аудитория, потом — инструмент.</strong><br>Пять моделей — BLUF, пирамида Минто, индукция, сторителлинг и сократовский метод — не заменяют друг друга, и у каждой есть границы применимости. Выбор определяют три вопроса: есть ли у вас готовый ответ, настроен ли собеседник скептически, нужно ли зацепить эмоционально. Несовместимые модели (пирамида + сократ, сторителлинг + BLUF) нельзя смешивать в одном ответе — выберите режим.</div></section>
+
+<section><h2>Пять моделей — и когда каждая ломается</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Модель</th><th>Суть</th><th>Когда работает</th></tr></thead>
+<tbody>
+<tr><td><strong>BLUF</strong></td><td>Главный вывод — в первой строке</td><td>Письма руководителю, статус-отчёты, чаты, срочные запросы</td></tr>
+<tr><td><strong>Пирамида Минто</strong></td><td>Вывод сверху → 2–4 MECE-аргумента → факты</td><td>Стратегические отчёты, презентации для руководства, инвест-меморандумы</td></tr>
+<tr><td><strong>Индукция</strong></td><td>От сырых фактов к выводу в финале</td><td>Аналитика, постмортемы — когда аудитория должна видеть ход мысли</td></tr>
+<tr><td><strong>Сторителлинг</strong></td><td>История с героем, проблемой и решением</td><td>КП, питчи, внедрение перемен, вдохновляющие выступления</td></tr>
+<tr><td><strong>Сократовский метод</strong></td><td>Вопросы вместо утверждений</td><td>Переговоры, возражения, работа с сопротивлением</td></tr>
+</tbody></table></div></section>
+
+{{read_more}}
+
+<section><h2>Подбор модели за 3 вопроса</h2>
+<div class="widget" id="commDiag"><div class="widget-title">Какая модель (или связка) нужна вам</div>
+<div class="progress-bar"><div class="progress-fill" id="cdProgress" style="width:0%"></div></div>
+<p class="text-sm text-muted" id="cdCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 3</p>
+<div id="cdQuestion"><p style="font-weight:600;margin-bottom:var(--space-3)" id="cdText"></p>
+<div id="cdOptions" style="display:flex;flex-direction:column;gap:var(--space-2);"></div>
+<button class="btn btn-ghost btn-sm" id="cdBack" style="display:none;margin-top:var(--space-3);" onclick="cdGoBack()">← Назад</button></div>
+<div id="cdResult" style="display:none;"><div class="block-principle" id="cdResultText"></div><button class="btn btn-ghost" onclick="cdReset()" style="margin-top:var(--space-3)">Пройти заново</button></div></div></section>
+
+<script>(function(){var qs=[{text:'Вопрос 1. У вас есть готовый ответ или вы в поиске?',opts:[{label:'Да, ответ готов',pick:'base-pyramid'},{label:'Нет, я в поиске',pick:'base-induct'}]},{text:'Вопрос 2. Собеседник настроен скептически или враждебно?',opts:[{label:'Да, ждёт подвоха',pick:'add-socrat'},{label:'Нет, настроен доброжелательно',pick:'none'}]},{text:'Вопрос 3. Нужно вдохновить или зацепить эмоционально?',opts:[{label:'Да, историей',pick:'add-story'},{label:'Нет, только логика',pick:'none'}]}];var st={i:0,picks:[]},t=qs.length;
+function render(){document.getElementById('cdProgress').style.width=(st.i/t*100)+'%';document.getElementById('cdCounter').textContent='Вопрос '+(st.i+1)+' из '+t;document.getElementById('cdText').textContent=qs[st.i].text;var box=document.getElementById('cdOptions');box.innerHTML='';qs[st.i].opts.forEach(function(o){var b=document.createElement('button');b.className='btn btn-outline';b.textContent=o.label;b.onclick=function(){choose(o.pick);};box.appendChild(b);});document.getElementById('cdBack').style.display=st.i>0?'inline-flex':'none';}
+function choose(p){st.picks[st.i]=p;st.i++;if(st.i>=t){show();}else{render();}}
+window.cdGoBack=function(){if(st.i<=0)return;st.i--;render();};
+function show(){document.getElementById('cdProgress').style.width='100%';document.getElementById('cdQuestion').style.display='none';document.getElementById('cdResult').style.display='block';var base=st.picks[0]==='base-induct'?'Индукция':'Пирамида Минто';var parts=[base];var warn=[];if(base==='Пирамида Минто'){warn.push('Проверьте, что аргументы MECE и не смешивают дедукцию с индукцией.');}else{warn.push('Покажите, что искали не только подтверждающие факты.');}if(st.picks[1]==='add-socrat'){parts.push('Сократ');warn.push('Сократ — только в диалоге: на прямые вопросы отвечайте прямо (пирамида).');}if(st.picks[2]==='add-story'){parts.push('Сторителлинг');warn.push('История — иллюстрация, а не доказательство: держите её короткой (до 2 минут).');}document.getElementById('cdResultText').innerHTML='<strong>Ваша связка: '+parts.join(' + ')+'.</strong><br>'+warn.join(' ');}
+window.cdReset=function(){st={i:0,picks:[]};document.getElementById('cdQuestion').style.display='block';document.getElementById('cdResult').style.display='none';render();};
+render();})();</script>

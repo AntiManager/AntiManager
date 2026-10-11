@@ -62,7 +62,7 @@ test('build emits SEO metadata', function() {
     const featured = (sectionHtml.match(/class="weapon-card"/g) || []).length;
     assert.strictEqual(featured, 4, 'landing must feature four weapons');
     assert.ok(index.includes('4 контура'), 'meta description must state 4 zones');
-    assert.ok(index.includes('22 главы'), 'meta description must use the correct plural');
+    assert.ok(index.includes('23 главы'), 'meta description must use the correct plural');
     assert.ok(!index.includes('5 контуров'), 'stale "5 контуров" must be gone');
 
     // 6. Raster OG image is produced and referenced.
