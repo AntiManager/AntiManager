@@ -29,6 +29,17 @@ UL = re.compile(r'^\s*-\s+(.*)$')
 OL = re.compile(r'^\s*(\d+)\.\s+(.*)$')
 
 
+def is_continuation(line):
+    """An indented, non-blank line that continues the previous list item
+    (a hard-break/indented follow-up), not a new block."""
+    if not line or line[0] not in (' ', '\t'):
+        return False
+    t = line.strip()
+    if not t:
+        return False
+    return not (H.match(t) or t.startswith('|') or t.startswith('>') or UL.match(t) or OL.match(t))
+
+
 def convert(md_text):
     lines = md_text.replace('\r\n', '\n').split('\n')
     # strip frontmatter
@@ -37,9 +48,11 @@ def convert(md_text):
     while lines[i].strip() != '---':
         i += 1
     body = lines[i + 1:]
-    # drop title block + Оглавление (everything up to the '---' after it)
-    oi = next(k for k, l in enumerate(body) if re.match(r'^#{1,3}\s*Оглавление\s*$', l.strip()))
-    j = oi + 1
+    # Drop the title block. When a manual Оглавление exists, drop through the
+    # '---' that follows it; otherwise drop through the first '---' (articles
+    # that open directly with their first section).
+    oi = next((k for k, l in enumerate(body) if re.match(r'^#{1,3}\s*Оглавление\s*$', l.strip())), None)
+    j = oi + 1 if oi is not None else 0
     while j < len(body) and body[j].strip() != '---':
         j += 1
     body = body[j + 1:]
@@ -113,18 +126,32 @@ def convert(md_text):
             continue
         if UL.match(stripped):
             items = []
-            while k < n and UL.match(body[k].strip()):
-                items.append(UL.match(body[k].strip()).group(1))
-                k += 1
+            while k < n:
+                ss = body[k].strip()
+                if UL.match(ss):
+                    items.append(UL.match(ss).group(1))
+                    k += 1
+                elif items and is_continuation(body[k]):
+                    items[-1] += ' ' + ss
+                    k += 1
+                else:
+                    break
             out.append('<ul>' + ''.join(f'<li>{inline(x)}</li>' for x in items) + '</ul>')
             out.append('')
             continue
         if OL.match(stripped):
             items = []
             start = int(OL.match(stripped).group(1))
-            while k < n and OL.match(body[k].strip()):
-                items.append(OL.match(body[k].strip()).group(2))
-                k += 1
+            while k < n:
+                ss = body[k].strip()
+                if OL.match(ss):
+                    items.append(OL.match(ss).group(2))
+                    k += 1
+                elif items and is_continuation(body[k]):
+                    items[-1] += ' ' + ss
+                    k += 1
+                else:
+                    break
             attr = f' start="{start}"' if start != 1 else ''
             out.append(f'<ol{attr}>' + ''.join(f'<li>{inline(x)}</li>' for x in items) + '</ol>')
             out.append('')
