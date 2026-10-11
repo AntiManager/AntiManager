@@ -14,6 +14,10 @@ import sys
 
 
 def inline(s):
+    # Markdown backslash escapes (CommonMark): a backslash before ASCII
+    # punctuation yields the literal symbol, so `1\.` and `повысить\_приоритет`
+    # must not leak the backslash into the HTML.
+    s = re.sub(r'\\([!-/:-@\[-`{-~])', r'\1', s)
     s = (s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
     # wiki links
     s = re.sub(r'\[\[([^\]|]+)\|([^\]]+)\]\]', r'\2', s)
