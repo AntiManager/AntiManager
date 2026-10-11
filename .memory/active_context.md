@@ -8,7 +8,7 @@ shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead 
 dead «Тезисный отрывок»; the full page carries the complete article (static H2/H3 TOC,
 reading progress, 4-level breadcrumb) plus an honest `.materials-section` (article PDF +
 declared extras, print fallback). Fake site-wide «Материалы к статье / Хочу PDF» removed.
-**Rollout:** 00, 02–22 built, tested (unit 8/8, e2e 99/99) and deployed.
+**Rollout:** 00, 02–23 built, tested (unit 8/8, e2e 99/99) and deployed.
 **Article 21 «Два типа управления»** done (committed `75bc1c7`, live-verified); **article
 22 «Ударить по траектории»** done: vault restructured to the norm (title block `---`;
 all `###` sections re-levelled to `##`, clearing the 1 heading jump; 2 double-encoded
@@ -18,13 +18,20 @@ unsourced «90% людей» hedged; `book/draft` dropped; tools +PDCA, chapters
 Readiness 12/12, jumps 0, wiki 20; landing `{{read_more}}`;
 `full/22-udarit-po-traektorii.html` = 14 h2. The converter now drops the legacy bold
 «Связанные главы:» trailer (recurring chrome — was leaking in 20/21 too).
-**Next editorial: article 23 «Коммуникационный конструктор»** (status `-`, NEEDS-EDIT
-8/12: no frontmatter, no «Связанные инструменты/главы», 0 wiki links) — bigger job:
-add frontmatter + related sections + crosslinks, then Layer 2 + site sync.
+**Article 23 «Коммуникационный конструктор»** done (committed `516d8b8`, live-verified):
+vault Layer 2 — frontmatter + title block (Концепция/Механизм) + 2 inline crosslinks
+([[14_Управление_живой_системой]], [[Pre-Mortem]]) + «Связанные инструменты/главы»;
+readiness 8/12 → 12/12 (jumps 0, wiki 11). New weapon `23 kommunikacionnyy-konstruktor`
+(zone `changes`) + landing (principle + 5-model table + 3-question model-picker widget) +
+`/full/` (14 h2) + PDF. `build-seo.test.js` landing plural 22→23 «главы» (count-pinned).
+**Next editorial:** the DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager,
+сборник тестов, концепция развития НЦ/НС) — a different set; each needs frontmatter +
+related sections + case/conclusion before /full/.
 Per-article history → `.memory/archive/progress-history-2026.md`.
 
-Publish-readiness: 00/01/02–22 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
+Publish-readiness: 00/01/02–23 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
 single miss is the `case` heading false gap; their cases are inline/bold body labels).
+Remaining vault articles 30–35 are DRAFT (different series; see “Next editorial”).
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 **Editor procedure is codified** — follow the `content-publisher` skill and the
@@ -90,3 +97,7 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - `chapters.json`/`tools.json` — unreferenced dead data (remove or wire), decide separately.
 - `build.js` `VERSION` static vs dynamic `BUILD_DATE` — couple on next release.
 - Residual: `content_body` is raw HTML (malicious PR to `src/content/*.html`); rely on PR review/branch protection.
+- **SSH 2222 flaky (VPS):** `Test-NetConnection` to `5.129.221.85:2222` intermittently
+  succeeds while `ssh`/`scp` time out; ping + 443 stay green. `deploy.ps1` may abort on a
+  mid-run ssh timeout although the dist upload/container restart already landed —
+  **verify live (GET 200) before re-running**; the trailing Caddy reload is optional.
