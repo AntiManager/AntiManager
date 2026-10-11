@@ -80,7 +80,7 @@ def convert(md_text):
         if stripped == '---':
             k += 1
             continue
-        if re.match(r'^#{2,3}\s+Связанные', stripped):
+        if re.match(r'^#{2,3}\s+Связанные', stripped) or re.match(r'^\*\*Связанные\s', stripped):
             break
         m = H.match(stripped)
         if m:
@@ -165,7 +165,8 @@ def convert(md_text):
         while k < n:
             s = body[k].strip()
             if s == '' or s == '---' or H.match(s) or s.startswith('|') or s.startswith('>') \
-                    or UL.match(s) or OL.match(s) or re.match(r'^#{2,3}\s+Связанные', s):
+                    or UL.match(s) or OL.match(s) or re.match(r'^#{2,3}\s+Связанные', s) \
+                    or re.match(r'^\*\*Связанные\s', s):
                 break
             paras.append(s)
             k += 1
