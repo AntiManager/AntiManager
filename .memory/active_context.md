@@ -8,13 +8,18 @@ shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead 
 dead «Тезисный отрывок»; the full page carries the complete article (static H2/H3 TOC,
 reading progress, 4-level breadcrumb) plus an honest `.materials-section` (article PDF +
 declared extras, print fallback). Fake site-wide «Материалы к статье / Хочу PDF» removed.
-**Rollout:** 00, 02–20 built and deployed. Article 19's previously blocked deploy is
-**resolved** (SSH 2222 reachable again; the whole-`dist/` deploy shipped 19 + 20,
-live-verified). **Next editorial: article 21 «Два типа управления».**
+**Rollout:** 00, 02–21 built, tested (unit 8/8, e2e 99/99) and deployed.
+**Article 21 «Два типа управления»** done (committed `75bc1c7`, live-verified): vault
+restructured to the norm — title block `---` + «Ключевые идеи за 1 минуту» (the source
+had no separator, so the converter would have dropped the Пролог), nested list
+flattened, legacy inline «Связанные главы» dropped (as in 19/20).
+**Next editorial: article 22 «Ударить по траектории».** ⚠ Same top-structure gap as 21
+(title block not separated by `---` ⇒ the converter drops the Пролог/Концепция) —
+restructure to the norm first; Layer 1 also flags 1 heading jump.
 Per-article history → `.memory/archive/progress-history-2026.md`.
 
-Publish-readiness: 00/01/02–20 all READY (articles 10, 15, 17, 18, 20 at 11/12 — the single
-miss is the `case` heading false gap; their cases are inline/bold body labels).
+Publish-readiness: 00/01/02–21 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
+single miss is the `case` heading false gap; their cases are inline/bold body labels).
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 **Editor procedure is codified** — follow the `content-publisher` skill and the
@@ -51,23 +56,27 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
   (`.git/info/exclude`) — force-add only to commit it deliberately.
 
 ## Process-library refactor (plan 1791721561689) — parallel track
-- **Phase 0 (specs) + T1.1 done.** Unified SME template in the personal vault
-  `Библиотека процессов\`: `specs/T0.1…T0.8` + `_template-stub.md`; engine (parser +
-  validator + CLI) at `.kilo/process-engine/` (11/11 tests). APQC = groups primary +
-  crosswalk; engine kept in AntiManager (git-excluded). Log:
-  `.kilo/plans/1791721561689-…-execution-log.md`.
-- `Proc_lib.md` split → vault `library\`: `INDEX.md` + 12 group files
-  (`STRAT ORG ENG ANLZ PLAN MFG MNT QUAL HRP ENV IMPR EMG`). Regression gate PASS:
-  759 nodes / 0 edges; 12 groups / 60 proc / 130 subproc / 557 ops. Do NOT touch
-  `Proc_library/library/`. Deferred: `technologies/*.md` vendoring; group cross-ref
-  anchors → T1.4.
-- **Next:** T1.2 — normalize hierarchy per group (`LIBRARY→GROUP→PROCESS→SUBPROCESS`),
-  unified coding; goal per PROCESS/SUBPROCESS.
+- **Phase 1 COMPLETE — "subprocess-level v1" FROZEN (T1.5).** Unified SME template
+  in the personal vault `Библиотека процессов\`: `specs/T0.1…T0.8` + `_template-stub.md`;
+  engine (parser + validator + CLI + tools) at `.kilo/process-engine/`. Log:
+  `.kilo/plans/1791721561689-…-execution-log.md`; plan §11/§12.
+- T1.1 split `Proc_lib.md` → vault `library\` (T1.6 later added `INF` + the 7 `SL_*`);
+  T1.2 hierarchy + goals; T1.3 APQC crosswalk 79/79; T1.4 seams; T1.6 `INF`+`LOG`.
+  **Baseline: 20 groups / 79 processes / 238 subprocesses / 995 operations**, 1332
+  nodes / 0 edges. Do NOT touch `Proc_library/library/`.
+- **T1.5 freeze gate:** 0 errors at LIBRARY/GROUP/PROCESS/SUBPROCESS (goals present,
+  APQC 79/79, §4.7/§4.9/§4.10 0, 0 dup codes); all 4823 errors + 3848 warnings are
+  OPERATION-level (→ T2.2); **client-identity token scan 0** (new `token_scan.py`;
+  fixed QUAL-06-02 «500 тыс. руб.»). Record: `.kilo/process-engine/freeze_v1_subprocess.json`
+  (signature `sha256 a506b2f5…`). Suite **15/15**. `SLA` + `ENG-04` stay OUT of the
+  template (holding-grade; user decision — supersedes T0.1 D1 for these two).
+- **Next:** Phase 2 (operations + flow graph), pilot **Planning** (`PLAN` + `SL_PLAN`).
 - **Resume:** engine `.kilo/process-engine/engine.py`; validate
   `python .kilo/process-engine/engine.py "<…>\Библиотека процессов"` (vocab v0.1/44);
-  re-split `split_library.py`; tests `python -m pytest -q -p no:cacheprovider`.
-- Parallel Agent Manager worktree `silicon-goal` is stale by one commit and carries
-  duplicate article-18 edits — reset it to `main` before committing process work.
+  token scan `python .kilo/process-engine/token_scan.py "<…>\Библиотека процессов\library"`;
+  tests `python -m pytest -q -p no:cacheprovider`.
+- Note: `.kilo/process-engine/` is git-excluded; the `silicon-goal` worktree carries a
+  mirror copy — keep them in sync.
 
 ## Hot rules / deferred
 - Metrika/Webvisor untouched; `webvisor:true` vs `/privacy/` wording — deferred by user (compliance risk).
