@@ -89,6 +89,12 @@ security headers live at server level and locations set only `expires` (assets 7
 Always `nginx -t` before/after deploy; validate a conf change on a throwaway `nginx:alpine`
 container first, since a syntax error takes the site down.
 
+TLS terminates at **Caddy** (nginx only sees http), so nginx emits relative redirects
+(`absolute_redirect off`) — otherwise a 301 Location points to `http://` and adds a hop.
+`deploy.ps1` copies `dist\.` (not `dist\*`): scp's glob skips dotfiles, and `.well-known/`
+would never ship otherwise. SSH port 2222 is flaky — if the run aborts on the optional
+Caddy-reload step after "Restarting Docker container", verify live (GET 200) before re-running.
+
 ## Conventions
 - Vanilla HTML/CSS/JS — no frameworks
 - Two-tier content: topic landing (principle + model + widget) → `/full/` (full text + materials)

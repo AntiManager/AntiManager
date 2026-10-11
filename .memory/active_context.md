@@ -1,17 +1,21 @@
 # AntiManager — Active Context
 > Updated: 2026-10-11
 
-## Review + cleanup done — committed/pushed this session (2026-10-11)
+## Review + cleanup + DEPLOY done (2026-10-11)
 `/review uncommitted` (reviewer subagent) found and applied: (1) **major** — the new full-page
 `description` came from raw article prose → escaped once at construction (build.js) so it can't
 break the `<meta>` attribute (the pre-existing `{{description}}` substitution stays raw; all other
-inputs are load-sanitized); (2) `gzip_types` restored `text/html` (unrelated removal); (3) `date`
-field now validated `^\d{4}-\d{2}-\d{2}$` at load (HTML attr / sitemap XML / JSON-LD) else dropped;
-(4) `.filter-btn:hover` color → `--color-accent-text` (was still `--color-accent`, ~4.1:1); (5)
-Yandex unit assertion pinned to the exact `yandex_XXXXXXXXXXXXXXXX.html` placeholder and the test
-build sets `YANDEX_VERIFICATION:''` (env-independent); (6) breadcrumb builder simplified. Harness:
-`site/AGENTS.md` gained the nginx `add_header`-inheritance lesson + 23-weapons count;
-`.memory/tech_context.md` Deploy line synced. Suite re-run: **unit 8/8, e2e 102/102**. Committed + pushed.
+inputs are load-sanitized); (2) `gzip_types` — `text/html` removed (nginx compresses it implicitly;
+explicit listing warns "duplicate MIME type", verified via `nginx -t`); (3) `date` field validated
+`^\d{4}-\d{2}-\d{2}$` at load (HTML attr / sitemap XML / JSON-LD) else dropped; (4) `.filter-btn:hover`
+color → `--color-accent-text` (was still `--color-accent`, ~4.1:1); (5) Yandex unit assertion pinned to
+the exact `yandex_XXXXXXXXXXXXXXXX.html` placeholder and the test build sets `YANDEX_VERIFICATION:''`;
+(6) breadcrumb builder simplified. Suite re-run: **unit 8/8, e2e 102/102**.
+**Deploy (live-verified):** two `deploy.ps1` bugs found and fixed — `scp dist\*` skipped the hidden
+`.well-known/` (security.txt was 404) → now `scp dist\.`; nginx `absolute_redirect off` so the
+trailing-slash 301 is relative (TLS is at Caddy; nginx only saw http). Commits `410d706`, `abdfb60`,
+`440cfd3` pushed to GitHub+GitVerse and deployed. Live: home/arsenal/weapon/full 200, custom 404,
+`www→apex` 301, trailing-slash 301 (https), HSTS + Content-Language, security.txt 200.
 
 ## Next session (resume) — editorial / SEO
 - Next editorial: the DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник
