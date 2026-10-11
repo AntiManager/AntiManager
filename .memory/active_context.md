@@ -8,17 +8,22 @@ shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead 
 dead «Тезисный отрывок»; the full page carries the complete article (static H2/H3 TOC,
 reading progress, 4-level breadcrumb) plus an honest `.materials-section` (article PDF +
 declared extras, print fallback). Fake site-wide «Материалы к статье / Хочу PDF» removed.
-**Rollout:** 00, 02–21 built, tested (unit 8/8, e2e 99/99) and deployed.
-**Article 21 «Два типа управления»** done (committed `75bc1c7`, live-verified): vault
-restructured to the norm — title block `---` + «Ключевые идеи за 1 минуту» (the source
-had no separator, so the converter would have dropped the Пролог), nested list
-flattened, legacy inline «Связанные главы» dropped (as in 19/20).
-**Next editorial: article 22 «Ударить по траектории».** ⚠ Same top-structure gap as 21
-(title block not separated by `---` ⇒ the converter drops the Пролог/Концепция) —
-restructure to the norm first; Layer 1 also flags 1 heading jump.
+**Rollout:** 00, 02–22 built, tested (unit 8/8, e2e 99/99) and deployed.
+**Article 21 «Два типа управления»** done (committed `75bc1c7`, live-verified); **article
+22 «Ударить по траектории»** done: vault restructured to the norm (title block `---`;
+all `###` sections re-levelled to `##`, clearing the 1 heading jump; 2 double-encoded
+wiki-link display texts repaired — L83 «инжиниринг на уровне причин», L189 «контракт с
+самим собой» + broken target `Два_типа_управления` → `21_Два_типа_управления»;
+unsourced «90% людей» hedged; `book/draft` dropped; tools +PDCA, chapters +06/+21).
+Readiness 12/12, jumps 0, wiki 20; landing `{{read_more}}`;
+`full/22-udarit-po-traektorii.html` = 14 h2. The converter now drops the legacy bold
+«Связанные главы:» trailer (recurring chrome — was leaking in 20/21 too).
+**Next editorial: article 23 «Коммуникационный конструктор»** (status `-`, NEEDS-EDIT
+8/12: no frontmatter, no «Связанные инструменты/главы», 0 wiki links) — bigger job:
+add frontmatter + related sections + crosslinks, then Layer 2 + site sync.
 Per-article history → `.memory/archive/progress-history-2026.md`.
 
-Publish-readiness: 00/01/02–21 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
+Publish-readiness: 00/01/02–22 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
 single miss is the `case` heading false gap; their cases are inline/bold body labels).
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
