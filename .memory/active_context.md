@@ -8,12 +8,12 @@ shows a `.read-more-card` (`{{read_more}}` → `/weapons/<slug>/full/`) instead 
 dead «Тезисный отрывок»; the full page carries the complete article (static H2/H3 TOC,
 reading progress, 4-level breadcrumb) plus an honest `.materials-section` (article PDF +
 declared extras, print fallback). Fake site-wide «Материалы к статье / Хочу PDF» removed.
-**Rollout:** 00, 02–18 built and deployed; **19 «Цифровой двойник» migrated locally**
-(build + PDF + tests green; **deploy blocked — SSH port 2222 unreachable from this host**,
-retry `site/deploy.ps1`). **Next editorial: article 20 «Выученная беспомощность».**
+**Rollout:** 00, 02–20 built and deployed. Article 19's previously blocked deploy is
+**resolved** (SSH 2222 reachable again; the whole-`dist/` deploy shipped 19 + 20,
+live-verified). **Next editorial: article 21 «Два типа управления».**
 Per-article history → `.memory/archive/progress-history-2026.md`.
 
-Publish-readiness: 00/01/02–18 all READY (articles 10, 15, 17, 18 at 11/12 — the single
+Publish-readiness: 00/01/02–20 all READY (articles 10, 15, 17, 18, 20 at 11/12 — the single
 miss is the `case` heading false gap; their cases are inline/bold body labels).
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 

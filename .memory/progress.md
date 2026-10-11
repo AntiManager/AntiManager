@@ -7,13 +7,13 @@
 - **Security hardening (2026-09):** output escaping in `build.js` (`site/src/lib/escape.js`, `assertSlug`), DOM-XSS fixed in widgets (04/16/19), nginx security headers, secrets → `.env`. Suite grew 84 → 99 (33 × 3).
 - **Content-readiness harness:** skill `article-readiness` + `/article-readiness` + `.kilo/scripts/article_readiness.py` (report in gitignored `.kilo/reports/`); vault audit of 30 articles.
 - **Two-tier theme pages:** `/weapons/<slug>/` (interactive) + `/weapons/<slug>/full/` (full text + `.materials-section`); `{{read_more}}` placeholder; reusable `.kilo/scripts/md_to_partial.py`; `scripts/render-pdf.js` (`npm run render:pdf`). Fake site-wide `download-section` removed.
-- **Publish-readiness full cycle, article-by-article:** **00, 02–19** done (01 has no weapon entry — its full text is `/manifesto/`). Each: vault Layer 2 + site sync + `/full/` + PDF + tests + deploy. **19 «Цифровой двойник»** migrated locally (two-part article: Part 1 ООП + Part 2 управление; `md_to_partial.py` gained markdown backslash-escape unescaping; `{{read_more}}` landing; unit 8/8, e2e 99/99) — **deploy pending: SSH port 2222 unreachable from this host**. **Per-article detail → `.memory/archive/progress-history-2026.md`.**
+- **Publish-readiness full cycle, article-by-article:** **00, 02–20** done (01 has no weapon entry — its full text is `/manifesto/`). Each: vault Layer 2 + site sync + `/full/` + PDF + tests + deploy. **19 «Цифровой двойник»** (two-part) and **20 «Выученная беспомощность»** are both live-verified deployed — 19's SSH block cleared, the whole-`dist/` deploy shipped both. 20: `{{read_more}}` landing with the Пролог hook hoisted above the audience section so the auto-lede is a strong standfirst; unit 8/8, e2e 99/99. **Per-article detail → `.memory/archive/progress-history-2026.md`.**
 - **Process-library refactor (plan 1791721561689):** Phase 0 specs + engine (`.kilo/process-engine/`) + T1.1 split `Proc_lib.md` → vault `Библиотека процессов\library\` (regression gate PASS; engine tests 11/11).
 
 ## Planned
 - Process-library refactor: T1.2 normalize hierarchy per group (`LIBRARY→GROUP→PROCESS→SUBPROCESS`) + goal per PROCESS/SUBPROCESS; then T1.3 APQC crosswalk, T1.4 seams, T1.5 freeze subprocess-level v1.
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–19 done; 01 has no weapon entry — its full text is `/manifesto/`).
-- Then article **20 «Выученная беспомощность»** — Layer 2 editorial pass + site sync; continue for the remaining `review` chapters.
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–20 done; 01 has no weapon entry — its full text is `/manifesto/`).
+- Then article **21 «Два типа управления»** (published in vault) → **22 «Ударить по траектории»** — Layer 2 pass + site sync; continue for the remaining `review` chapters.
 - Publish per-article extras (checklists/templates) into `site/materials/<slug>/` + `materials.json`.
 - SEO plan Phase 2 (decision): publish 21 `review` weapons; replace fabricated landing stats.
 
