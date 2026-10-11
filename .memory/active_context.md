@@ -1,5 +1,5 @@
 # AntiManager — Active Context
-> Updated: 2026-10-03
+> Updated: 2026-10-11
 
 ## Current Task
 **Two-tier theme pages** (landing → full text → materials) — implemented, committed
@@ -9,15 +9,15 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 done. Article 12
-«Анти-тайм-менеджмент» completed this session (Layer 2 → title-block demote + hedged
-figures/attribution, landing `{{read_more}}` → `/full/` + `materials/anti-time-management.pdf`
-407 KB; deployed, live-verified). Plan + log: `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13 done. Article 13
+«Неизбежное исполнение» completed this session (Layer 2 → title-block demote + hedged
+figures/attribution, landing `{{read_more}}` → `/full/` + `materials/neizbezhnoe-ispolnenie.pdf`
+371 KB; deployed, live-verified). Plan + log: `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10/11/12 all READY (article 10 at
+Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10/11/12/13 all READY (article 10 at
 11/12 — the single miss is the `case` heading false gap; its cases are inline). Articles
-00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 have deployed `/full/` pages.
-Next editorial: article **13 «Неизбежное исполнение»** — Layer 2 pass + site sync.
+00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13 have deployed `/full/` pages.
+Next editorial: article **14 «Управление живой системой»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
@@ -47,11 +47,11 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–12 done):
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–13 done):
   convert `src/content/full/XX-slug.html`, replace the landing excerpt with
   `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
   has no weapon entry — its full text is `/manifesto/`.)
-- Then article **13 «Неизбежное исполнение»** — Layer 2 editorial pass + site sync.
+- Then article **14 «Управление живой системой»** — Layer 2 editorial pass + site sync.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
