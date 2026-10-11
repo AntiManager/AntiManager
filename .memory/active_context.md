@@ -1,6 +1,51 @@
 # AntiManager — Active Context
 > Updated: 2026-10-11
 
+## Review + cleanup done — committed/pushed this session (2026-10-11)
+`/review uncommitted` (reviewer subagent) found and applied: (1) **major** — the new full-page
+`description` came from raw article prose → escaped once at construction (build.js) so it can't
+break the `<meta>` attribute (the pre-existing `{{description}}` substitution stays raw; all other
+inputs are load-sanitized); (2) `gzip_types` restored `text/html` (unrelated removal); (3) `date`
+field now validated `^\d{4}-\d{2}-\d{2}$` at load (HTML attr / sitemap XML / JSON-LD) else dropped;
+(4) `.filter-btn:hover` color → `--color-accent-text` (was still `--color-accent`, ~4.1:1); (5)
+Yandex unit assertion pinned to the exact `yandex_XXXXXXXXXXXXXXXX.html` placeholder and the test
+build sets `YANDEX_VERIFICATION:''` (env-independent); (6) breadcrumb builder simplified. Harness:
+`site/AGENTS.md` gained the nginx `add_header`-inheritance lesson + 23-weapons count;
+`.memory/tech_context.md` Deploy line synced. Suite re-run: **unit 8/8, e2e 102/102**. Committed + pushed.
+
+## Next session (resume) — editorial / SEO
+- Next editorial: the DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник
+  тестов, концепция развития НЦ/НС) — each needs frontmatter + related sections + case/conclusion
+  before `/full/`.
+- SEO Phase 2 remaining (accepted/deferred): CSP still lacks `default-src`/`script-src` (inline
+  Metrika/widgets); Metrika `webvisor` vs `/privacy/` wording (user-deferred).
+Resume pointers: nginx conf validated on a local `nginx:alpine` container; `.webp` siblings live in the
+untracked `Фото_мыслителей/` (gitignored) and are regenerated via `npm run optimize:thinkers`; per-article
+`date` fields are in `weapons.json`.
+
+## Latest: SEO & accessibility hardening (2026-10-11)
+Full live-site audit + fixes, all verified. **Uncommitted** (working tree), on top of the
+parked `SEO Phase 2` edits (all weapons `published`, fabricated landing stats removed).
+
+- **nginx** (`site/deploy/nginx.conf`, verified on a local `nginx:alpine` container):
+  custom 404 (`error_page 404 /404/index.html`), `www→apex` 301, trailing-slash 301,
+  HSTS + `Content-Language: ru`, de-duplicated `Cache-Control` (server-level `add_header`
+  + per-location `expires` only). Deploy must still run `nginx -t`.
+- **build.js**: unique `/full/` meta description (first paragraph via `summaryText`);
+  landing description grammar fixed; JSON-LD enriched (`@id` graph, `Organization.logo`,
+  `mainEntityOfPage`, `image`); `og:image:alt`/`twitter:image:alt`; `datePublished` from the
+  per-article `weapons.json` `date` (added, sourced from git), `dateModified` = build date;
+  sitemap `lastmod` per article; `YANDEX_VERIFICATION` env replaces the `XXXX` placeholder;
+  `.well-known/security.txt`; thinker photos as `<picture>` (webp + fallback, guarded).
+- **CSS**: accessible text tokens `--color-muted #8B95A8` (~6.5:1) and
+  `--color-accent-text #EF4444` (~5.3:1); `--color-steel` kept for borders/filled surfaces;
+  zone-subtitle opacity removed. Footer nav added (fixes orphan `/about`, `/headquarters`, `/privacy`).
+- **Images**: `scripts/optimize-thinkers.js` (Playwright canvas → `.webp`), `npm run optimize:thinkers`; saved ~1.2 MB.
+- **Content**: article 05 full partial `h4`→`h3` (cleared the heading jump).
+- **Tests**: unit 8/8, e2e **102/102** (new AX14 contrast test; build-seo gains items 9–14).
+- **Not fixed (accepted):** CSP still lacks `default-src`/`script-src` (inline Metrika/widgets);
+  Metrika `webvisor` vs `/privacy/` wording (deferred by user).
+
 ## Current Task
 **Two-tier theme pages** (landing → full text → materials) — implemented, committed
 (`0e4e511`) and **deployed** (live-verified): `/weapons/<slug>/` stays interactive and

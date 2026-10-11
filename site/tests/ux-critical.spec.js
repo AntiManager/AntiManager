@@ -495,3 +495,39 @@ test.describe('AX13 — Manifesto full content', () => {
     await expect(content).toContainText('живой документ');
   });
 });
+
+// === AX14 — Text contrast (WCAG AA) ===
+// Regression: secondary text (steel) and small accent badges sat at ~4.1:1 on the
+// near-black background — below AA. They now use the accessible text tokens.
+test.describe('AX14 — Text contrast', () => {
+  test('secondary text and badges meet AA on the dark background', async ({ page }) => {
+    await page.goto('/arsenal/');
+    await page.waitForLoadState('networkidle');
+
+    const results = await page.evaluate(() => {
+      function lum(rgb) {
+        const c = rgb.map(function(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      }
+      function parse(c) { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(',').map(Number); return { rgb: p.slice(0, 3), a: p.length > 3 ? p[3] : 1 }; }
+      function effBg(el) { let e = el; while (e) { const bg = parse(getComputedStyle(e).backgroundColor); if (bg && bg.a > 0.95) return bg.rgb; e = e.parentElement; } return [10, 10, 10]; }
+      function ratio(fg, bg) { const a = lum(fg), b = lum(bg); const hi = Math.max(a, b), lo = Math.min(a, b); return (hi + 0.05) / (lo + 0.05); }
+
+      return ['.weapon-subtitle', '.badge-zone', '.footer-sub'].map(function(sel) {
+        const el = document.querySelector(sel);
+        if (!el) return { sel: sel, missing: true };
+        const cs = getComputedStyle(el);
+        const fg = parse(cs.color);
+        const fs = parseFloat(cs.fontSize);
+        const bold = parseInt(cs.fontWeight, 10) >= 700;
+        const large = fs >= 24 || (fs >= 18.66 && bold);
+        return { sel: sel, ratio: ratio(fg.rgb, effBg(el)), need: large ? 3 : 4.5 };
+      });
+    });
+
+    for (const r of results) {
+      expect(r.missing, r.sel + ' not found on /arsenal/').toBeFalsy();
+      expect(r.ratio, r.sel + ' contrast ' + r.ratio.toFixed(2) + ' < ' + r.need).toBeGreaterThanOrEqual(r.need);
+    }
+  });
+});

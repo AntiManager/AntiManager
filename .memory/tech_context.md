@@ -5,6 +5,7 @@
 ```bash
 cd site
 npm run build   # runs build.js — generates static HTML from Markdown+JSON
+npm run optimize:thinkers  # generate .webp siblings for thinker photos (Playwright canvas)
 ```
 
 ## Config
@@ -21,4 +22,5 @@ npm run build   # runs build.js — generates static HTML from Markdown+JSON
 
 ## Deploy
 - `site/deploy.ps1`
-- Nginx: immutable→must-revalidate cache
+- Nginx (`site/deploy/nginx.conf`): shared security headers at server level, locations set only
+  `expires` (assets 7d, HTML 5m); `www→apex` 301, trailing-slash 301, custom 404, HSTS.

@@ -52,6 +52,10 @@ const cases = sanitize(JSON.parse(read('src/data/cases.json')), ['title', 'desc'
 // that could traverse directories or break out of markup.
 weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlug(w.id, 'weapons.json id'); });
 
+// `date` flows into an HTML attribute, the sitemap XML and JSON-LD; keep it a
+// strict ISO date, otherwise drop it so every consumer falls back to BUILD_DATE.
+weapons.forEach(function(w) { if (w.date && !/^\d{4}-\d{2}-\d{2}$/.test(w.date)) delete w.date; });
+
 // Per-article downloadable materials. The article PDF itself is auto-detected
 // from site/materials/<slug>.pdf; this file holds the extra hand-authored
 // artifacts (checklists, templates). The href is restricted so authored data
@@ -102,11 +106,35 @@ function statusBadgeHtml(status) {
   return `<span class="badge badge-status badge-status-${escapeHtml(status)}">${escapeHtml(statusLabels[status] || status)}</span>`;
 }
 
+// Prefer a generated .webp sibling (scripts/optimize-thinkers.js) via <picture>,
+// falling back to the original raster for older browsers. Graceful: if the webp
+// has not been generated, the plain <img> is emitted.
+function thinkerImg(photo, name, cls) {
+  if (!photo) return '';
+  const img = '<img src="/images/thinkers/' + photo + '" alt="' + name + ' — фото" class="' + cls + '" loading="lazy">';
+  const webp = photo.replace(/\.(jpe?g|png)$/i, '.webp');
+  const hasWebp = webp !== photo && fs.existsSync(path.join(__dirname, '..', 'Фото_мыслителей', webp));
+  return hasWebp
+    ? '<picture><source srcset="/images/thinkers/' + webp + '" type="image/webp">' + img + '</picture>'
+    : img;
+}
+
 // Plain-text word count → reading time estimate (~180 wpm), minimum 1 minute.
 function readMinutes(html) {
   const text = String(html).replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
   const words = text.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 180));
+}
+
+// First paragraph as plain text, trimmed at a word boundary. Used to give the
+// full-text page a meta description distinct from its landing's subtitle, so
+// the two indexable URLs do not ship duplicate snippets.
+function summaryText(html, max) {
+  const m = String(html).match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (!m) return '';
+  let text = m[1].replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+  if (text.length > max) text = text.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';
+  return text;
 }
 
 // Inject anchor ids into H2/H3 and return { html, toc } so the full-text page
@@ -174,6 +202,29 @@ function materialsBlockHtml(w) {
     + '</section>';
 }
 
+// Canonical node builders. @id values let Google connect the WebSite/Organization
+// nodes that pages reference instead of treating each as an anonymous entity.
+function orgNode() {
+  return {
+    '@type': 'Organization',
+    '@id': SITE_URL + '/#organization',
+    'name': 'AntiManager',
+    'url': SITE_URL,
+    'logo': { '@type': 'ImageObject', 'url': SITE_URL + '/og-image.png' },
+    'sameAs': ['https://t.me/antimanager']
+  };
+}
+function websiteNode() {
+  return {
+    '@type': 'WebSite',
+    '@id': SITE_URL + '/#website',
+    'name': 'AntiManager',
+    'url': SITE_URL,
+    'inLanguage': 'ru',
+    'publisher': { '@id': SITE_URL + '/#organization' }
+  };
+}
+
 function makeStructuredData(pageType, data) {
   data = data || {};
   function json(ld) {
@@ -181,76 +232,48 @@ function makeStructuredData(pageType, data) {
     return '\n<script type="application/ld+json">' + JSON.stringify(ld, null, 2).replace(/</g, '\\u003c') + '</script>';
   }
   if (pageType === 'landing') {
-    return json({
-      '@context': 'https://schema.org',
-      '@graph': [
-        { '@type': 'WebSite', 'name': 'AntiManager', 'url': SITE_URL, 'inLanguage': 'ru' },
-        { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL, 'sameAs': ['https://t.me/antimanager'] }
-      ]
-    });
+    return json({ '@context': 'https://schema.org', '@graph': [websiteNode(), orgNode()] });
   }
-  if (pageType === 'weapon') {
+  if (pageType === 'weapon' || pageType === 'articleFull') {
+    var isFull = pageType === 'articleFull';
     var article = {
       '@type': 'Article',
       'headline': data.title,
       'description': data.subtitle || data.title,
       'url': data.canonicalUrl,
-      'datePublished': BUILD_DATE,
+      'mainEntityOfPage': data.canonicalUrl,
+      'image': OG_IMAGE_URL,
+      // datePublished is the article's real date (from weapons.json); dateModified
+      // is the build date because every build rewrites the page.
+      'datePublished': data.datePublished || BUILD_DATE,
       'dateModified': BUILD_DATE,
       'inLanguage': 'ru',
       'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
-      'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
+      'publisher': orgNode(),
+      'isPartOf': { '@id': SITE_URL + '/#website' }
     };
     if (data.articleSection) article.articleSection = data.articleSection;
+    var crumbs = [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' }
+    ];
+    if (isFull) {
+      crumbs.push({ '@type': 'ListItem', 'position': 3, 'name': data.title, 'item': SITE_URL + '/weapons/' + data.slug + '/' });
+      crumbs.push({ '@type': 'ListItem', 'position': 4, 'name': 'Полный текст' });
+    } else {
+      crumbs.push({ '@type': 'ListItem', 'position': 3, 'name': data.title });
+    }
+    if (!isFull) delete crumbs[2].item;
     return json({
       '@context': 'https://schema.org',
-      '@graph': [
-        article,
-        {
-          '@type': 'BreadcrumbList',
-          'itemListElement': [
-            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-            { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' },
-            { '@type': 'ListItem', 'position': 3, 'name': data.title }
-          ]
-        }
-      ]
-    });
-  }
-  if (pageType === 'articleFull') {
-    var fullArticle = {
-      '@type': 'Article',
-      'headline': data.title,
-      'description': data.subtitle || data.title,
-      'url': data.canonicalUrl,
-      'datePublished': BUILD_DATE,
-      'dateModified': BUILD_DATE,
-      'inLanguage': 'ru',
-      'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
-      'publisher': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL }
-    };
-    if (data.articleSection) fullArticle.articleSection = data.articleSection;
-    return json({
-      '@context': 'https://schema.org',
-      '@graph': [
-        fullArticle,
-        {
-          '@type': 'BreadcrumbList',
-          'itemListElement': [
-            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-            { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' },
-            { '@type': 'ListItem', 'position': 3, 'name': data.title, 'item': SITE_URL + '/weapons/' + data.slug + '/' },
-            { '@type': 'ListItem', 'position': 4, 'name': 'Полный текст' }
-          ]
-        }
-      ]
+      '@graph': [ websiteNode(), article, { '@type': 'BreadcrumbList', 'itemListElement': crumbs } ]
     });
   }
   if (pageType === 'static') {
     return json({
       '@context': 'https://schema.org',
       '@graph': [
-        { '@type': 'WebSite', 'name': 'AntiManager', 'url': SITE_URL, 'inLanguage': 'ru' },
+        websiteNode(),
         {
           '@type': 'BreadcrumbList',
           'itemListElement': [
@@ -287,18 +310,20 @@ function renderPage(title, description, content, opts) {
     + '<meta property="og:type" content="' + ogType + '">\n'
     + '<meta property="og:image" content="' + ogImage + '">\n'
     + ogImageMeta
+    + '<meta property="og:image:alt" content="' + escapeHtml('AntiManager — ' + title) + '">\n'
     + '<meta property="og:site_name" content="AntiManager">\n'
     + '<meta property="og:locale" content="ru_RU">\n'
     + '<meta name="twitter:card" content="summary_large_image">\n'
     + '<meta name="twitter:title" content="' + escapeHtml(title) + '">\n'
     + '<meta name="twitter:description" content="' + escapeHtml(desc) + '">\n'
-    + '<meta name="twitter:image" content="' + ogImage + '">';
+    + '<meta name="twitter:image" content="' + ogImage + '">\n'
+    + '<meta name="twitter:image:alt" content="' + escapeHtml('AntiManager — ' + title) + '">';
 
   if (opts.structuredData) headTags += opts.structuredData;
 
   if (ogType === 'article') {
     if (opts.ogArticleSection) headTags += '\n<meta property="article:section" content="' + escapeHtml(opts.ogArticleSection) + '">';
-    headTags += '\n<meta property="article:published_time" content="' + BUILD_DATE + '">';
+    headTags += '\n<meta property="article:published_time" content="' + (opts.publishedTime || BUILD_DATE) + '">';
     headTags += '\n<meta property="article:modified_time" content="' + BUILD_DATE + '">';
     headTags += '\n<meta property="article:author" content="' + SITE_URL + '/about/">';
     if (opts.ogTags && opts.ogTags.length) {
@@ -442,7 +467,7 @@ const archiveContent = '<section class="content-page">'
   + '<div class="thinker-grid">'
   + thinkers.map(function(t) {
     return '<div class="thinker-card">'
-      + (t.photo ? '<img src="/images/thinkers/' + t.photo + '" alt="' + t.name + ' — фото" class="thinker-photo" loading="lazy">' : '')
+      + thinkerImg(t.photo, t.name, 'thinker-photo')
       + '<div class="thinker-name">' + t.name + '</div>'
       + '<div class="thinker-years">' + t.years + '</div>'
       + '<div class="thinker-idea">' + t.idea + '</div>'
@@ -464,7 +489,7 @@ const arsenalContent = '<section class="content-page">'
       + '<div class="weapon-title">' + w.title + '</div>'
       + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
       + (w.zone ? zoneBadgeHtml(w.zone) : '')
-      + statusBadgeHtml(w.status)
+      + ((w.status === 'published') ? '' : statusBadgeHtml(w.status))
       + '</a>';
   }).join('')
   + '</div></section>'
@@ -616,14 +641,6 @@ const landingContent = '<section class="hero">'
   + '<a href="https://t.me/antimanager" class="btn btn-primary">💬 ВСТУПИТЬ В TELEGRAM</a>'
   + '</section>'
 
-  + '<section class="section stats-section">'
-  + '<h2 class="section-title">СЕГОДНЯ В ОКОПЕ</h2>'
-  + '<div class="stats-grid">'
-  + '<div class="stats-item"><strong>2 847</strong>управленцев читают</div>'
-  + '<div class="stats-item"><strong>113</strong>внедрили «правило трёх вопросов»</div>'
-  + '<div class="stats-item"><strong>47</strong>вышли из кризиса за 90 дней</div>'
-  + '</div>'
-  + '</section>'
   + '<section style="text-align:center;padding-bottom:var(--space-8);">'
   + '<p style="color:var(--color-steel);">Ты либо берёшь ответственность за хаос, либо продолжаешь заполнять таблички.</p>'
   + '</section>';
@@ -665,7 +682,7 @@ const fullTemplate = '<div class="content-page full-article-page">'
 console.log('\n🚀 AntiManager Brutalist Build\n');
 
 // Landing
-write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: ' + plural(scenarios.length, 'контур', 'контура', 'контуров') + ', ' + plural(weapons.length, 'глава', 'главы', 'глав') + ', инструментов и кейсов для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
+write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: ' + plural(scenarios.length, 'контур', 'контура', 'контуров') + ', ' + plural(weapons.length, 'глава', 'главы', 'глав') + ' — инструменты и кейсы для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
 
 // Static pages
 write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static', { name: 'Манифест', url: SITE_URL + '/manifesto/' }) }));
@@ -675,7 +692,7 @@ write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Вы
 write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static', { name: 'Полевые дневники', url: SITE_URL + '/cases/' }) }));
 write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
 write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
-write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', '', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
+write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в арсенал AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
 write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
 
 // Weapon pages
@@ -686,18 +703,24 @@ for (var wi = 0; wi < weapons.length; wi++) {
   var contentBody = hasContent ? fs.readFileSync(contentPath, 'utf-8') : '<div class="empty-state"><h3>Статья в разработке</h3><p>Эта статья ещё не готова. Скоро здесь появится текст.</p><p style="margin-top:var(--space-4);"><a href="/arsenal/" class="btn" style="display:inline-flex;">← Вернуться в арсенал</a></p></div>';
 
   var zoneBadge = zoneBadgeHtml(w.zone);
-  var statusSpan = statusBadgeHtml(w.status);
+  var statusSpan = (w.status === 'published') ? '' : statusBadgeHtml(w.status);
 
   var thinker = thinkers.find(function(t) { return t.id === w.thinker; });
   var thinkerBlock = thinker
     ? '<div class="thinker-block">'
-      + (thinker.photo ? '<img src="/images/thinkers/' + thinker.photo + '" alt="' + thinker.name + ' — фото" class="thinker-photo-sm" loading="lazy">' : '')
+      + thinkerImg(thinker.photo, thinker.name, 'thinker-photo-sm')
       + '<div class="thinker-block-text"><strong>Изначальная идея:</strong> ' + thinker.name + ' (' + thinker.years + ') → ' + thinker.weapon + '</div></div>'
     : '';
 
   var fullPath = path.join(__dirname, 'src', 'content', 'full', w.id + '-' + w.slug + '.html');
   var hasFull = fs.existsSync(fullPath);
   var fullBody = hasFull ? fs.readFileSync(fullPath, 'utf-8') : '';
+  // Distinct meta/JSON-LD description for the full page so the landing and its
+  // full text do not ship duplicate snippets to search engines. summaryText returns
+  // raw prose, so escape it once for the meta attribute; the fallback subtitle is
+  // already escaped at load time.
+  var fullSummary = hasFull ? summaryText(fullBody, 155) : '';
+  var fullDescription = hasFull ? (fullSummary ? escapeHtml(fullSummary) : (w.subtitle || '')) : '';
 
   // Read-more card replaces the old lite "Тезисный отрывок": a short lede from
   // the full text plus an explicit path to it. Rendered only when the full text
@@ -759,7 +782,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
 
   var canonicalUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/';
   var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
-  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel }) }));
+  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel, datePublished: w.date }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
 
   // Full-text page ships only when its source partial exists.
@@ -778,7 +801,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
     fullHtml = fullHtml.replace('{{related_weapons}}', function() { return relatedHtml; });
 
     var fullUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/full/';
-    write('weapons/' + w.slug + '/full/index.html', renderPage(w.title + ' — полный текст | AntiManager', w.subtitle || '', fullHtml, { canonicalUrl: fullUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, structuredData: makeStructuredData('articleFull', { title: w.title, subtitle: w.subtitle, canonicalUrl: fullUrl, articleSection: zoneLabel, slug: escapeHtml(w.slug) }) }));
+    write('weapons/' + w.slug + '/full/index.html', renderPage(w.title + ' — полный текст', fullDescription, fullHtml, { canonicalUrl: fullUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('articleFull', { title: w.title, subtitle: fullDescription, canonicalUrl: fullUrl, articleSection: zoneLabel, slug: escapeHtml(w.slug), datePublished: w.date }) }));
     console.log('  ✓ ' + w.id + ' ' + w.slug + ' (full)');
   }
 }
@@ -795,11 +818,12 @@ var sitemapUrls = [
   { loc: SITE_URL + '/about/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
 ];
 for (var si = 0; si < weapons.length; si++) {
+  var weaponDate = weapons[si].date || BUILD_DATE;
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
-    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE });
+    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
   }
   if (fs.existsSync(path.join(__dirname, 'src', 'content', 'full', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
-    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/full/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE });
+    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/full/', priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
   }
 }
 var sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -810,6 +834,14 @@ sitemap += '</urlset>';
 write('sitemap.xml', sitemap);
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
+// RFC 9116 security.txt — a public channel for vulnerability reports.
+const securityExpires = new Date(new Date(BUILD_DATE).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+write('.well-known/security.txt',
+  'Contact: https://t.me/antimanager\n'
+  + 'Preferred-Languages: ru, en\n'
+  + 'Canonical: ' + SITE_URL + '/.well-known/security.txt\n'
+  + 'Expires: ' + securityExpires + '\n');
+
 // Copy assets
 copyDir('css', 'css');
 copyDir('js', 'js');
@@ -819,6 +851,12 @@ copyDir('materials', 'materials');
   write('favicon.svg', read('favicon.svg'));
 if (fs.existsSync(OG_IMAGE_PNG)) write('og-image.png', read(OG_IMAGE_PNG));
 write('og-image.svg', read('src/templates/og-image.svg'));
-write('yandex_XXXXXXXXXXXXXXXX.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: XXXXXXXXXXXXXXXX</body></html>');
+// Yandex.Webmaster verification: ship the real <code>.html file only when a code
+// is provided (YANDEX_VERIFICATION env). The old XXXX placeholder must never
+// reach production; the code is validated so it cannot traverse directories.
+var yandexCode = (process.env.YANDEX_VERIFICATION || '').trim();
+if (/^[A-Za-z0-9_-]{4,64}$/.test(yandexCode)) {
+  write('yandex_' + yandexCode + '.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: ' + yandexCode + '</body></html>');
+}
 
 console.log('\n✅ Build complete. Output: ' + path.join(__dirname, 'dist') + '\n');

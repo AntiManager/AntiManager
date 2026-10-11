@@ -3,6 +3,7 @@
 
 ## Done
 
+- **SEO & accessibility hardening (2026-10-11):** full live-site audit + fixes — nginx (custom 404, `www→apex` 301, trailing-slash 301, HSTS, Content-Language, Cache-Control dedupe; verified via a local nginx container), build.js SEO (unique `/full/` descriptions, JSON-LD `@id` graph + logo, `og:image:alt`, per-article `datePublished`, env-driven Yandex verification, sitemap `lastmod`, `security.txt`), WCAG-AA text-contrast tokens, footer nav (orphan fix), thinker WebP `<picture>` (‑1.2 MB), heading-jump fix. **Then `/review uncommitted` + fixes:** escape the raw full-page meta description, validate the per-article `date`, `.filter-btn:hover` contrast, restore `gzip_types text/html`, env-independent Yandex test, simpler breadcrumb. **unit 8/8, e2e 102/102.** Committed + pushed.
 - **Site (2026-08…09):** brutalist rebuild v2 (Black+Red+White, 32 pages, static SVG star map); SEO (OG/canonical/structured data/sitemap) + SEO Phase 1 technical (dynamic `BUILD_DATE`, featured cards, related-links fallback, raster `og-image`); a11y/UX + cache-busting; repo restructured to `site/` + manifestos at root.
 - **Security hardening (2026-09):** output escaping in `build.js` (`site/src/lib/escape.js`, `assertSlug`), DOM-XSS fixed in widgets (04/16/19), nginx security headers, secrets → `.env`. Suite grew 84 → 99 (33 × 3).
 - **Content-readiness harness:** skill `article-readiness` + `/article-readiness` + `.kilo/scripts/article_readiness.py` (report in gitignored `.kilo/reports/`); vault audit of 30 articles.

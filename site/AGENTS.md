@@ -68,6 +68,7 @@ npm run test:unit       # unit tests only
 npm run test:e2e        # Playwright only
 npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
 npm run render:pdf      # render materials/<slug>.pdf from each /full/ page (run after build)
+npm run optimize:thinkers  # generate .webp siblings for thinker photos (run after adding a photo)
 .\deploy.ps1            # Deploy to VPS (reads .env)
 ```
 
@@ -83,14 +84,22 @@ ssh -p {{REMOTE_PORT}} {{REMOTE_USER}}@{{REMOTE_HOST}}
 nginx container: antimanager-web, root: {{REMOTE_DIR}}/current/
 ```
 
+nginx `add_header` is **not inherited** once a `location` declares its own, so shared
+security headers live at server level and locations set only `expires` (assets 7d, HTML 5m).
+Always `nginx -t` before/after deploy; validate a conf change on a throwaway `nginx:alpine`
+container first, since a syntax error takes the site down.
+
 ## Conventions
 - Vanilla HTML/CSS/JS — no frameworks
 - Two-tier content: topic landing (principle + model + widget) → `/full/` (full text + materials)
 - Materials are honest: only real files are linked (`materials/<slug>.pdf`, declared extras); never "coming soon"
 - `materials.json` `href` must match `/materials/<slug>/<file>` (build rejects anything else)
 - Print stylesheet (`@media print` in `brutalist.css`) strips site chrome for the PDF; regenerate PDFs with `npm run render:pdf`
-- All 22 chapters indexed
+- All 23 weapons indexed (00, 02–23; article 01 is `/manifesto/`)
 - Widgets: one question per screen, back button, step counter, progress bar
 - SEO: `og:image` must be the raster `/og-image.png` (social networks do not render SVG);
   run `npm run render:og` after editing `src/templates/og-image.svg`
-- Sitemap `lastmod` and JSON-LD dates derive from the build date, not hardcoded constants
+- Article `datePublished` and sitemap `lastmod` use the per-article `date` in `weapons.json`;
+  `dateModified` and static-page `lastmod` use the build date
+- Thinker photos ship as `<picture>` (generated `.webp` + original fallback); build guards on
+  the `.webp` existing, so a missing generation degrades gracefully to the raster
