@@ -1,5 +1,4 @@
 node_modules/
-__pycache__/
 site/dist/
 site/node_modules/
 site/test-results/
