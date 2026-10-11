@@ -37,7 +37,8 @@ if (-not $SkipBuild) {
 
 Write-Host "Copying dist to VPS..." -ForegroundColor Cyan
 Run-Ssh "mkdir -p $remoteDir/current"
-Run-Scp "$PSScriptRoot\dist\*" "$remoteDir/current/"
+# `dist\.` (not `dist\*`) so hidden entries such as .well-known/security.txt are copied too.
+Run-Scp "$PSScriptRoot\dist\." "$remoteDir/current/"
 Run-Ssh "chmod -R 755 $remoteDir/current/; find $remoteDir/current/ -type f -exec chmod 644 {} \;"
 
 Write-Host "Creating nginx config..." -ForegroundColor Cyan
