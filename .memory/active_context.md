@@ -9,15 +9,17 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13 done. Article 13
-«Неизбежное исполнение» completed this session (Layer 2 → title-block demote + hedged
-figures/attribution, landing `{{read_more}}` → `/full/` + `materials/neizbezhnoe-ispolnenie.pdf`
-371 KB; deployed, live-verified). Plan + log: `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14 done. Article 14
+«Управление живой системой» completed and **deployed** this session (vault Layer 2: book-shaped
+manuscript re-levelled to the standard hierarchy + artifacts/hedges/tools; landing `{{read_more}}`
+→ `/full/` + `materials/zhivaya-sistema.pdf` 461 529 B; unit 8/8, e2e 99/99; commit `edee0c9`,
+pushed GitHub+GitVerse, deployed, live-verified). Plan + log:
+`.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
-Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10/11/12/13 all READY (article 10 at
+Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10/11/12/13/14 all READY (article 10 at
 11/12 — the single miss is the `case` heading false gap; its cases are inline). Articles
-00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13 have deployed `/full/` pages.
-Next editorial: article **14 «Управление живой системой»** — Layer 2 pass + site sync.
+00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14 have deployed `/full/` pages.
+Next editorial: article **15 «Живой завод»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
 - Tests: unit **8/8**; Playwright **99/99** (33 × 3). Run all: `cd site; npm test`.
@@ -32,6 +34,9 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
   preface's first paragraph when it is long or disclaimer-like), and keep a part
   subtitle a non-`<p>` element (`.full-part-lede`). The site has no mermaid runtime:
   convert source mermaid fences to ordered-list/flow text in full partials.
+- `npm run render:pdf` regenerates *every* `<slug>.pdf`, so all tracked PDFs show as modified
+  after each render — usually timestamp-only (`/CreationDate`, 14 B), not content. The PDFs also
+  carry pre-existing loopback `http://127.0.0.1:<port>` link annotations (already in HEAD).
 
 ## Harness state (this session)
 - Article 01 site: `build.js` manifesto now rendered from structured
@@ -47,11 +52,12 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–13 done):
-  convert `src/content/full/XX-slug.html`, replace the landing excerpt with
-  `{{read_more}}`, `npm run build` → `npm run render:pdf` → rebuild → deploy. (Article 01
-  has no weapon entry — its full text is `/manifesto/`.)
-- Then article **14 «Управление живой системой»** — Layer 2 editorial pass + site sync.
+- Article **15 «Живой завод»** — Layer 2 editorial pass + site sync (next editorial unit; its
+  landing already builds, it needs the full-text partial + `{{read_more}}` + PDF, same as 00/02–14).
+- Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–14 done; 01
+  has no weapon entry — its full text is `/manifesto/`): convert `src/content/full/XX-slug.html`,
+  replace the landing excerpt with `{{read_more}}`, `npm run build` → `npm run render:pdf` →
+  rebuild → deploy.
 - Publish per-article extras (checklists/templates): `site/materials/<slug>/<file>` +
   entry in `site/src/data/materials.json`.
 - SEO Phase 2 decision gates remain parked (publish 21 `review` weapons; replace
