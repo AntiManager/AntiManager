@@ -21,11 +21,22 @@ model) and the **full text** `/weapons/<slug>/full/` (complete article + materia
 
 ## Process — full text
 
-1. Convert the vault `.md` into `site/src/content/full/XX-slug.html` (H2/H3 headings drive
-   the TOC automatically; `{{read_more}}` is not used here)
-2. Remove the landing's `Тезисный отрывок` section and put `{{read_more}}` in its place
-3. Build, then `npm run render:pdf` → `site/materials/<slug>.pdf`
-4. Rebuild so the materials block links the PDF, then deploy
+1. Convert the vault `.md` into `site/src/content/full/XX-slug.html` with
+   `.kilo/scripts/md_to_partial.py` (H2/H3 headings drive the TOC automatically).
+   The site has no mermaid runtime — convert ```mermaid fences to lists/tables.
+2. Remove the landing's `Тезисный отрывок` section and put `{{read_more}}` in its place.
+   The lede is auto-extracted from the **first `<p>`** of the partial — keep it a short,
+   strong standfirst (split a long preface paragraph); keep a part subtitle a non-`<p>`
+   element (`.full-part-lede`).
+3. Extend the rollout regression in `site/unit/build-full.test.js` to the new slug.
+4. Build + PDF — **two-pass rule** (the first render runs before the article's own PDF
+   exists, so its materials block would be the print fallback):
+   `node build.js` → `npm run render:pdf` → `node build.js` → `npm run render:pdf` →
+   `node build.js`
+5. Deploy, then live-verify: landing `.read-more-card` → `/full/`, `/full/` 200
+   (static TOC + PDF link), `/materials/<slug>.pdf` 200.
+
+Command wrapper: `/full-article <slug>`.
 
 ## Mapping article content → HTML blocks
 
@@ -45,6 +56,9 @@ model) and the **full text** `/weapons/<slug>/full/` (complete article + materia
 - Extra artifacts (checklists, templates): `site/materials/<slug>/<file>` plus an entry in
   `site/src/data/materials.json` — `href` must be `/materials/<slug>/<file>`.
 - Never promise future files; the block shows only what exists.
+- Every render rewrites `/CreationDate`/`/ModDate` on all tracked PDFs (same byte
+  length, ~12-byte diff). After rendering, `git checkout -- site/materials` to restore
+  the untouched ones — commit only genuinely new/changed PDFs.
 
 ## MCP integration
 

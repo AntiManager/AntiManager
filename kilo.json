@@ -4,10 +4,10 @@
   "small_model": "deepseek/deepseek-flash",
   "instructions": [
     ".memory/project_brief.md",
-    ".memory/active_context.md",
-    ".memory/progress.md",
     ".memory/tech_context.md",
-    ".memory/system_patterns.md"
+    ".memory/system_patterns.md",
+    ".memory/progress.md",
+    ".memory/active_context.md"
   ],
   "permission": {
     "bash": "allow",

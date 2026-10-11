@@ -24,7 +24,7 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - diagram-architect — Mermaid diagrams
 - management-research — concept research
 
-## Commands (9)
+## Commands (10)
 
 - `/fix-encoding` — check and repair broken encoding in vault `.md` files
 - `/link-ideas` — link ideas across notes
@@ -35,17 +35,21 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - `/vault-index` — full vault inventory
 - `/check-site` — build the site and run the full test suite (unit + Playwright)
 - `/article-readiness` — score vault articles for publish-readiness
+- `/full-article` — migrate one article's full text to its `/full/` page (TOC, materials, PDF) and deploy
 
 ## Agents (2)
 
 - book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
 - vault-auditor — vault structure audit
 
-## MCP (always enabled, 3)
+## MCP (3 active)
 
-- obsidian — batch note processing, vault read/write
-- web-search — reference search
-- github — commits/pushes, deploy
+- obsidian — batch note processing, vault read/write (`.kilo/kilo.json`)
+- github — commits/pushes, deploy (`.kilo/kilo.json`)
+- context7 — library/framework reference docs (global `kilo.jsonc`)
+
+`web-search` (khoj.dev) is declared in `.kilo/kilo.json` but registers no tool —
+do not rely on it; use `webfetch` for reference lookup.
 
 ---
 
