@@ -9,16 +9,17 @@
 the new full page carries the complete article (static H2/H3 TOC, reading progress,
 4-level breadcrumb) plus an honest `.materials-section` (article PDF + declared
 extras, print fallback). The fake site-wide «Материалы к статье / Хочу PDF» block is
-gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15 built. Article 15
-«Живой завод» Layer 2 + site build **done this session** (vault: 110 parenthetical ` – ` → `—`,
-Obsidian escapes unescaped, precision hedged, tools/chapters populated; landing `{{read_more}}` →
-`/full/` + `materials/zhivoy-zavod.pdf` 401 646 B; unit 8/8, e2e 99/99; **publish pending** —
-not yet committed/pushed/deployed). Article 14 deployed earlier (commit `edee0c9`). Plan + log:
+gone. **Rollout:** articles 00, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15 built and
+deployed. Article 15 «Живой завод» Layer 2 + site build **published this session** (vault: 110
+parenthetical ` – ` → `—`, Obsidian escapes unescaped, precision hedged, tools/chapters populated;
+landing `{{read_more}}` → `/full/` + `materials/zhivoy-zavod.pdf` 401 646 B; unit 8/8, e2e 99/99;
+committed `4633211`, pushed GitHub+GitVerse, deployed, live-verified 11/11). Article 14 deployed
+earlier (commit `edee0c9`). Plan + log:
 `.kilo/plans/1790011926918-full-article-pages-{plan,execution-log}.md`.
 
 Publish-readiness track: 00/01/02/03/04/05/06/07/08/09/10/11/12/13/14/15 all READY (articles 10
 and 15 at 11/12 — the single miss is the `case` heading false gap; their cases are inline/bold body
-labels). Articles 00, 02–14 have deployed `/full/` pages; 15 built (publish pending).
+labels). Articles 00, 02–15 have deployed `/full/` pages.
 Next editorial: article **16 «Управлять хаосом на производстве»** — Layer 2 pass + site sync.
 Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
 
@@ -52,10 +53,12 @@ Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 
 - Memory compacted: old `active_context` history → `.memory/archive/active_context-2026-09.md`.
 
 ## Next step
-- **Publish article 15 «Живой завод»**: commit (landing `{{read_more}}`, new full partial,
-  `materials/zhivoy-zavod.pdf`, rollout test → 15, memory), push GitHub+GitVerse, `site/deploy.ps1`,
-  then live-verify (`/weapons/zhivoy-zavod/`, `/full/`, `/materials/zhivoy-zavod.pdf`). Awaiting go-ahead.
-- Then article **16 «Управлять хаосом на производстве»** — Layer 2 editorial pass + site sync.
+- Article 15 «Живой завод» **published** (`4633211`, pushed GitHub+GitVerse, deployed, live-verified
+  11/11: landing `.read-more-card` → `/full/`, no `block-thesis`/`download-section`; `/full/` with
+  `.article-toc`, `.materials-section`, PDF link, `"position": 4`, no tokens; `materials/zhivoy-zavod.pdf`
+  200 `application/pdf` 401 646 B). Note: `deploy.ps1`'s final optional Caddy-reload ssh step timed out
+  again (config unchanged, no-op) — the container restart itself succeeded.
+- Next: article **16 «Управлять хаосом на производстве»** — Layer 2 editorial pass + site sync.
 - Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–15 done; 01
   has no weapon entry — its full text is `/manifesto/`): convert `src/content/full/XX-slug.html`,
   replace the landing excerpt with `{{read_more}}`, `npm run build` → `npm run render:pdf` →
