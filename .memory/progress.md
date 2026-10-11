@@ -19,7 +19,7 @@ trailing-slash 301 (TLS at Caddy). Live: 200s, custom 404, `www→apex` 301, HST
 - Roll `/full/` out article-by-article as vault readiness allows (00 pilot, 02–23 done; 01 has no weapon entry — its full text is `/manifesto/`).
 - Next editorial: the DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция развития НЦ/НС) — a different set; each needs frontmatter + related sections + case/conclusion before /full/.
 - Publish per-article extras (checklists/templates) into `site/materials/<slug>/` + `materials.json`.
-- SEO plan Phase 2 (decision): publish 21 `review` weapons; replace fabricated landing stats.
+- SEO Phase 2 — DONE (`410d706`): all 23 weapons `published` (no `review` badge); fabricated landing stats (`2 847` / `113` / `47` + `stats-section`) removed; both guarded by `build-seo.test.js` items 6–7. Only CSP `script-src`/`default-src` and the Metrika `webvisor` vs `/privacy/` wording stay deferred.
 
 ## Technical Debt
 - **GitVerse token** embedded in `.git/config` `origin.pushurl` (plaintext credential) — rotate + move to credential helper/SSH. Not a repo file.

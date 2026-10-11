@@ -81,7 +81,8 @@ Per-article history → `.memory/archive/progress-history-2026.md`.
 Publish-readiness: 00/01/02–23 all READY (articles 10, 15, 17, 18, 20, 21 at 11/12 — the
 single miss is the `case` heading false gap; their cases are inline/bold body labels).
 Remaining vault articles 30–35 are DRAFT (different series; see “Next editorial”).
-Parked: SEO Phase 2 (publish 21 `review` weapons; replace landing stats 2 847 / 113 / 47).
+SEO Phase 2 — done (`410d706`): all 23 weapons `published`, fabricated landing stats removed
+(guarded by `build-seo.test.js`). Only CSP `script-src` and the Metrika `webvisor`/`/privacy/` wording stay deferred.
 
 **Editor procedure is codified** — follow the `content-publisher` skill and the
 `/full-article <slug>` command; do not re-derive the steps. Key rules that still matter:
