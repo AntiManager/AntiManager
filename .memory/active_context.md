@@ -1,5 +1,8 @@
 # AntiManager — Active Context
-> Updated: 2026-10-11
+> Updated: 2026-10-12
+
+## Pipelines consolidated (2026-10-12)
+Tooling unified under `pipelines/` (`common/`, `obsidian-to-site/`, `proc-library/`); the process-library engine is now versioned in-repo (specs mirrored at `pipelines/proc-library/specs/`, generated artifacts ignored) and the vault path is env-driven (`PROC_LIB_VAULT`). The `silicon-goal` worktree is retired (useful bits — `kilo.json` boot-trio, two skill fixes — ported to `main`). Details in `progress.md`.
 
 ## Review + cleanup + DEPLOY done (2026-10-11)
 `/review uncommitted` (reviewer subagent) found and applied: (1) **major** — the new full-page
