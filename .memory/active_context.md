@@ -1,6 +1,28 @@
 # AntiManager — Active Context
 > Updated: 2026-10-12
 
+## Artifact chain (plan 1791810263662) — Phase A DONE + reviewed (2026-10-12)
+**КТК → priority matrix → event grid** cascade. Phase A (foundations, test-first) complete:
+- `pipelines/proc-library/specs/T4.0-role-archetypes.md` + `role_registry.json` (10 roles,
+  synonyms verified against 337 real `**Владелец:**` lines); `specs/T4.9-artifact-format.md`
+  (machine-readable contract; headers verbatim from umbrella §5). Both specs mirrored to vault `specs/`
+  (T4.9 re-mirrored after the §5 clarifications, byte-identical, guard OK).
+- `library/artifacts/Роли.md` (RU register; encoding guard OK).
+- `pipelines/proc-library/check_artifacts.py` + `test_check_artifacts.py`: imports `engine.py`
+  (code resolution) + `token_scan.py` (identity classes); checks H1a,H2–H7 structure, H1 cross,
+  W1–W6. Base CLI on real vault → `OK`; artifacts token scan → 0 identity.
+- **`/review uncommitted` + fixes done:** `roles_for_string()` now wires the register's
+  `fold_map` + `event_owner_map` (fixes W1/W2 false negatives, e.g. bare `ОТК`/`Мастер`,
+  `ПЭО→{РП,ГД}`); H6 allows `ориентир`-marked money; matrix-xref stop-word added; `REG-` codes
+  filtered; `parse_library()` prunes `artifacts/` and propagates `lib.errors`; empty-vault guard;
+  H4-unrecognized-section warning. **Suite 38 passed / 72 skipped** (was 31). Log §"Phase A — review & cleanup".
+- Log: `.kilo/plans/1791810263662-…-execution-log.md`. Lessons folded: per-section table block (T4.9);
+  cross-checks must read the spec's mapping tables (a loaded-but-unread table = silent false pass).
+- **Next:** Phase A is reviewed, cleaned and re-verified — **commit + push**, then sub-plan 02
+  (Phase B, КТК) — port 10 `*_КТК.md` → `library/artifacts/КТК/`, fold roles via register,
+  re-check each file + referenced codes (H2) as written. Then C (matrix), D (grid), E (conformance),
+  F (closeout/INDEX).
+
 ## Pipelines consolidated (2026-10-12)
 Tooling unified under `pipelines/` (`common/`, `obsidian-to-site/`, `proc-library/`); the process-library engine is now versioned in-repo (specs mirrored at `pipelines/proc-library/specs/`, generated artifacts ignored) and the vault path is env-driven (`PROC_LIB_VAULT`). The `silicon-goal` worktree is retired (useful bits — `kilo.json` boot-trio, two skill fixes — ported to `main`). Details in `progress.md`.
 
