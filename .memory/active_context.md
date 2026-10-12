@@ -1,5 +1,5 @@
 # AntiManager — Active Context
-> Updated: 2026-10-12
+> Updated: 2026-10-12 · status: **parked** (resume with Phase D, event grid)
 
 ## Current track — artifact chain (plan 1791810263662)
 Phases A–C DONE (КТК, priority matrix). Next: **sub-plan 04 (Phase D, event grid)** —
