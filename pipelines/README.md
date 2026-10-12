@@ -10,6 +10,7 @@ tooling and `.gitignore`; shared vault utilities live in `common/`.
 | `common/` | shared vault utilities | `guard_encoding.py`, `to_crlf.py` |
 
 - Pipeline-1 procedure: `/full-article` command + `content-publisher` skill.
-- Pipeline-2 procedure: `proc-library/README.md` (engine doc) + `.kilo/plans/`.
+- Pipeline-2 procedure: `proc-library/README.md` (engine doc) + `.kilo/plans/`;
+  design specs mirrored at `proc-library/specs/` (the vault copy stays canonical).
 - The vault itself (articles and `Библиотека процессов/`) lives outside the
   repository; these pipelines transform it.
