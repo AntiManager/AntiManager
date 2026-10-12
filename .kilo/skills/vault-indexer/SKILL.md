@@ -67,7 +67,7 @@ With the structure:
 
 - `book-writing` — after index, check article frontmatter
 - `management-research` — after index, add links between concepts
-- `fix-encoding` — before index, check encoding
+- `/fix-encoding` — before index, check encoding
 
 ## Automation in AGENTS.md
 

@@ -35,7 +35,7 @@ Collect and maintain a list:
 
 ## References
 
-When redesigning, look for references via the web-search MCP using the queries:
+When redesigning, look up references (web search / webfetch) using the queries:
 
 - "interactive book website design"
 - "production management dashboard design"
