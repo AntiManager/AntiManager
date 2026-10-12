@@ -31,11 +31,6 @@
         "@modelcontextprotocol/server-github"
       ],
       "enabled": true
-    },
-    "web-search": {
-      "type": "remote",
-      "url": "https://mcp.khoj.dev/sse",
-      "enabled": true
     }
   },
   "snapshot": false

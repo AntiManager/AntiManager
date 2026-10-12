@@ -48,9 +48,6 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - github — commits/pushes, deploy (`.kilo/kilo.json`)
 - context7 — library/framework reference docs (global `kilo.jsonc`)
 
-`web-search` (khoj.dev) is declared in `.kilo/kilo.json` but registers no tool —
-do not rely on it; use `webfetch` for reference lookup.
-
 ---
 
 ## New machine setup
