@@ -1,0 +1,18 @@
+{
+  "SL_EMG-01-01-01": {"hours": 1.0, "criticality": "high"},
+  "SL_EMG-01-01-02": {"hours": 1.0, "criticality": "high"},
+  "SL_EMG-01-02-01": {"hours": 1.0, "criticality": "medium"},
+  "SL_EMG-01-02-02": {"hours": 0.5, "criticality": "low"},
+  "SL_EMG-02-01-01": {"hours": 0.5, "criticality": "high"},
+  "SL_EMG-02-01-02": {"hours": 0.25, "criticality": "high"},
+  "SL_EMG-02-01-03": {"hours": 0.25, "criticality": "low"},
+  "SL_EMG-02-01-04": {"hours": 0.25, "criticality": "low"},
+  "SL_EMG-02-02-01": {"hours": 2.0, "criticality": "high"},
+  "SL_EMG-02-02-02": {"hours": 2.0, "criticality": "high"},
+  "SL_EMG-02-02-03": {"hours": 0.25, "criticality": "low"},
+  "SL_EMG-02-02-04": {"hours": 0.25, "criticality": "low"},
+  "SL_EMG-03-01-01": {"hours": 0.5, "criticality": "medium"},
+  "SL_EMG-03-01-02": {"hours": 1.0, "criticality": "medium"},
+  "SL_EMG-03-01-03": {"hours": 1.0, "criticality": "high"},
+  "SL_EMG-03-01-04": {"hours": 0.25, "criticality": "low"}
+}

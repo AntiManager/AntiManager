@@ -1,0 +1,19 @@
+{
+  "SL_HRP-01-01-01": {"hours": 4.0, "criticality": "medium"},
+  "SL_HRP-01-01-02": {"hours": 3.0, "criticality": "medium"},
+  "SL_HRP-01-01-03": {"hours": 0.5, "criticality": "low"},
+  "SL_HRP-01-01-04": {"hours": 0.25, "criticality": "low"},
+  "SL_HRP-01-02-01": {"hours": 1.0, "criticality": "medium"},
+  "SL_HRP-01-02-02": {"hours": 2.0, "criticality": "medium"},
+  "SL_HRP-01-02-03": {"hours": 1.0, "criticality": "high"},
+  "SL_HRP-01-02-04": {"hours": 0.25, "criticality": "low"},
+  "SL_HRP-01-02-05": {"hours": 0.25, "criticality": "low"},
+  "SL_HRP-02-01-01": {"hours": 4.0, "criticality": "medium"},
+  "SL_HRP-02-01-02": {"hours": 2.0, "criticality": "medium"},
+  "SL_HRP-02-01-03": {"hours": 0.25, "criticality": "low"},
+  "SL_HRP-02-02-01": {"hours": 4.0, "criticality": "high"},
+  "SL_HRP-02-02-02": {"hours": 8.0, "criticality": "high"},
+  "SL_HRP-02-02-03": {"hours": 0.25, "criticality": "low"},
+  "SL_HRP-03-01-01": {"hours": 2.0, "criticality": "medium"},
+  "SL_HRP-03-01-02": {"hours": 1.5, "criticality": "medium"}
+}

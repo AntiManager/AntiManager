@@ -67,7 +67,7 @@ do not rely on it; use `webfetch` for reference lookup.
 
 1. **Back up before editing.** Any write operation starts with a backup to `$env:TEMP\kilo\backups\<date>\`.
 2. **PowerShell for ASCII and simple operations only.** Handle Cyrillic through Python (ftfy).
-3. **Guard Encoding: mandatory before and after.** Before any `edit`/`write` to vault files, run `python .kilo/scripts/guard_encoding.py --backup <file>`. After the operation, run `python .kilo/scripts/guard_encoding.py <file>`. If CORRUPT — restore from the backup and alert the user.
+3. **Guard Encoding: mandatory before and after.** Before any `edit`/`write` to vault files, run `python pipelines/common/guard_encoding.py --backup <file>`. After the operation, run `python pipelines/common/guard_encoding.py <file>`. If CORRUPT — restore from the backup and alert the user.
 4. **Verify.** Check the result after every change. If the algorithm did not produce the expected result — roll back.
 5. **No bulk runs.** One file → verify → commit. No mass applies.
 6. **Cyrillic through Write/Edit.** If a file contains Cyrillic, modify content with Python only (`ftfy.fix_text`). Never pass Cyrillic through PowerShell.

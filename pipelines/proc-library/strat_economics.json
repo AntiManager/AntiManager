@@ -1,0 +1,19 @@
+{
+  "STRAT-01-01-01": {"hours": 16, "criticality": "high"},
+  "STRAT-01-02-01": {"hours": 8, "criticality": "medium"},
+  "STRAT-01-02-02": {"hours": 8, "criticality": "high"},
+  "STRAT-01-02-03": {"hours": 4, "criticality": "high"},
+  "STRAT-01-03-01": {"hours": 4, "criticality": "high"},
+  "STRAT-01-03-02": {"hours": 8, "criticality": "high"},
+  "STRAT-01-03-03": {"hours": 6, "criticality": "medium"},
+  "STRAT-01-03-04": {"hours": 8, "criticality": "medium"},
+  "STRAT-01-03-05": {"hours": 2, "criticality": "medium"},
+  "STRAT-01-03-06": {"hours": 4, "criticality": "high"},
+
+  "STRAT-01-01-02": {"hours": 0.5, "criticality": "low"},
+  "STRAT-01-01-03": {"hours": 0.5, "criticality": "low"},
+  "STRAT-01-02-04": {"hours": 0.5, "criticality": "low"},
+  "STRAT-01-02-05": {"hours": 0.5, "criticality": "low"},
+  "STRAT-01-03-07": {"hours": 0.5, "criticality": "low"},
+  "STRAT-01-03-08": {"hours": 0.5, "criticality": "low"}
+}

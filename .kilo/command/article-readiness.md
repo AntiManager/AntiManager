@@ -4,7 +4,7 @@ description: Assess publish-readiness of vault articles (objective screen + edit
 Assess article readiness. Optional `$1` = article number to focus on (e.g. `23`).
 
 1. Run the deterministic screen:
-   `python .kilo/scripts/article_readiness.py`
+   `python pipelines/obsidian-to-site/article_readiness.py`
    → writes `.kilo/reports/article-readiness.md`.
 2. Read that report with the Read tool (never trust Cyrillic console output).
 3. Load the `article-readiness` skill (`.kilo/skills/article-readiness/SKILL.md`)

@@ -22,7 +22,7 @@ model) and the **full text** `/weapons/<slug>/full/` (complete article + materia
 ## Process — full text
 
 1. Convert the vault `.md` into `site/src/content/full/XX-slug.html` with
-   `.kilo/scripts/md_to_partial.py` (H2/H3 headings drive the TOC automatically).
+   `pipelines/obsidian-to-site/md_to_partial.py` (H2/H3 headings drive the TOC automatically).
    The site has no mermaid runtime — convert ```mermaid fences to lists/tables.
 2. Remove the landing's `Тезисный отрывок` section and put `{{read_more}}` in its place.
    The lede is auto-extracted from the **first `<p>`** of the partial — keep it a short,

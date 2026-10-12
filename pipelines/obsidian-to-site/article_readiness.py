@@ -10,7 +10,7 @@ The editorial layer (intro thesis, case quality, style) is NOT covered here; use
 the `article-readiness` skill for that. No vault files are modified.
 
 Usage:
-    python .kilo/scripts/article_readiness.py [ARTICLES_DIR] [--out PATH]
+    python pipelines/obsidian-to-site/article_readiness.py [ARTICLES_DIR] [--out PATH]
                                               [--json PATH]
                                               [--min-words N] [--max-block N]
 """

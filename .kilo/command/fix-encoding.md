@@ -20,7 +20,7 @@ Always: backup → test on a copy → apply → verify.
 
 Use ONLY Python — PowerShell handles Cyrillic poorly.
 
-**Quick check:** `python .kilo/scripts/guard_encoding.py --vault`
+**Quick check:** `python pipelines/common/guard_encoding.py --vault`
 
 Three types of corruption:
 1. **UTF-8 decode error** — the file does not read as UTF-8 (rare)

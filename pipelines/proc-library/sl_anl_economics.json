@@ -1,0 +1,17 @@
+{
+  "SL_ANL-01-01-01": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-01-01-02": {"hours": 3.0, "criticality": "medium"},
+  "SL_ANL-01-01-03": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-01-01-04": {"hours": 0.25, "criticality": "low"},
+  "SL_ANL-02-01-01": {"hours": 3.0, "criticality": "medium"},
+  "SL_ANL-02-01-02": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-02-01-03": {"hours": 0.25, "criticality": "low"},
+  "SL_ANL-03-01-01": {"hours": 3.0, "criticality": "high"},
+  "SL_ANL-03-01-02": {"hours": 4.0, "criticality": "high"},
+  "SL_ANL-03-01-03": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-03-01-04": {"hours": 0.25, "criticality": "low"},
+  "SL_ANL-04-01-01": {"hours": 4.0, "criticality": "medium"},
+  "SL_ANL-04-01-02": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-04-02-01": {"hours": 2.0, "criticality": "medium"},
+  "SL_ANL-04-02-02": {"hours": 2.0, "criticality": "high"}
+}

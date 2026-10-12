@@ -17,9 +17,9 @@ Two-layer readiness assessment for the book articles in `Книга/01_Стат�
 ## Layer 1 — deterministic screen
 
 ```bash
-python .kilo/scripts/article_readiness.py            # full vault → .kilo/reports/article-readiness.md
-python .kilo/scripts/article_readiness.py --out <path>
-python .kilo/scripts/article_readiness.py --json .kilo/reports/article-readiness.json
+python pipelines/obsidian-to-site/article_readiness.py            # full vault → .kilo/reports/article-readiness.md
+python pipelines/obsidian-to-site/article_readiness.py --out <path>
+python pipelines/obsidian-to-site/article_readiness.py --json .kilo/reports/article-readiness.json
 ```
 
 Read the report with the Read tool (do not rely on console output — Cyrillic in

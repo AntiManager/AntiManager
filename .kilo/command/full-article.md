@@ -5,10 +5,10 @@ Migrate the full text of one article. `$1` = article number or slug (e.g. `19`).
 
 Follow the `content-publisher` skill (full-text process). Atomic recipe:
 
-1. **Vault Layer 2 first.** Run `python .kilo/scripts/article_readiness.py`, read the
+1. **Vault Layer 2 first.** Run `python pipelines/obsidian-to-site/article_readiness.py`, read the
    report, and apply the `article-readiness` skill checklist until the article is
    READY. Guard encoding before and after every vault edit.
-2. **Convert.** `python .kilo/scripts/md_to_partial.py "<vault .md>" site/src/content/full/XX-slug.html`
+2. **Convert.** `python pipelines/obsidian-to-site/md_to_partial.py "<vault .md>" site/src/content/full/XX-slug.html`
    (slug from `site/src/data/weapons.json`). The site has no mermaid runtime —
    convert ```mermaid fences to lists/tables in the partial.
 3. **Landing.** Replace the `Тезисный отрывок` block with `{{read_more}}`. Keep the

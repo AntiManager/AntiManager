@@ -1,0 +1,45 @@
+{
+  "ORG-01-01-01": {"hours": 4, "criticality": "high"},
+  "ORG-01-01-02": {"hours": 2, "criticality": "high"},
+  "ORG-01-01-03": {"hours": 1, "criticality": "medium"},
+  "ORG-01-01-04": {"hours": 2, "criticality": "medium"},
+  "ORG-01-01-05": {"hours": 0.5, "criticality": "low"},
+  "ORG-01-01-06": {"hours": 0.5, "criticality": "low"},
+
+  "ORG-01-02-01": {"hours": 8, "criticality": "high"},
+  "ORG-01-02-02": {"hours": 4, "criticality": "high"},
+  "ORG-01-02-03": {"hours": 2, "criticality": "high"},
+  "ORG-01-02-04": {"hours": 0.5, "criticality": "low"},
+  "ORG-01-02-05": {"hours": 0.5, "criticality": "low"},
+
+  "ORG-01-03-01": {"hours": 4, "criticality": "medium"},
+  "ORG-01-03-02": {"hours": 4, "criticality": "high"},
+  "ORG-01-03-03": {"hours": 2, "criticality": "medium"},
+  "ORG-01-03-04": {"hours": 2, "criticality": "high"},
+  "ORG-01-03-05": {"hours": 0.5, "criticality": "low"},
+  "ORG-01-03-06": {"hours": 0.5, "criticality": "low"},
+  "ORG-01-03-07": {"hours": 0.5, "criticality": "low"},
+
+  "ORG-01-04-01": {"hours": 4, "criticality": "high"},
+  "ORG-01-04-02": {"hours": 4, "criticality": "medium"},
+  "ORG-01-04-03": {"hours": 2, "criticality": "high"},
+  "ORG-01-04-04": {"hours": 2, "criticality": "medium"},
+  "ORG-01-04-05": {"hours": 2, "criticality": "high"},
+  "ORG-01-04-06": {"hours": 0.5, "criticality": "low"},
+  "ORG-01-04-07": {"hours": 0.5, "criticality": "low"},
+
+  "ORG-02-01-01": {"hours": 2, "criticality": "medium"},
+  "ORG-02-01-02": {"hours": 3, "criticality": "high"},
+  "ORG-02-01-03": {"hours": 1, "criticality": "medium"},
+  "ORG-02-01-04": {"hours": 1, "criticality": "high"},
+  "ORG-02-01-05": {"hours": 3, "criticality": "high"},
+  "ORG-02-01-06": {"hours": 2, "criticality": "medium"},
+  "ORG-02-01-07": {"hours": 0.5, "criticality": "low"},
+  "ORG-02-01-08": {"hours": 0.5, "criticality": "low"},
+
+  "ORG-02-02-01": {"hours": 1, "criticality": "high"},
+  "ORG-02-02-02": {"hours": 1, "criticality": "high"},
+  "ORG-02-02-03": {"hours": 1, "criticality": "medium"},
+  "ORG-02-02-04": {"hours": 0.5, "criticality": "low"},
+  "ORG-02-02-05": {"hours": 0.5, "criticality": "low"}
+}

@@ -1,0 +1,31 @@
+{
+  "_what": "Frozen baseline of the unified process library at subprocess-level v1 (T1.5).",
+  "_frozen": "2026-10-11",
+  "_source": "Personal Vault/Библиотека процессов/library (20 group files + INDEX.md)",
+  "_graph_signature_sha256": "a506b2f5a637e7311a655c59f33499a690b8866733fcbc36caf4e88b26bf3a6d",
+  "counts": {
+    "groups": 20,
+    "processes": 79,
+    "subprocesses": 238,
+    "operations": 995,
+    "nodes_in_signature": 1332,
+    "edges_in_signature": 0
+  },
+  "gate": {
+    "errors_total": 4823,
+    "errors_by_level": {"OPERATION": 4823},
+    "error_shapes": {"DANGLING_io_§4.2": 3844, "MISSING_GOAL": 979},
+    "warnings_total": 3848,
+    "warnings_by_level": {"OPERATION": 3848},
+    "subprocess_skeleton": "clean: 0 errors at LIBRARY/GROUP/PROCESS/SUBPROCESS; goals present; APQC 79/79; §4.7/§4.9/§4.10 = 0; 0 DUPLICATE CODE",
+    "identity_tokens": 0,
+    "identity_token_info_items": 37
+  },
+  "deferred_to_phase2_or_later": {
+    "T2.2": "operation goals (979), operation free-text/dangling I/O (3844 err + 3844 warn), 4 possible-duplicate ops (§7.9)",
+    "T2.3": "flow graph (links = 0)",
+    "T2.4": "operation characteristics + `decomposition` (T0.6 stub policy)",
+    "T4": "client-regulation cross-refs (REG-<n>, `../reglaments/*`, `И Хранение`, `И 2.6-01`, `ПС ПП`) + `1С` tool refs",
+    "excluded": "SLA + ENG-04 kept OUT of the SME template (user decision, 2026-10-11)"
+  }
+}

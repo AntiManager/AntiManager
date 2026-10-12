@@ -1,0 +1,6 @@
+# Generated / regenerable artifacts — do not version.
+__pycache__/
+*.pyc
+report.json
+rollup_*.json
+token_scan*.json

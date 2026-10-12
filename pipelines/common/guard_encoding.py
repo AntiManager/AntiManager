@@ -24,7 +24,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-# Project root is derived from this script's location: <root>/.kilo/scripts/guard_encoding.py
+# Project root is derived from this script's location: <root>/pipelines/common/guard_encoding.py
 PROJECT = str(Path(__file__).resolve().parents[2])
 # Vault path is environment-specific; set VAULT_DIR to enable --vault.
 VAULT = os.environ.get('VAULT_DIR')

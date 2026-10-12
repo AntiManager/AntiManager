@@ -18,9 +18,9 @@ description: Writing and editing the book — structure, tags, encoding, links b
 - All .md files must be in **UTF-8 without BOM**
 - Guard Encoding — mandatory before and after any edit:
 
-1. Before editing: `python .kilo/scripts/guard_encoding.py --backup <file>`
-2. After editing: `python .kilo/scripts/guard_encoding.py <file>`
-3. On `CORRUPT` — roll back from the backup; fix only via `python .kilo/scripts/guard_encoding.py --fix <file>` (ftfy)
+1. Before editing: `python pipelines/common/guard_encoding.py --backup <file>`
+2. After editing: `python pipelines/common/guard_encoding.py <file>`
+3. On `CORRUPT` — roll back from the backup; fix only via `python pipelines/common/guard_encoding.py --fix <file>` (ftfy)
 
 - Batch check: `/fix-encoding`
 

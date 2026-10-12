@@ -108,19 +108,19 @@ SEO Phase 2 — done (`410d706`): all 23 weapons `published`, fabricated landing
 - Article 01 site: `build.js` manifesto rendered from structured
   `manifestoValues/manifestoPrinciples/manifestoClosing` (drives `/manifesto/` and the
   landing teaser — no drift).
-- `article-readiness` skill + `/article-readiness` + `.kilo/scripts/article_readiness.py`
-  (report in gitignored `.kilo/reports/`); reusable `.kilo/scripts/md_to_partial.py`.
+- `article-readiness` skill + `/article-readiness` + `pipelines/obsidian-to-site/article_readiness.py`
+  (report in gitignored `.kilo/reports/`); reusable `pipelines/obsidian-to-site/md_to_partial.py`.
 - Landing lite tables and `weapons.json` subtitles are canon-checked against the vault.
 - `/check-site` runs the full suite (`npm test`); `vault-indexer` stale `.gigacode/`
   exclusion removed.
 - Memory compacted 2026-10-11: history → `.memory/archive/` (`progress-history-2026.md`,
-  `active_context-2026-09.md`). `.kilo/process-engine/` is git-excluded
+  `active_context-2026-09.md`). `pipelines/proc-library/` is git-excluded
   (`.git/info/exclude`) — force-add only to commit it deliberately.
 
 ## Process-library refactor (plan 1791721561689) — parallel track
 - **Phase 1 COMPLETE — "subprocess-level v1" FROZEN (T1.5).** Unified SME template
   in the personal vault `Библиотека процессов\`: `specs/T0.1…T0.8` + `_template-stub.md`;
-  engine (parser + validator + CLI + tools) at `.kilo/process-engine/`. Log:
+  engine (parser + validator + CLI + tools) at `pipelines/proc-library/`. Log:
   `.kilo/plans/1791721561689-…-execution-log.md`; plan §11/§12.
 - T1.1 split `Proc_lib.md` → vault `library\` (T1.6 later added `INF` + the 7 `SL_*`);
   T1.2 hierarchy + goals; T1.3 APQC crosswalk 79/79; T1.4 seams; T1.6 `INF`+`LOG`.
@@ -129,15 +129,15 @@ SEO Phase 2 — done (`410d706`): all 23 weapons `published`, fabricated landing
 - **T1.5 freeze gate:** 0 errors at LIBRARY/GROUP/PROCESS/SUBPROCESS (goals present,
   APQC 79/79, §4.7/§4.9/§4.10 0, 0 dup codes); all 4823 errors + 3848 warnings are
   OPERATION-level (→ T2.2); **client-identity token scan 0** (new `token_scan.py`;
-  fixed QUAL-06-02 «500 тыс. руб.»). Record: `.kilo/process-engine/freeze_v1_subprocess.json`
+  fixed QUAL-06-02 «500 тыс. руб.»). Record: `pipelines/proc-library/freeze_v1_subprocess.json`
   (signature `sha256 a506b2f5…`). Suite **15/15**. `SLA` + `ENG-04` stay OUT of the
   template (holding-grade; user decision — supersedes T0.1 D1 for these two).
 - **Next:** Phase 2 (operations + flow graph), pilot **Planning** (`PLAN` + `SL_PLAN`).
-- **Resume:** engine `.kilo/process-engine/engine.py`; validate
-  `python .kilo/process-engine/engine.py "<…>\Библиотека процессов"` (vocab v0.1/44);
-  token scan `python .kilo/process-engine/token_scan.py "<…>\Библиотека процессов\library"`;
+- **Resume:** engine `pipelines/proc-library/engine.py`; validate
+  `python pipelines/proc-library/engine.py "<…>\Библиотека процессов"` (vocab v0.1/44);
+  token scan `python pipelines/proc-library/token_scan.py "<…>\Библиотека процессов\library"`;
   tests `python -m pytest -q -p no:cacheprovider`.
-- Note: `.kilo/process-engine/` is git-excluded; the `silicon-goal` worktree carries a
+- Note: `pipelines/proc-library/` is git-excluded; the `silicon-goal` worktree carries a
   mirror copy — keep them in sync.
 
 ## Hot rules / deferred
