@@ -24,9 +24,11 @@ VOCAB = {
     "parents": {},
 }
 
-VAULT = os.environ.get(
-    "PROC_LIB_VAULT",
-    r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов")
+# Set PROC_LIB_VAULT to the "Библиотека процессов" folder to run vault-backed
+# tests. Without it, the vendored specs/ are validated in-repo and library tests skip.
+VAULT = os.environ.get("PROC_LIB_VAULT", "")
+VAULT_LIB = os.path.join(VAULT, "library")
+VAULT_SPECS = os.path.join(VAULT, "specs") if VAULT else os.path.join(HERE, "specs")
 
 
 def parse(text, name="lib.md"):
@@ -271,19 +273,19 @@ def test_operation_economics_valid_values_accepted():
     assert not any(e.startswith("BAD ") for e in errs), errs
 
 
-@pytest.mark.skipif(not os.path.exists(os.path.join(VAULT, "specs", "_template-stub.md")),
+@pytest.mark.skipif(not os.path.exists(os.path.join(VAULT_SPECS, "_template-stub.md")),
                     reason="vault not present")
 def test_vault_template_stub_valid():
-    stub = os.path.join(VAULT, "specs", "_template-stub.md")
+    stub = os.path.join(VAULT_SPECS, "_template-stub.md")
     lib = engine.parse_paths(stub, include_all=True)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     assert vocab is not None
     errs, _ = engine.validate(lib, vocab)
     assert errs == [], errs
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_subprocess_freeze_errors_are_operation_only():
     """T1.5 freeze: every validator error must be OPERATION-level.
@@ -292,9 +294,9 @@ def test_vault_subprocess_freeze_errors_are_operation_only():
     goals present, APQC present, no hierarchy/duplicate errors. Operation-level
     free-text I/O and goals are Phase-2 (T2.2) and are the ONLY allowed errors.
     """
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, _ = engine.validate(lib, vocab)
 
     # every error is attributable to an OPERATION node
@@ -315,7 +317,7 @@ def test_vault_subprocess_freeze_errors_are_operation_only():
     assert not any("DUPLICATE CODE" in e for e in errs)
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_planning_pilot_has_no_dangling():
     """T2.3/T2.4: the Planning pilot (PLAN + SL_PLAN) is fully clean.
@@ -325,9 +327,9 @@ def test_vault_planning_pilot_has_no_dangling():
     duplicates): the ABC/XYZ §7.9 duplicate was resolved in T2.4 Decision 5.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
     scoped_errs = engine_filter.scoped(errs, ["PLAN-", "SL_PLAN-"])
     assert scoped_errs == [], scoped_errs
@@ -335,14 +337,14 @@ def test_vault_planning_pilot_has_no_dangling():
     assert scoped_warns == [], scoped_warns
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_planning_boundary_ops_are_sensor_or_actor():
     """T2.3: the pilot perimeter is explicit sensors/actors.
 
     Sensors have no inputs and >=1 output; actors have >=1 input and no output.
     """
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     sensors = ("PLAN-01-01-01", "SL_PLAN-02-01-01",
                "PLAN-03-01-05", "SL_PLAN-02-01-04")
     actors = ("PLAN-02-03-04", "PLAN-03-02-06", "PLAN-03-03-05")
@@ -354,11 +356,11 @@ def test_vault_planning_boundary_ops_are_sensor_or_actor():
         assert n is not None and n.io_in and not n.io_out, c
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_planning_pilot_has_full_characteristics():
     """T2.4: every pilot operation carries the full T0.5 economics block."""
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     pilot = [n for n in engine._iter_nodes(lib)
              if n.level == "OPERATION"
              and (n.code.startswith("PLAN-") or n.code.startswith("SL_PLAN-"))]
@@ -374,11 +376,11 @@ def test_vault_planning_pilot_has_full_characteristics():
         assert engine.COST_RE.match(n.attrs["Стоимость"]), n.code
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_planning_rollup_converges_on_sample():
     """T2.4: reference roll-up on subprocess PLAN-01-01 (T0.5 Decision 2)."""
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     ops = [lib.by_code[f"PLAN-01-01-0{i}"] for i in range(1, 6)]
     executions_per_year = {"shift": 3 * 365, "day": 365, "week": 52,
                            "month": 12, "quarter": 4, "year": 1}
@@ -401,7 +403,7 @@ def test_vault_planning_rollup_converges_on_sample():
     assert criticality.attrs["Критичность"] == "high"
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_has_no_client_identity_tokens():
     """T1.5 freeze: zero client-identity tokens (T0.6).
@@ -410,18 +412,18 @@ def test_vault_has_no_client_identity_tokens():
     names. This test would have caught QUAL-06-02 '500 тыс. руб.'.
     """
     import token_scan
-    res = token_scan.scan(os.path.join(VAULT, "library"))
+    res = token_scan.scan(VAULT_LIB)
     assert res["identity"] == [], res["identity"]
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_apqc_crosswalk_covers_every_process():
     # T1.3: mapping and library must not drift; every PROCESS carries the attr,
     # and every mapped code must exist in the APQC L3 catalog fixture.
     mapping = json.load(open(os.path.join(HERE, "apqc_mapping.json"),
                              encoding="utf-8"))["processes"]
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     procs = {n.code for n in engine._iter_nodes(lib) if n.level == "PROCESS"}
     assert procs == set(mapping), procs ^ set(mapping)
     for n in engine._iter_nodes(lib):
@@ -451,11 +453,11 @@ def test_rollup_executions_and_num():
     assert rollup.num("300 \u0440\u0443\u0431") == 300.0
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_planning_rollup_matrix_is_additive_and_reproducible():
     """T2.5: the pilot matrix is finite, additive and identical on re-run."""
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     rows = rollup.rollup_matrix(lib, scope=["PLAN", "SL_PLAN"])
     by = {r["code"]: r for r in rows}
 
@@ -490,7 +492,7 @@ def test_vault_planning_rollup_matrix_is_additive_and_reproducible():
     assert rollup.rollup_matrix(lib, scope=["PLAN", "SL_PLAN"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mfg_process_01_is_typed_and_goaled():
     """T2.6: production-core tranche MFG-01 converted to typed OPERATION nodes.
@@ -501,9 +503,9 @@ def test_vault_mfg_process_01_is_typed_and_goaled():
     and is deliberately not asserted here.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("MFG-01-01", "MFG-01-02", "MFG-01-03")
@@ -522,7 +524,7 @@ def test_vault_mfg_process_01_is_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mfg_processes_02_to_05_are_typed_and_goaled():
     """T2.6: production-core tranche 2 — MFG-02..MFG-05 converted.
@@ -533,9 +535,9 @@ def test_vault_mfg_processes_02_to_05_are_typed_and_goaled():
     BAD / TYPE-CARDINALITY in the scope (dangling §4.2 is the flow-graph step).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("MFG-02-01", "MFG-02-02", "MFG-02-03", "MFG-02-04",
@@ -559,7 +561,7 @@ def test_vault_mfg_processes_02_to_05_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mnt_flow_graph_is_closed():
     """T2.6 sub-step 3: the equipment-maintenance flow graph closes every I/O.
@@ -573,9 +575,9 @@ def test_vault_mnt_flow_graph_is_closed():
     op is a sensor (no inputs) or an actor (no outputs).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["MNT-"])
@@ -595,7 +597,7 @@ def test_vault_mnt_flow_graph_is_closed():
         assert op.io_out == [] and op.io_in, code
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mfg_flow_graph_is_closed():
     """T2.6 sub-step 3: the production-core flow graph closes every I/O.
@@ -605,9 +607,9 @@ def test_vault_mfg_flow_graph_is_closed():
     gate: no DANGLING §4.2 and no CYCLE WITHOUT EXIT §4.5 in the MFG scope.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["MFG"])
@@ -619,7 +621,7 @@ def test_vault_mfg_flow_graph_is_closed():
         engine_filter.scoped(warns, ["MFG"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mfg_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 63 MFG ops + domain roll-up.
@@ -630,9 +632,9 @@ def test_vault_mfg_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -672,7 +674,7 @@ def test_vault_mfg_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["MFG"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_log_process_01_is_typed_and_goaled():
     """T2.6: logistics replication tranche SL_LOG-01 converted to typed nodes.
@@ -684,9 +686,9 @@ def test_vault_sl_log_process_01_is_typed_and_goaled():
     scope. Dangling (§4.2) is closed by `test_vault_sl_log_flow_graph_is_closed`.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_LOG-01-01", "SL_LOG-01-02", "SL_LOG-01-03",
@@ -708,7 +710,7 @@ def test_vault_sl_log_process_01_is_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_log_processes_02_to_04_are_typed_and_goaled():
     """T2.6: logistics replication tranche 2 — SL_LOG-02..04 converted.
@@ -720,9 +722,9 @@ def test_vault_sl_log_processes_02_to_04_are_typed_and_goaled():
     BAD / TYPE-CARDINALITY in the scope (dangling §4.2 is the flow-graph step).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_LOG-02-01", "SL_LOG-02-02", "SL_LOG-02-03", "SL_LOG-02-04",
@@ -744,7 +746,7 @@ def test_vault_sl_log_processes_02_to_04_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_log_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics flow graph closes every I/O.
@@ -756,9 +758,9 @@ def test_vault_sl_log_flow_graph_is_closed():
     §4.5 in the SL_LOG scope, and no warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_LOG"])
@@ -770,7 +772,7 @@ def test_vault_sl_log_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_LOG"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_log_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 78 SL_LOG ops + domain roll-up.
@@ -782,9 +784,9 @@ def test_vault_sl_log_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -824,7 +826,7 @@ def test_vault_sl_log_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_LOG"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_qual_processes_are_typed_and_goaled():
     """T2.6: logistics-quality replication — all 5 processes converted.
@@ -837,9 +839,9 @@ def test_vault_sl_qual_processes_are_typed_and_goaled():
     closed by `test_vault_sl_qual_flow_graph_is_closed`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_QUAL-01-01", "SL_QUAL-02-01", "SL_QUAL-02-02", "SL_QUAL-03-01",
@@ -861,7 +863,7 @@ def test_vault_sl_qual_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_qual_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics-quality flow graph closes every I/O.
@@ -873,9 +875,9 @@ def test_vault_sl_qual_flow_graph_is_closed():
     warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_QUAL"])
@@ -887,7 +889,7 @@ def test_vault_sl_qual_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_QUAL"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_qual_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 26 SL_QUAL ops + domain roll-up.
@@ -899,9 +901,9 @@ def test_vault_sl_qual_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -942,7 +944,7 @@ def test_vault_sl_qual_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_QUAL"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_mnt_processes_are_typed_and_goaled():
     """T2.6: logistics-fleet-maintenance replication — all 3 processes converted.
@@ -955,9 +957,9 @@ def test_vault_sl_mnt_processes_are_typed_and_goaled():
     `test_vault_sl_mnt_flow_graph_is_closed`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_MNT-01-01", "SL_MNT-01-02", "SL_MNT-02-01", "SL_MNT-02-02",
@@ -979,7 +981,7 @@ def test_vault_sl_mnt_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_mnt_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics-fleet flow graph closes every I/O.
@@ -990,9 +992,9 @@ def test_vault_sl_mnt_flow_graph_is_closed():
     §4.2 and no CYCLE WITHOUT EXIT §4.5 in the SL_MNT scope, and no warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_MNT"])
@@ -1004,7 +1006,7 @@ def test_vault_sl_mnt_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_MNT"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_mnt_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 12 SL_MNT ops + domain roll-up.
@@ -1016,9 +1018,9 @@ def test_vault_sl_mnt_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1058,7 +1060,7 @@ def test_vault_sl_mnt_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_MNT"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_hrp_processes_are_typed_and_goaled():
     """T2.6: logistics-personnel replication — all 3 processes converted.
@@ -1071,9 +1073,9 @@ def test_vault_sl_hrp_processes_are_typed_and_goaled():
     `test_vault_sl_hrp_flow_graph_is_closed`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_HRP-01-01", "SL_HRP-01-02", "SL_HRP-02-01", "SL_HRP-02-02",
@@ -1095,7 +1097,7 @@ def test_vault_sl_hrp_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_hrp_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics-personnel flow graph closes every I/O.
@@ -1107,9 +1109,9 @@ def test_vault_sl_hrp_flow_graph_is_closed():
     §4.2 and no CYCLE WITHOUT EXIT §4.5 in the SL_HRP scope, and no warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_HRP"])
@@ -1121,7 +1123,7 @@ def test_vault_sl_hrp_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_HRP"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_hrp_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 17 SL_HRP ops + domain roll-up.
@@ -1133,9 +1135,9 @@ def test_vault_sl_hrp_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1175,7 +1177,7 @@ def test_vault_sl_hrp_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_HRP"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_emg_processes_are_typed_and_goaled():
     """T2.6: logistics-emergency replication — all 3 processes converted.
@@ -1188,9 +1190,9 @@ def test_vault_sl_emg_processes_are_typed_and_goaled():
     `test_vault_sl_emg_flow_graph_is_closed`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_EMG-01-01", "SL_EMG-01-02", "SL_EMG-02-01", "SL_EMG-02-02",
@@ -1212,7 +1214,7 @@ def test_vault_sl_emg_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_emg_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics-emergency flow graph closes every I/O.
@@ -1224,9 +1226,9 @@ def test_vault_sl_emg_flow_graph_is_closed():
     §4.5 in the SL_EMG scope, and no warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_EMG"])
@@ -1238,7 +1240,7 @@ def test_vault_sl_emg_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_EMG"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_emg_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 16 SL_EMG ops + domain roll-up.
@@ -1250,9 +1252,9 @@ def test_vault_sl_emg_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1292,7 +1294,7 @@ def test_vault_sl_emg_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_EMG"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_anl_processes_are_typed_and_goaled():
     """T2.6: logistics-analytics replication — all 4 processes converted.
@@ -1305,9 +1307,9 @@ def test_vault_sl_anl_processes_are_typed_and_goaled():
     `test_vault_sl_anl_flow_graph_is_closed`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("SL_ANL-01-01", "SL_ANL-02-01", "SL_ANL-03-01", "SL_ANL-04-01",
@@ -1329,7 +1331,7 @@ def test_vault_sl_anl_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_anl_flow_graph_is_closed():
     """T2.6 sub-step 3: the logistics-analytics flow graph closes every I/O.
@@ -1342,9 +1344,9 @@ def test_vault_sl_anl_flow_graph_is_closed():
     SL_ANL scope, and no warnings.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["SL_ANL"])
@@ -1356,7 +1358,7 @@ def test_vault_sl_anl_flow_graph_is_closed():
         engine_filter.scoped(warns, ["SL_ANL"])
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_sl_anl_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 15 SL_ANL ops + domain roll-up.
@@ -1368,9 +1370,9 @@ def test_vault_sl_anl_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1410,7 +1412,7 @@ def test_vault_sl_anl_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["SL_ANL"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_process_01_is_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 1 (INF-01).
@@ -1422,9 +1424,9 @@ def test_vault_inf_process_01_is_typed_and_goaled():
     (dangling §4.2 is closed by the later flow-graph pass).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-01-01", "INF-01-02", "INF-01-03", "INF-01-04", "INF-01-05")
@@ -1445,7 +1447,7 @@ def test_vault_inf_process_01_is_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_processes_02_to_03_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 2 (INF-02, INF-03).
@@ -1458,9 +1460,9 @@ def test_vault_inf_processes_02_to_03_are_typed_and_goaled():
     The count below includes the flow-pass boundary op hosted in INF-02-01.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-02-01", "INF-02-02", "INF-02-03", "INF-02-04", "INF-02-05",
@@ -1482,7 +1484,7 @@ def test_vault_inf_processes_02_to_03_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_processes_04_to_05_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 3 (INF-04, INF-05).
@@ -1495,9 +1497,9 @@ def test_vault_inf_processes_04_to_05_are_typed_and_goaled():
     closed by the later flow-graph pass).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-04-01", "INF-04-02", "INF-04-03", "INF-04-04", "INF-04-05",
@@ -1519,7 +1521,7 @@ def test_vault_inf_processes_04_to_05_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_processes_06_to_07_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 4 (INF-06, INF-07).
@@ -1532,9 +1534,9 @@ def test_vault_inf_processes_06_to_07_are_typed_and_goaled():
     closed by the later flow-graph pass).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-06-01", "INF-06-02", "INF-06-03", "INF-06-04",
@@ -1556,6 +1558,8 @@ def test_vault_inf_processes_06_to_07_are_typed_and_goaled():
     assert bad == [], bad
 
 
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
+                    reason="vault not present")
 def test_vault_inf_processes_08_to_09_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 5 (INF-08, INF-09).
 
@@ -1569,9 +1573,9 @@ def test_vault_inf_processes_08_to_09_are_typed_and_goaled():
     INF-08-02, INF-08-04 and INF-09-03.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-08-01", "INF-08-02", "INF-08-03", "INF-08-04",
@@ -1593,6 +1597,8 @@ def test_vault_inf_processes_08_to_09_are_typed_and_goaled():
     assert bad == [], bad
 
 
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
+                    reason="vault not present")
 def test_vault_inf_processes_10_to_11_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 6 (INF-10, INF-11).
 
@@ -1604,9 +1610,9 @@ def test_vault_inf_processes_10_to_11_are_typed_and_goaled():
     The count below includes the flow-pass boundary op hosted in INF-10-01.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-10-01", "INF-10-02", "INF-10-03",
@@ -1628,6 +1634,8 @@ def test_vault_inf_processes_10_to_11_are_typed_and_goaled():
     assert bad == [], bad
 
 
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
+                    reason="vault not present")
 def test_vault_inf_processes_12_to_13_are_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 7 (INF-12, INF-13).
 
@@ -1641,9 +1649,9 @@ def test_vault_inf_processes_12_to_13_are_typed_and_goaled():
     and INF-13-03.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-12-01", "INF-12-02", "INF-12-03", "INF-12-04",
@@ -1665,7 +1673,7 @@ def test_vault_inf_processes_12_to_13_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_flow_graph_is_closed():
     """T2.6 sub-step 3: the infrastructure flow graph closes every I/O.
@@ -1680,9 +1688,9 @@ def test_vault_inf_flow_graph_is_closed():
     (no inputs) or an actor (no outputs).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["INF-"])
@@ -1703,7 +1711,7 @@ def test_vault_inf_flow_graph_is_closed():
         assert op.io_out == [] and op.io_in, code
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_process_14_is_typed_and_goaled():
     """T2.6: infrastructure replication — tranche 8 (INF-14, final sub-step-2).
@@ -1717,9 +1725,9 @@ def test_vault_inf_process_14_is_typed_and_goaled():
     ops hosted in INF-14-01, INF-14-02 and INF-14-04.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("INF-14-01", "INF-14-02", "INF-14-03", "INF-14-04")
@@ -1740,7 +1748,7 @@ def test_vault_inf_process_14_is_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_inf_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 283 INF ops + domain roll-up.
@@ -1752,9 +1760,9 @@ def test_vault_inf_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1799,7 +1807,7 @@ def test_vault_inf_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["INF-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mnt_processes_01_to_02_are_typed_and_goaled():
     """T2.6: equipment-maintenance replication — tranche 1 (MNT-01, MNT-02).
@@ -1813,9 +1821,9 @@ def test_vault_mnt_processes_01_to_02_are_typed_and_goaled():
     ops hosted in MNT-01-03 / MNT-01-04 and the two hosted in MNT-02-01 / MNT-02-03.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("MNT-01-01", "MNT-01-02", "MNT-01-03", "MNT-01-04", "MNT-01-05",
@@ -1837,7 +1845,7 @@ def test_vault_mnt_processes_01_to_02_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mnt_processes_03_to_07_are_typed_and_goaled():
     """T2.6: equipment-maintenance replication — tranche 2 (MNT-03..MNT-07).
@@ -1852,9 +1860,9 @@ def test_vault_mnt_processes_03_to_07_are_typed_and_goaled():
     later flow-graph pass).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("MNT-03-01", "MNT-03-02", "MNT-03-03", "MNT-03-04", "MNT-03-05",
@@ -1878,7 +1886,7 @@ def test_vault_mnt_processes_03_to_07_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_mnt_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 80 MNT ops + domain roll-up.
@@ -1890,9 +1898,9 @@ def test_vault_mnt_economics_complete_and_rolls_up():
     cost-identical (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -1936,7 +1944,7 @@ def test_vault_mnt_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["MNT-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_eng_process_is_typed_and_goaled():
     """T2.6: technology-preparation replication — sub-step 2 (ENG-01-01..04).
@@ -1949,9 +1957,9 @@ def test_vault_eng_process_is_typed_and_goaled():
     ENG-01-01 (two), ENG-01-03 and ENG-01-04.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("ENG-01-01", "ENG-01-02", "ENG-01-03", "ENG-01-04")
@@ -1972,7 +1980,7 @@ def test_vault_eng_process_is_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_eng_flow_graph_is_closed():
     """T2.6 sub-step 3: the technology-preparation flow graph closes every I/O.
@@ -1986,9 +1994,9 @@ def test_vault_eng_flow_graph_is_closed():
     boundary op is a sensor (no inputs).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["ENG-"])
@@ -2012,7 +2020,7 @@ def test_vault_eng_flow_graph_is_closed():
     assert "Чертёж" in {it["raw"] for it in lib.by_code["ENG-01-01-01"].io_out}
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_eng_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 19 ENG ops + domain roll-up.
@@ -2024,9 +2032,9 @@ def test_vault_eng_economics_complete_and_rolls_up():
     cost-identical (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2067,7 +2075,7 @@ def test_vault_eng_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["ENG-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_anlz_processes_are_typed_and_goaled():
     """T2.6: production-efficiency-analysis replication — sub-step 2 (ANLZ-01-01..07).
@@ -2079,9 +2087,9 @@ def test_vault_anlz_processes_are_typed_and_goaled():
     pass). The count includes the five flow-pass boundary ops (4 sensors + 1 actor).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("ANLZ-01-01", "ANLZ-01-02", "ANLZ-01-03", "ANLZ-01-04",
@@ -2103,7 +2111,7 @@ def test_vault_anlz_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_anlz_flow_graph_is_closed():
     """T2.6 sub-step 3: the production-efficiency-analysis flow graph closes every I/O.
@@ -2116,9 +2124,9 @@ def test_vault_anlz_flow_graph_is_closed():
     ANLZ scope, and no warnings; every sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["ANLZ-"])
@@ -2147,7 +2155,7 @@ def test_vault_anlz_flow_graph_is_closed():
         assert tok in inp, (tok, inp)
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_anlz_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 37 ANLZ ops + domain roll-up.
@@ -2159,9 +2167,9 @@ def test_vault_anlz_economics_complete_and_rolls_up():
     cost-identical (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2202,7 +2210,7 @@ def test_vault_anlz_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["ANLZ-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_emg_processes_are_typed_and_goaled():
     """T2.6: unplanned-situation-management replication — sub-step 2 (EMG-01-01..03).
@@ -2214,9 +2222,9 @@ def test_vault_emg_processes_are_typed_and_goaled():
     pass). The count includes the five flow-pass boundary ops (3 sensors + 2 actors).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("EMG-01-01", "EMG-01-02", "EMG-01-03", "EMG-01-04",
@@ -2239,7 +2247,7 @@ def test_vault_emg_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_emg_flow_graph_is_closed():
     """T2.6 sub-step 3: the unplanned-situation flow graph closes every I/O.
@@ -2253,9 +2261,9 @@ def test_vault_emg_flow_graph_is_closed():
     warnings; every sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["EMG-"])
@@ -2284,7 +2292,7 @@ def test_vault_emg_flow_graph_is_closed():
         assert tok in inp, (tok, inp)
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_emg_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 39 EMG ops + domain roll-up.
@@ -2296,9 +2304,9 @@ def test_vault_emg_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2337,7 +2345,7 @@ def test_vault_emg_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["EMG-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_env_processes_are_typed_and_goaled():
     """T2.6: environmental-management replication — sub-step 2 (ENV-01..03).
@@ -2350,9 +2358,9 @@ def test_vault_env_processes_are_typed_and_goaled():
     actors).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("ENV-01-01", "ENV-01-02", "ENV-01-03",
@@ -2375,7 +2383,7 @@ def test_vault_env_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_env_flow_graph_is_closed():
     """T2.6 sub-step 3: the environmental flow graph closes every I/O.
@@ -2389,9 +2397,9 @@ def test_vault_env_flow_graph_is_closed():
     warnings; every sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["ENV-"])
@@ -2423,7 +2431,7 @@ def test_vault_env_flow_graph_is_closed():
     assert "Заявка@ВнеплановыйМониторинг" in inp, inp
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_env_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 34 ENV ops + domain roll-up.
@@ -2435,9 +2443,9 @@ def test_vault_env_economics_complete_and_rolls_up():
     cost-identical (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2476,7 +2484,7 @@ def test_vault_env_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["ENV-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_hrp_processes_are_typed_and_goaled():
     """T2.6: production-personnel replication — sub-step 2 (HRP-01..02).
@@ -2488,9 +2496,9 @@ def test_vault_hrp_processes_are_typed_and_goaled():
     pass). The count includes the six flow-pass boundary ops (3 sensors + 3 actors).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("HRP-01-01", "HRP-01-02", "HRP-01-03", "HRP-01-04",
@@ -2513,7 +2521,7 @@ def test_vault_hrp_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_hrp_flow_graph_is_closed():
     """T2.6 sub-step 3: the HRP flow graph closes every I/O.
@@ -2527,9 +2535,9 @@ def test_vault_hrp_flow_graph_is_closed():
     sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["HRP-"])
@@ -2568,7 +2576,7 @@ def test_vault_hrp_flow_graph_is_closed():
     assert "ЗаявкаНаОбучение" in inp, inp
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_hrp_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 71 HRP ops + domain roll-up.
@@ -2580,9 +2588,9 @@ def test_vault_hrp_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2621,7 +2629,7 @@ def test_vault_hrp_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["HRP-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_impr_processes_are_typed_and_goaled():
     """T2.6: continuous-improvement replication — sub-step 2 (IMPR-01..03).
@@ -2633,9 +2641,9 @@ def test_vault_impr_processes_are_typed_and_goaled():
     pass). The count includes the three flow-pass boundary ops (2 sensors + 1 actor).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("IMPR-01-01", "IMPR-01-02", "IMPR-01-03", "IMPR-01-04",
@@ -2658,7 +2666,7 @@ def test_vault_impr_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_impr_flow_graph_is_closed():
     """T2.6 sub-step 3: the IMPR flow graph closes every I/O.
@@ -2671,9 +2679,9 @@ def test_vault_impr_flow_graph_is_closed():
     IMPR scope, and no warnings; every sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["IMPR-"])
@@ -2709,7 +2717,7 @@ def test_vault_impr_flow_graph_is_closed():
     assert "Отчёт@Утверждён" in inp and "Отчёт@Качество" in inp, inp
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_impr_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 39 IMPR ops + domain roll-up.
@@ -2721,9 +2729,9 @@ def test_vault_impr_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2762,7 +2770,7 @@ def test_vault_impr_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["IMPR-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_qual_processes_are_typed_and_goaled():
     """T2.6: quality-management replication — sub-step 2 (QUAL-01..09).
@@ -2776,9 +2784,9 @@ def test_vault_qual_processes_are_typed_and_goaled():
     codes keep their tokens.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("QUAL-01-01", "QUAL-01-02", "QUAL-01-03",
@@ -2832,7 +2840,7 @@ def test_vault_qual_processes_are_typed_and_goaled():
     assert "Уведомление@НСП" in inp("QUAL-05-04-01")
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_qual_flow_graph_is_closed():
     """T2.6 sub-step 3: the QUAL flow graph closes every I/O.
@@ -2852,9 +2860,9 @@ def test_vault_qual_flow_graph_is_closed():
     warnings; every sensor has no inputs, every actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["QUAL-"])
@@ -2899,7 +2907,7 @@ def test_vault_qual_flow_graph_is_closed():
     assert "ТехнологическаяКарта" in inp("QUAL-03-03-02")
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_qual_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 172 QUAL ops + domain roll-up.
@@ -2911,9 +2919,9 @@ def test_vault_qual_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -2952,7 +2960,7 @@ def test_vault_qual_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["QUAL-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_org_processes_are_typed_and_goaled():
     """T2.6: organization-and-labour replication — sub-step 2 (ORG-01..02).
@@ -2965,9 +2973,9 @@ def test_vault_org_processes_are_typed_and_goaled():
     actors).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("ORG-01-01", "ORG-01-02", "ORG-01-03", "ORG-01-04",
@@ -2989,7 +2997,7 @@ def test_vault_org_processes_are_typed_and_goaled():
     assert bad == [], bad
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_org_flow_graph_is_closed():
     """T2.6 sub-step 3: the organization flow graph closes every I/O.
@@ -3007,9 +3015,9 @@ def test_vault_org_flow_graph_is_closed():
     no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["ORG-"])
@@ -3049,7 +3057,7 @@ def test_vault_org_flow_graph_is_closed():
     assert "Норматив@НормыВремени" in inp, inp
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_org_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 38 ORG ops + domain roll-up.
@@ -3061,9 +3069,9 @@ def test_vault_org_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)
@@ -3106,7 +3114,7 @@ def test_vault_org_economics_complete_and_rolls_up():
     assert rollup.rollup_matrix(lib, scope=["ORG-"]) == rows
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_strat_is_typed_and_goaled():
     """T2.6: strategic-planning replication — sub-step 2 (STRAT-01..03).
@@ -3118,9 +3126,9 @@ def test_vault_strat_is_typed_and_goaled():
     TYPE-CARDINALITY in the STRAT scope, and the whole domain scope is clean.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     subs = ("STRAT-01-01", "STRAT-01-02", "STRAT-01-03")
@@ -3137,7 +3145,7 @@ def test_vault_strat_is_typed_and_goaled():
     assert engine_filter.scoped(errs + warns, ["STRAT-"]) == []
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_strat_flow_graph_is_closed():
     """T2.6 sub-step 3: the strategic-planning flow graph closes every I/O.
@@ -3152,9 +3160,9 @@ def test_vault_strat_flow_graph_is_closed():
     warnings; every sensor has no inputs, the actor no outputs.
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     scoped = engine_filter.scoped(errs, ["STRAT-"])
@@ -3187,7 +3195,7 @@ def test_vault_strat_flow_graph_is_closed():
     assert "Документ@ИндивидуальныеKPI" in inp, inp
 
 
-@pytest.mark.skipif(not os.path.isdir(os.path.join(VAULT, "library")),
+@pytest.mark.skipif(not os.path.isdir(VAULT_LIB),
                     reason="vault not present")
 def test_vault_strat_economics_complete_and_rolls_up():
     """T2.6 sub-steps 4-5: full economics on all 16 STRAT ops + domain roll-up.
@@ -3199,9 +3207,9 @@ def test_vault_strat_economics_complete_and_rolls_up():
     (`Cost = Hours × REF_RATE = FTE × AnnualFund × REF_RATE`).
     """
     import engine_filter
-    lib = engine.parse_paths(os.path.join(VAULT, "library"))
+    lib = engine.parse_paths(VAULT_LIB)
     vocab = engine.load_vocabulary(
-        os.path.join(VAULT, "specs", "T0.3-entity-state-vocabulary.md"))
+        os.path.join(VAULT_SPECS, "T0.3-entity-state-vocabulary.md"))
     errs, warns = engine.validate(lib, vocab)
 
     ops = [n for n in engine._iter_nodes(lib)

@@ -18,7 +18,8 @@ Usage: python unify_library.py [--apply]
 from __future__ import annotations
 import io, os, re, shutil, sys, time
 
-LIB = r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов\library"
+VAULT = os.environ.get("PROC_LIB_VAULT", "")
+LIB = os.path.join(VAULT, "library")
 
 # --- pass 1: file-level substring substitutions -----------------------------
 SUBS = [
@@ -194,6 +195,9 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     apply = "--apply" in argv
 
+    if not VAULT or not os.path.isdir(LIB):
+        print("ERROR: set PROC_LIB_VAULT to the 'Библиотека процессов' folder")
+        return 2
     files = sorted(f for f in os.listdir(LIB) if f.endswith(".md"))
     planned, total = [], [0, 0, 0]
     changed = {}
