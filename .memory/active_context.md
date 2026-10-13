@@ -11,12 +11,12 @@ then F (closeout/INDEX). Log: `.kilo/plans/1791810263662-…-execution-log.md`.
   `author_*.py` incl. `author_event_grid.py`, `engine.py`); vault path env-driven
   (`PROC_LIB_VAULT`).
 
-## Next session (deferred by user, 2026-10-13)
-(1) `/review uncommitted` on Phase D → fix findings — **DONE** (session 6: F1–F6 fixed;
-T4.3 mirror `4167 043A`; pytest 115). Remaining: (2) cleanup + optimization pass over
-`.kilo/plans/` + harness; (3) commit + push (GitHub + GitVerse) — Phase D diff is still
-uncommitted (registry + T4.0 + new `author_event_grid.py` + `test_author_event_grid.py`
-+ updated T4.3). Then resume **Phase E** (sub-plan 05).
+## Session 6 (2026-10-13) — deferred list DONE
+(1) Phase D review fixes F1–F6 (T4.3 mirror `4167 043A`; pytest 115); (2) archived
+completed plans/reports → `.kilo/plans/archive/` (18) + `.kilo/reports/archive/` (10);
+harness map verified consistent (skills 8 / commands 10 / agents 2 / MCP 3); (3) commit
+`5085d3f` pushed to **GitHub + GitVerse**. **Next: Phase E** (sub-plan 05, conformance
+validation) — resume from the checkpoint below; do not start it in session 6.
 
 ## Next editorial (resume)
 DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция
