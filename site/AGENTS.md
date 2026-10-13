@@ -15,6 +15,7 @@ AntiManager/
     src/             # Templates, data, chapter content
     src/content/     # Topic-landing partials (XX-slug.html)
     src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
+    src/content/genome/ # «Геном завода» section partials (landing.html, role.html)
     materials/       # Downloadable assets: <slug>.pdf (generated) + <slug>/ (authored extras)
     scripts/         # render-og.js, render-pdf.js
     css/             # Stylesheets
@@ -57,6 +58,21 @@ When publishing the full text:
 3. Run `node site/build.js`, then `npm run render:pdf` to regenerate `materials/<slug>.pdf`
 4. Rebuild so the materials block picks up the PDF, then run `.\deploy.ps1`
 
+## «Геном завода» section (`/genome/`, `/genome/role/`)
+
+A consulting-service section, not an arsenal weapon. Two indexable static pages rendered by
+`build.js` from authored partials in `src/content/genome/`:
+- `landing.html` — model, comparison, the free PLAN-group sample (3 processes / 11 subprocesses
+  / 49 operations) and six document cards (05/06 link to the role page anchors).
+- `role.html` — full role documents: the КУ package (levels 1–5 descriptors, question bank,
+  cases, 360°) and the recruiter profile. The KU/profile block is generated offline from the
+  Obsidian vault by `.kilo/scripts/genome_doc_build.py` (idempotent, fills the `<!--KU:*-->` /
+  `<!--PROFILE:*-->` markers). Re-run it after vault edits, then commit the regenerated partial —
+  `node build.js` itself stays vault-independent.
+
+CTAs: commercial buttons go to `https://t.me/antimanager`; «Задать вопрос в Штаб» → `/headquarters/`.
+Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
+
 ## Commands
 
 ```bash
@@ -70,7 +86,10 @@ npm run render:og       # regenerate src/templates/og-image.png from og-image.sv
 npm run render:pdf      # render materials/<slug>.pdf from each /full/ page (run after build)
 npm run optimize:thinkers  # generate .webp siblings for thinker photos (run after adding a photo)
 .\deploy.ps1            # Deploy to VPS (reads .env)
+.\scripts\verify-deploy.ps1  # post-deploy live check: /genome/, /genome/role/, sitemap → exit non-zero on failure
 ```
+Regenerate the genome role documents after vault edits (needs the local Obsidian vault):
+`python ..\.kilo\scripts\genome_doc_build.py`
 
 Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
 writes the shared `dist/`, so parallel test files would race. Keep that flag.

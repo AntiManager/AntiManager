@@ -1,0 +1,525 @@
+<!-- 1. HERO -->
+    <section class="hero-gen">
+      <span class="weapon-status">Метод · Библиотека процессов · Консалтинг</span>
+      <h1>Геном<br><span class="accent">завода</span></h1>
+      <p class="lead">Процессы предприятия — это генотип. Регламенты, контрольные точки, приоритеты руководителей, профили должностей и требования к квалификации — то, как он проявляется. Мы описываем процессы <strong>один раз</strong> — типизированно и с машинной проверкой целостности — и <strong>выводим</strong> из них весь управленческий комплект документов.</p>
+      <div class="hero-cta">
+        <a href="#chain" class="btn btn-primary">Как это работает</a>
+        <a href="#offer" class="btn">Заказать проработку</a>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="num">20</div><div class="lab">групп процессов (замкнутый контур завода)</div></div>
+        <div class="kpi"><div class="num">995</div><div class="lab">операций с типизированными входами и выходами</div></div>
+        <div class="kpi"><div class="num">0</div><div class="lab">ошибок машинного валидатора целостности</div></div>
+        <div class="kpi"><div class="num">10</div><div class="lab">канонических ролей — единый язык документов</div></div>
+      </div>
+      <p class="block-note">Цифры — по замороженному эталонному шаблону (SME, один завод, замкнутый цикл закупка → производство → отгрузка). Контур охвачен на уровне операций.</p>
+    </section>
+
+    <!-- 2. ПРОБЛЕМА -->
+    <section class="section">
+      <h2 class="section-title">Знакомая картина</h2>
+      <p class="section-desc">Процессы описали один раз. Через год регламент противоречит инструкции, HR-документы живут отдельно от производства, а контрольные точки никто не помнит. Документы расходятся — потому что у них нет единого источника.</p>
+      <div class="weapon-grid">
+        <div class="weapon-block"><strong>Регламенты устарели.</strong> Операцию изменили, документ — нет. Формально есть, фактически — вред.</div>
+        <div class="weapon-block"><strong>Документы противоречат друг другу.</strong> Профиль должности, КТК и требования к квалификации писались разными людьми в разное время.</div>
+        <div class="weapon-block"><strong>Контроль — на ощупь.</strong> Непонятно, какие выходы действительно критические и кто их владелец.</div>
+        <div class="weapon-block"><strong>Нет трассируемости.</strong> Нельзя за минуту ответить: «кто владелец этой операции и какой документ за неё отвечает».</div>
+      </div>
+    </section>
+
+    <!-- 3. МОДЕЛЬ -->
+    <section class="section">
+      <h2 class="section-title">Модель: две спирали</h2>
+      <p class="section-desc">В основе — типизированная онтология бизнес-потоков. У каждой операции есть <strong>типизированные входы и выходы</strong> (сущность-состояние), а целостность модели проверяется машинно по аксиомам: закон сохранения потока, нет висячих элементов, нет циклов без выхода, нет дублей.</p>
+      <div class="chain">
+        <div class="chain-card">
+          <div class="k">СПИРАЛЬ А</div>
+          <div class="t">Процессы</div>
+          <div class="d">Иерархия <span class="anchor-code">LIBRARY → GROUP → PROCESS → SUBPROCESS → OPERATION</span>. Типы связей и входов/выходов, автоматическая валидация.</div>
+        </div>
+        <div class="chain-card">
+          <div class="k">СПИРАЛЬ Б</div>
+          <div class="t">Производственное ядро</div>
+          <div class="d">Ресурсы, события, маршруты, политики реакции, версионирование. Машинное исполнение той же модели.</div>
+        </div>
+        <div class="chain-card">
+          <div class="k">МОСТ И СЛОЙ</div>
+          <div class="t">Формы и операции</div>
+          <div class="d">Персонал, смены, отклонения, нормативы (OEE, батчинг). Связка «что делаем» ↔ «как исполняется».</div>
+        </div>
+      </div>
+      <p class="block-note">Валидатор моделирует процесс формально: сначала описываем связи, затем проверяем — каждая ли сущность обеспечена входом и используется ли выход. Это то, что отличает рабочую библиотеку от папки с диаграммами.</p>
+    </section>
+
+    <!-- 4. СРАВНЕНИЕ -->
+    <section class="section">
+      <h2 class="section-title">Чем отличается от известных подходов</h2>
+      <p class="section-desc">Мы не «вместо» этих инструментов — мы <strong>над</strong> ними. VSM, охват по SIPOC и кроссволк на APQC уже присутствуют внутри модели как процессы и атрибуты. Но ни один из классических инструментов не выводит из себя комплект управленческих документов.</p>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Подход</th>
+              <th>Что это по сути</th>
+              <th>Чего не хватает для цепочки документов</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>BPMN</strong></td>
+              <td>Нотация моделирования потоков (синтаксис диаграмм)</td>
+              <td>Нет типизированных сущностей и проверки полноты; диаграмма живёт отдельно от регламентов</td>
+            </tr>
+            <tr>
+              <td><strong>APQC PCF</strong></td>
+              <td>Эталонный каталог-классификатор процессов (бенчмаркинг)</td>
+              <td>Это таксономия, а не исполнимая модель; из неё нельзя вывести СОП/КТК — только сопоставлять</td>
+            </tr>
+            <tr>
+              <td><strong>SIPOC</strong></td>
+              <td>Инструмент охвата одного процесса (S-I-P-O-C)</td>
+              <td>Верхний уровень, один процесс; нет иерархии, типов состояний и валидации</td>
+            </tr>
+            <tr>
+              <td><strong>VSM</strong></td>
+              <td>Карта потока создания ценности (lean: время и потери)</td>
+              <td>Взгляд на один продукт-поток, не библиотека процессов; документы с ней не связаны</td>
+            </tr>
+            <tr class="own">
+              <td><strong>Геном завода</strong></td>
+              <td>Типизированная, иерархическая, машинно-проверяемая онтология всего контура</td>
+              <td>— Единый источник, из которого <strong>выводится</strong> весь комплект документов с трассировкой по кодам процессов</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. ЦЕПОЧКА -->
+    <section class="section" id="chain">
+      <h2 class="section-title">Цепочка документов из одного процесса</h2>
+      <p class="section-desc">Одна библиотека процессов — шесть видов документов. Каждый документ ссылается на <strong>код процесса</strong>, поэтому всё согласовано по определению и не расходится при изменениях.</p>
+
+      <p style="font-family:var(--font-mono);font-size:var(--text-sm);color:var(--color-muted);margin-bottom:var(--space-2);">Живой пример: процесс <span class="anchor-code">PLAN-01-03 · «Сменно-суточные задания»</span> (владелец — РП, контроль ежесуточно)</p>
+
+      <div class="chain">
+        <div class="chain-card"><div class="k">01 · СОП</div><div class="t">Стандартная операционная процедура</div><div class="d">Пошаговое выполнение <strong>одной операции</strong> в картинках: фото рабочего места / скриншоты системы, до 8 шагов, императив, контроль и безопасность.</div></div>
+        <div class="chain-card"><div class="k">02 · КТК</div><div class="t">Критическая контрольная точка</div><div class="d">Выпуск «Выполнение производственной программы», критерий ≥95%, периодичность — ежесуточно.</div></div>
+        <div class="chain-card"><div class="k">03 · ПРИОРИТЕТЫ</div><div class="t">Квадрант руководителя</div><div class="d">Задача и её делегирование в матрице приоритетов РП, привязка к тому же коду.</div></div>
+        <div class="chain-card"><div class="k">04 · СОБЫТИЯ</div><div class="t">Каденция и владелец</div><div class="d">Ежедневная сдача суточной отчётности, Tier-совещания, повестка и выход.</div></div>
+        <div class="chain-card"><div class="k">05 · КУ</div><div class="t">Требования к квалификации</div><div class="d">Знание системы ССЗ и диспетчеризации — целевой уровень 4, порог 3.</div></div>
+        <div class="chain-card"><div class="k">06 · ПРОФИЛЬ</div><div class="t">Профиль должности</div><div class="d">Главная цель и KPI должности, вытекающие из критических выходов.</div></div>
+      </div>
+    </section>
+
+    <!-- 6. БЕСПЛАТНЫЙ ОБРАЗЕЦ: ГРУППА PLAN -->
+    <section class="section">
+      <h2 class="section-title">Бесплатный образец: группа PLAN целиком</h2>
+      <p class="section-desc">Как доступный образец открываем <strong>одну группу процессов полностью</strong> — «PLAN. Планирование и управление производством» — до уровня операций с их артефактами, а полные документы по роли-владельцу прячем под карточки с описанием.</p>
+
+      <div class="sop-head">
+        <h4>Группа PLAN · Планирование и управление производством</h4>
+        <div class="sop-meta">
+          <span>Код: PLAN</span>
+          <span>Владелец: Руководитель производства</span>
+          <span>Уровень: plant</span>
+          <span>Процессов: 3</span>
+          <span>Подпроцессов: 11</span>
+          <span>Операций: 49</span>
+        </div>
+        <p style="font-size:var(--text-sm);margin-top:var(--space-3);"><strong>Цель группы:</strong> выполнимый оперативный план производства и материального обеспечения, обеспечивающий исполнение заказов в срок. <span class="cv">APQC 4.1.3–4.4.3</span></p>
+      </div>
+
+      <h3 class="section-title" style="font-size:var(--text-lg);margin-top:var(--space-10);">Операции группы с артефактами</h3>
+      <p class="section-desc">Каждая операция типизирована: входы/выходы (сущность-состояние), тип обработки, КПЭ, критичность, а также <strong>периодичность, трудоёмкость и стоимость</strong> — из них выводятся нормирование и экономика процессов.</p>
+
+      <div class="tree">
+        <details open>
+          <summary><span class="code">PLAN-01</span> Оперативно-календарное планирование <span class="meta">· владелец: Инженер по подготовке производства · 13 операций</span></summary>
+          <div class="proc">
+
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-01-01</span>Получение и анализ производственного заказа от внешнего заказчика</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Приём заказа от внешнего заказчика</td><td>Simple</td><td>— → ПроизводственныйЗаказ</td><td class="num">week ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Регистрация ≤1 ч</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Проверка полноты и корректности проектных данных</td><td>Joiner</td><td>ПроизводственныйЗаказ, Чертёж, ТехнологическаяКарта → ПроизводственныйЗаказ@Проверен</td><td class="num">week ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Заказов с пробелами ≤5%</td><td>high</td></tr>
+                  <tr><td>-03</td><td>Диспетчирование доступности ВРЦ</td><td>Joiner</td><td>Оборудование@Загрузка, График@ППР → Оборудование@Доступно</td><td class="num">week ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Актуальность данных</td><td>medium</td></tr>
+                  <tr><td>-04</td><td>Анализ приоритетов и сроков</td><td>Joiner</td><td>ПроизводственныйЗаказ@Проверен, ПланПроизводства, Оборудование@Доступно → РеестрЗаказов@Приоритезирован</td><td class="num">week ×1</td><td class="num">1,5 ч</td><td class="num">1 500 ₽</td><td>До конца рабочего дня</td><td>medium</td></tr>
+                  <tr><td>-05</td><td>Формирование реестра заказов</td><td>Simple</td><td>РеестрЗаказов@Приоритезирован → РеестрЗаказов</td><td class="num">week ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Полнота 100%</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-01-02</span>Расчёт потребности в ресурсах</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Сбор данных о нормах расхода</td><td>Simple</td><td>ТехнологическаяКарта → Норматив@Расхода</td><td class="num">week ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>Последняя редакция</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Получение информации об остатках сырья и материалов</td><td>Simple</td><td>Отчёт@Остатки → Измерение@Остаток</td><td class="num">week ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Актуальность на дату расчёта</td><td>low</td></tr>
+                  <tr><td>-03</td><td>Расчёт потребности по каждому виду ресурса</td><td>Joiner</td><td>РеестрЗаказов, Норматив@Расхода, Измерение@Остаток → ПотребностьВРесурсах</td><td class="num">week ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>Отклонение ≤5%</td><td>high</td></tr>
+                  <tr><td>-04</td><td>Формирование заявок на сырьё и материалы</td><td>Simple</td><td>ПотребностьВРесурсах → ЗаявкаНаЗакуп</td><td class="num">week ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>До 14:00 текущего дня</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-01-03</span>Формирование сменно-суточных заданий</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Распределение объёмов по сменам и оборудованию</td><td>Joiner</td><td>ПотребностьВРесурсах, График@РаботыОборудования, Оборудование@Доступно → СменносуточноеЗадание@Проект</td><td class="num">shift ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>Нет конфликтов загрузки</td><td>high</td></tr>
+                  <tr><td>-02</td><td>Проверка наличия оснастки и инструмента</td><td>Joiner</td><td>СменносуточноеЗадание@Проект, Оснастка@Наличие → СменносуточноеЗадание@ОбеспеченоОснасткой</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Обеспеченность ≥95%</td><td>medium</td></tr>
+                  <tr><td>-03</td><td>Согласование с начальниками смен / участков</td><td>Simple</td><td>СменносуточноеЗадание@ОбеспеченоОснасткой → СменносуточноеЗадание@Согласовано</td><td class="num">shift ×1</td><td class="num">1,5 ч</td><td class="num">1 500 ₽</td><td>Согласование ≤2 ч</td><td>medium</td></tr>
+                  <tr><td>-04</td><td>Оформление сменно-суточных заданий</td><td>Splitter</td><td>СменносуточноеЗадание@Согласовано → СменносуточноеЗадание, График@Сменности</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>≤4 ч до начала смены</td><td>high</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="code">PLAN-02</span> Диспетчеризация и учёт выполнения <span class="meta">· владелец: Инженер по подготовке производства · 16 операций</span></summary>
+          <div class="proc">
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-02-01</span>Сбор оперативных данных с рабочих центров <span class="meta">· владелец: Диспетчер (учётчик)</span></div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Приём рапортов от начальников смен / операторов</td><td>Simple</td><td>РапортПроизводства → ДанныеОперативногоУчёта@Первичные</td><td class="num">shift ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Каждый час; коды 100%</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Ввод данных в учётную систему / журнал</td><td>Simple</td><td>ДанныеОперативногоУчёта@Первичные → @Внесены</td><td class="num">shift ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Без ошибок ввода</td><td>low</td></tr>
+                  <tr><td>-03</td><td>Контроль полноты данных</td><td>Simple</td><td>@Внесены → @Полные</td><td class="num">shift ×1</td><td class="num">0,25 ч</td><td class="num">250 ₽</td><td>Охват 100%</td><td>low</td></tr>
+                  <tr><td>-04</td><td>Валидация данных (по окончании смены)</td><td>Joiner</td><td>@Полные, Отчёт@ПроизводственныеРезультаты → @Валидированы</td><td class="num">shift ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Проверка каждой смены</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-02-02</span>Анализ отклонений от плана</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Сопоставление факта с планом</td><td>Joiner</td><td>ДанныеОперативногоУчёта@Валидированы, СменносуточноеЗадание → ОтчётОбОтклонениях@Черновик</td><td class="num">shift ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Анализ ≤1 ч</td><td>high</td></tr>
+                  <tr><td>-02</td><td>Ввод данных в график производства для НСИ</td><td>Joiner</td><td>СменносуточноеЗадание@Согласовано, ГрафикПроизводства@НСИ → ГрафикПроизводства@НСИ</td><td class="num">shift ×1</td><td class="num">0,25 ч</td><td class="num">250 ₽</td><td>Актуальность графика НСИ</td><td>low</td></tr>
+                  <tr><td>-03</td><td>Анализ причин отклонений</td><td>Simple</td><td>ОтчётОбОтклонениях@Черновик → @Причины</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Причины ≥90%</td><td>medium</td></tr>
+                  <tr><td>-04</td><td>Разработка корректирующих действий</td><td>Splitter</td><td>@Причины → ОтчётОбОтклонениях, ЗаявкаНаОбучение</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>До конца смены</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-02-03</span>Формирование отчётности</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Сбор и агрегация данных за смену / сутки</td><td>Joiner</td><td>ДанныеОперативногоУчёта@Валидированы, ОтчётОбОтклонениях → Сводка</td><td class="num">day ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Полнота 100%</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Подготовка отчёта по установленной форме</td><td>Simple</td><td>Сводка → Отчёт@Черновик</td><td class="num">day ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Соответствие формату</td><td>medium</td></tr>
+                  <tr><td>-03</td><td>Проверка и утверждение отчёта</td><td>Simple</td><td>Отчёт@Черновик → Отчёт@Утверждён</td><td class="num">day ×1</td><td class="num">0,25 ч</td><td class="num">250 ₽</td><td>Проверка ≤1 ч</td><td>medium</td></tr>
+                  <tr><td>-04</td><td>Отправка отчёта во внешний контур</td><td>Simple</td><td>Отчёт@Утверждён → —</td><td class="num">day ×1</td><td class="num">0,25 ч</td><td class="num">250 ₽</td><td>До 9:00 след. дня</td><td>low</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-02-04</span>Углублённый учёт и материальный баланс</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Снятие показаний счётчиков и физический подсчёт продукции</td><td>Simple</td><td>Измерение@Прибор → ДанныеОперативногоУчёта@ПервичныйУчёт</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Охват точек 100%</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Взвешивание выпущенной продукции, полуфабрикатов и отходов</td><td>Joiner</td><td>ГотоваяПродукция, Полуфабрикат, Отходы → Измерение@Масса</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>В пределах класса точности</td><td>medium</td></tr>
+                  <tr><td>-03</td><td>Расчёт материального баланса за смену / партию</td><td>Joiner</td><td>Накладная@Приход, Измерение@Масса, Измерение@Остаток → МатериальныйБаланс</td><td class="num">shift ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Расхождения 100% с анализом</td><td>high</td></tr>
+                  <tr><td>-04</td><td>Передача уточнённых данных в систему планирования и аналитику</td><td>Splitter</td><td>МатериальныйБаланс → ДанныеОперативногоУчёта@Уточнённые, Отчёт@Аналитика</td><td class="num">shift ×1</td><td class="num">0,25 ч</td><td class="num">250 ₽</td><td>Без ошибок ввода</td><td>low</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="code">PLAN-03</span> Стратегическое управление запасами <span class="meta">· владелец: Руководитель производства · 20 операций</span></summary>
+          <div class="proc">
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-03-01</span>Нормирование запасов</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Сбор статистики потребления за период</td><td>Joiner</td><td>ДанныеОперативногоУчёта@Уточнённые, Отчёт@ДвижениеЗапасов → Сводка@Потребление</td><td class="num">quarter ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>История ≥12 мес.</td><td>medium</td></tr>
+                  <tr><td>-02</td><td>Расчёт параметров управления запасами</td><td>Multiplicator</td><td>Сводка@Потребление, УсловияПоставки → ТочкаЗаказа, СтраховойЗапас</td><td class="num">quarter ×1</td><td class="num">4 ч</td><td class="num">4 000 ₽</td><td>EOQ; статистический метод</td><td>high</td></tr>
+                  <tr><td>-03</td><td>Согласование нормативов с производством и финансами</td><td>Joiner</td><td>ТочкаЗаказа, СтраховойЗапас → НормативЗапаса@Утверждён</td><td class="num">quarter ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>Согласование ≤5 раб. дней</td><td>high</td></tr>
+                  <tr><td>-04</td><td>Внесение нормативов в учётную систему</td><td>Simple</td><td>НормативЗапаса@Утверждён → ПараметрыЗапасов</td><td class="num">quarter ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>В день утверждения</td><td>medium</td></tr>
+                  <tr><td>-05</td><td>Получение условий поставки от поставщиков (внешний контур)</td><td>Simple</td><td>— → УсловияПоставки</td><td class="num">quarter ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Не реже 1 раза/квартал</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-03-02</span>Анализ эффективности управления запасами (ABC/XYZ)</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Выгрузка данных о стоимости и оборачиваемости</td><td>Simple</td><td>Отчёт@ДвижениеЗапасов → Сводка@Оборачиваемость</td><td class="num">quarter ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Данные на конец квартала</td><td>low</td></tr>
+                  <tr><td>-02</td><td>Проведение ABC-анализа (по стоимости потребления)</td><td>Simple</td><td>Сводка@Оборачиваемость → КлассификацияABCXYZ@ABC</td><td class="num">quarter ×1</td><td class="num">4 ч</td><td class="num">4 000 ₽</td><td>Сумма долей 100%</td><td>high</td></tr>
+                  <tr><td>-03</td><td>Проведение XYZ-анализа (по стабильности потребления)</td><td>Simple</td><td>Сводка@Потребление → КлассификацияABCXYZ@XYZ</td><td class="num">quarter ×1</td><td class="num">4 ч</td><td class="num">4 000 ₽</td><td>Коэффициент вариации</td><td>high</td></tr>
+                  <tr><td>-04</td><td>Формирование матрицы ABC/XYZ и рекомендаций по управлению</td><td>Multiplicator</td><td>КлассификацияABCXYZ@ABC, @XYZ → КлассификацияABCXYZ, РекомендацияПоЗапасам</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Письменные рекомендации</td><td>high</td></tr>
+                  <tr><td>-05</td><td>Пересмотр нормативов по позициям с изменившимся классом</td><td>Simple</td><td>КлассификацияABCXYZ → ЗаявкаНаПересмотрНормативов</td><td class="num">quarter ×1</td><td class="num">2 ч</td><td class="num">2 000 ₽</td><td>Нормативы ≥80%</td><td>medium</td></tr>
+                  <tr><td>-06</td><td>Передача рекомендаций по управлению запасами в контур закупок (Phase 2)</td><td>Simple</td><td>РекомендацияПоЗапасам → —</td><td class="num">quarter ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>Передача ≤5 раб. дней</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-03-03</span>Управление запасами МТО (запасные части, инструмент)</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Формирование перечня критических запасных частей</td><td>Joiner</td><td>График@ППР, Заказ@Ремонт, Норматив@РасходаЗИП → ПереченьКритическихЗИП</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Полнота охвата</td><td>high</td></tr>
+                  <tr><td>-02</td><td>Определение норм страхового запаса для ЗИП</td><td>Joiner</td><td>ПереченьКритическихЗИП, УсловияПоставки → СтраховойЗапас</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Обоснованность расчёта</td><td>high</td></tr>
+                  <tr><td>-03</td><td>Анализ оборачиваемости и выявление неликвидов</td><td>Simple</td><td>Отчёт@ДвижениеЗапасов → ПереченьНеликвидов</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Снижение доли неликвидов</td><td>medium</td></tr>
+                  <tr><td>-04</td><td>Подбор и оценка подрядных организаций</td><td>Simple</td><td>Заявка@СпецРаботы → Подрядчик</td><td class="num">quarter ×1</td><td class="num">4 ч</td><td class="num">4 000 ₽</td><td>Договоры до начала работ</td><td>medium</td></tr>
+                  <tr><td>-05</td><td>Передача перечня неликвидов на реализацию и списание (внешний контур)</td><td>Simple</td><td>ПереченьНеликвидов → —</td><td class="num">quarter ×1</td><td class="num">0,5 ч</td><td class="num">500 ₽</td><td>До конца квартала</td><td>low</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="sub">
+              <div class="subhead"><span class="code">PLAN-03-04</span>Нормирование операционных, буферных и страховых запасов</div>
+              <div class="table-wrap"><table class="ops-table">
+                <thead><tr><th>Код</th><th>Операция</th><th>Тип</th><th>Входы → Выходы</th><th>Период.</th><th>Трудоём.</th><th>Стоим.</th><th>КПЭ</th><th>Крит.</th></tr></thead>
+                <tbody>
+                  <tr><td>-01</td><td>Определение операционного запаса (WIP)</td><td>Joiner</td><td>Норматив@ВремяЦикла, График@РаботыОборудования → НормативЗапаса@Операционный</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Утверждённая методика</td><td>high</td></tr>
+                  <tr><td>-02</td><td>Определение буферного запаса</td><td>Joiner</td><td>Норматив@ВремяПереналадки, НормативЗапаса@Операционный → НормативЗапаса@Буферный</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Обоснованность расчёта</td><td>high</td></tr>
+                  <tr><td>-03</td><td>Определение страхового запаса</td><td>Joiner</td><td>УсловияПоставки, НормативЗапаса@Буферный → СтраховойЗапас</td><td class="num">quarter ×1</td><td class="num">3 ч</td><td class="num">3 000 ₽</td><td>Статистические методы</td><td>high</td></tr>
+                  <tr><td>-04</td><td>Актуализация нормативов в системе планирования</td><td>Joiner</td><td>НормативЗапаса@Операционный, @Буферный, СтраховойЗапас → ПараметрыЗапасов</td><td class="num">quarter ×1</td><td class="num">1 ч</td><td class="num">1 000 ₽</td><td>Внесение ≤2 дней</td><td>medium</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </details>
+      </div>
+      <p class="block-note">Итого по группе PLAN: суммарная трудоёмкость и стоимость операций складываются в нормируемую нагрузку владельца и служат основой для кадрового и бюджетного планирования.</p>
+
+      <!-- ДОКУМЕНТЫ ПОД КАРТОЧКАМИ -->
+      <h3 class="section-title" style="font-size:var(--text-lg);margin-top:var(--space-12);">Документы по роли «Руководитель производства»</h3>
+      <p class="section-desc">Шесть видов документов выводятся из группы PLAN. Ниже — карточки с описанием; полный документ раскрывается по клику.</p>
+
+      <div class="doc-cards">
+
+        <!-- 01 СОП -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">01</span><h3>СОП — стандартная операционная процедура</h3></div>
+          <p class="dc-desc">Пошаговое выполнение одной операции: императивные шаги, фото рабочего места (для управленческих операций — скриншоты системы), инструмент, время, предупреждения, объективный контроль и требования безопасности.</p>
+          <div class="dc-meta"><span>Формат: пошагово + фото</span><span>Объём: 1 операция, ≤8 шагов</span><span>Владелец: РП</span></div>
+          <details class="doc-full">
+            <summary>Открыть полный документ</summary>
+            <div class="doc-body">
+              <h4>СОП · PLAN-01-03-04 · Оформление сменно-суточных заданий</h4>
+              <div class="sop-meta" style="margin-bottom:var(--space-3);">
+                <span>Код: PLAN-01-03-04</span><span>Группа: PLAN-01</span><span>Участок: Планирование / ERP</span>
+                <span>Версия: 1.0</span><span>Пересмотр: +365 дней</span><span>Класс безопасности: B</span>
+              </div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 01</div><div class="sop-body"><div class="sop-step-num">Шаг 1</div><div class="sop-action">Открыть модуль «Планирование» → «Сменно-суточные задания»</div><div class="sop-fields"><div class="f"><strong>Инструмент:</strong> ERP (1С:ERP)</div><div class="f"><strong>Время:</strong> ⏱️ 1 мин</div><div class="f"><strong>Контроль:</strong> открыт список заданий выбранного цеха</div></div></div></div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 02</div><div class="sop-body"><div class="sop-step-num">Шаг 2</div><div class="sop-action">Выбрать цех и дату планирования</div><div class="sop-fields"><div class="f"><strong>Инструмент:</strong> ERP (1С:ERP)</div><div class="f"><strong>Контроль:</strong> в шапке — верный цех и дата</div></div></div></div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 03</div><div class="sop-body"><div class="sop-step-num">Шаг 3</div><div class="sop-action">Распределить объёмы по сменам и оборудованию</div><div class="sop-fields"><div class="f"><strong>Вход:</strong> PLAN-01-03-01</div><div class="f"><strong>Предупреждение:</strong> не превысить доступную мощность рабочего центра</div><div class="f"><strong>Контроль:</strong> сумма по сменам равна суточному объёму</div></div></div></div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 04</div><div class="sop-body"><div class="sop-step-num">Шаг 4</div><div class="sop-action">Проверить наличие оснастки и инструмента по заданию</div><div class="sop-fields"><div class="f"><strong>Вход:</strong> PLAN-01-03-02</div><div class="f"><strong>Контроль:</strong> все позиции отмечены «в наличии», дефицитов нет</div></div></div></div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 05</div><div class="sop-body"><div class="sop-step-num">Шаг 5</div><div class="sop-action">Согласовать задание с начальниками смен / участков</div><div class="sop-fields"><div class="f"><strong>Вход:</strong> PLAN-01-03-03</div><div class="f"><strong>Контроль:</strong> статус «Согласовано» получен от всех участков</div></div></div></div>
+              <div class="sop-step"><div class="sop-img">[ скриншот системы ]<br>шаг 06</div><div class="sop-body"><div class="sop-step-num">Шаг 6</div><div class="sop-action">Утвердить задание и передать в производство</div><div class="sop-fields"><div class="f"><strong>Выход:</strong> MFG-01-01 (подготовка к выпуску)</div><div class="f"><strong>Контроль:</strong> статус «К выполнению», задание доступно цеху</div></div></div></div>
+              <p class="block-note">Для технологических операций вместо скриншотов — фото реального рабочего места: путь <span class="anchor-code">./assets/&lt;КОД&gt;-step-NN.jpg</span>. В образце фото заменены заглушками.</p>
+            </div>
+          </details>
+        </article>
+
+        <!-- 02 КТК -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">02</span><h3>КТК — критические контрольные точки</h3></div>
+          <p class="dc-desc">Реестр критических выходов роли с привязкой к процессам: код, роль (владелец/участник), признак keystone, критический выход, KPI и частота контроля. Из КТК выводится система контроля руководителя.</p>
+          <div class="dc-meta"><span>Объём: 25 процессов + 5 интегральных выходов</span><span>Владелец: РП</span></div>
+          <details class="doc-full">
+            <summary>Открыть полный документ</summary>
+            <div class="doc-body">
+              <h4>Критические контрольные точки — 25 процессов</h4>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>№</th><th>Код</th><th>Роль</th><th>keystone</th><th>Критический выход</th><th>KPI / критерий</th><th>Частота</th></tr></thead>
+                  <tbody>
+                    <tr><td>1</td><td class="cv">STRAT-01-02</td><td>Владелец</td><td>—</td><td>Утверждённый бюджет производственных затрат с помесячной разбивкой</td><td>Отклонение план-факт ≤ ±5%</td><td>Ежемесячно</td></tr>
+                    <tr><td>2</td><td class="cv">STRAT-01-03</td><td>Владелец</td><td>—</td><td>Актуальная Х-матрица и цеховые Х-матрицы</td><td>Понимание KPI (опрос ≥80%)</td><td>Ежекварт. / ежегодно</td></tr>
+                    <tr><td>3</td><td class="cv">ANLZ-01-01</td><td>Косвенно</td><td>—</td><td>Сводный отчёт OEE/TEEP с диаграммой Парето потерь</td><td>OEE ≥75–85%; снижение потерь ≥5%/год</td><td>Еженедельно / ежедневно</td></tr>
+                    <tr><td>4</td><td class="cv">ANLZ-01-02</td><td>Владелец</td><td>—</td><td>Протокол совещания с решениями, ответственными и сроками</td><td>Решения в срок ≥80%</td><td>Ежедневно / еженедельно</td></tr>
+                    <tr><td>5</td><td class="cv">ANLZ-01-05</td><td>Владелец</td><td class="nowrap">да</td><td>План мероприятий по «расшивке» узкого места + отчёт</td><td>Рост пропускной способности</td><td>Ежемесячно</td></tr>
+                    <tr><td>6</td><td class="cv">PLAN-01-03</td><td>Владелец</td><td class="nowrap">да</td><td>Выполнение производственной программы за период</td><td>Выполнение ≥95%; отклонение ≤ ±5%</td><td>Ежесуточно</td></tr>
+                    <tr><td>7</td><td class="cv">PLAN-03-01</td><td>Владелец</td><td>—</td><td>Утверждённые нормативы запасов</td><td>Оборачиваемость; простои ≤0,5%</td><td>Ежеквартально</td></tr>
+                    <tr><td>8</td><td class="cv">HRP-01-03</td><td>Косвенно</td><td>—</td><td>Доля сотрудников, соответствующих КУ (≥95%)</td><td>Аттестация 100% по графику</td><td>Ежемесячно</td></tr>
+                    <tr><td>9</td><td class="cv">HRP-01-07</td><td>Косвенно</td><td>—</td><td>Реестр наставников, прошедших обучение TWI</td><td>≥1 наставник на 3–5 рабочих</td><td>Ежеквартально</td></tr>
+                    <tr><td>10</td><td class="cv">QUAL-06-03</td><td>Косвенно</td><td>—</td><td>Протокол дня качества с корректирующими действиями</td><td>КД в срок ≥80%</td><td>Ежемесячно</td></tr>
+                    <tr><td>11</td><td class="cv">MNT-02-02</td><td>Косвенно</td><td>—</td><td>Паспорт инвестпроекта, включение в программу</td><td>Реализация в срок; эффект</td><td>Ежекварт. / по проекту</td></tr>
+                    <tr><td>12</td><td class="cv">IMPR-02-01</td><td>Участник</td><td>—</td><td>Утверждённый паспорт проекта, план-график</td><td>Проекты в срок; эффект</td><td>Ежемесячно</td></tr>
+                    <tr><td>13</td><td class="cv">IMPR-01-02</td><td>Участник</td><td>—</td><td>Протокол о включении предложения в план</td><td>Внедрено ≥30% поданных</td><td>Ежемесячно</td></tr>
+                    <tr><td>14</td><td class="cv">EMG-02-01</td><td>Участник</td><td>—</td><td>План корректирующих и предупреждающих мероприятий</td><td>Расследование ≤3 дней</td><td>По инциденту</td></tr>
+                    <tr><td>15</td><td class="cv">EMG-03-01</td><td>Участник</td><td>—</td><td>Матрица реагирования и карточки действий</td><td>Пересмотр ≥1 раза/год</td><td>Ежегодно</td></tr>
+                    <tr><td>16</td><td class="cv">ORG-02-01</td><td>Участник</td><td>—</td><td>Актуальные нормы выработки на операции</td><td>Операций с нормами ≥95%</td><td>Ежеквартально</td></tr>
+                    <tr><td>17</td><td class="cv">MFG-01</td><td>Участник</td><td>—</td><td>Сводка выполнения плана по объёму и номенклатуре</td><td>Отклонение ≤±5%</td><td>Ежесуточно</td></tr>
+                    <tr><td>18</td><td class="cv">PLAN-03-02</td><td>Владелец</td><td>—</td><td>Матрица ABC/XYZ с рекомендациями</td><td>Охват 100%</td><td>Ежеквартально</td></tr>
+                    <tr><td>19</td><td class="cv">MFG-02-04</td><td>Участник</td><td>—</td><td>Хронометраж переналадки, план сокращения</td><td>Сокращение ≥20%/год</td><td>Ежемесячно</td></tr>
+                    <tr><td>20</td><td class="cv">MFG-03-01</td><td>Косвенно</td><td>—</td><td>Отчёт по стабильности технологических параметров</td><td>Параметров в допуске ≥95%</td><td>Ежедневно</td></tr>
+                    <tr><td>21</td><td class="cv">IMPR-02</td><td>Участник</td><td>—</td><td>A3-отчёт с подтверждённым эффектом</td><td>Проекты в срок ≥80%</td><td>Ежемесячно</td></tr>
+                    <tr><td>22</td><td class="cv">PLAN-02</td><td>Владелец</td><td>—</td><td>Ежемесячный свод KPI для руководства</td><td>Своевременность 100%</td><td>Ежемесячно</td></tr>
+                    <tr><td>23</td><td class="cv">PLAN-03-04</td><td>Владелец</td><td>—</td><td>Отчёт по остаткам ГП, оборачиваемость</td><td>Отсутствие затоваривания</td><td>Ежемесячно</td></tr>
+                    <tr><td>24</td><td class="cv">STRAT-01-01</td><td>Владелец</td><td>—</td><td>Утверждённый производственный план на период</td><td>Выполнение ≥95%</td><td>Ежемесячно</td></tr>
+                    <tr><td>25</td><td class="cv">ANLZ-01-04</td><td>Владелец</td><td>—</td><td>Отчёт по производительности труда</td><td>Рост ≥5%/год</td><td>Ежемесячно</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <h4>Интегральные выходы</h4>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>№</th><th>Интегральный выход</th><th>Способ измерения</th><th>Частота</th><th>Ответственный</th></tr></thead>
+                  <tbody>
+                    <tr><td>A</td><td>Сводная отчётность по KPI завода</td><td>Аналитический дашборд</td><td>Ежемесячно</td><td>Руководитель производства</td></tr>
+                    <tr><td>B</td><td>Статус выполнения стратегических целей (Х-матрица)</td><td>Доклад на совещании</td><td>Ежеквартально</td><td>Руководитель производства</td></tr>
+                    <tr><td>C</td><td>Обзор исполнения бюджета производственных затрат</td><td>Аналитическая записка</td><td>Ежемесячно</td><td>Руководитель производства</td></tr>
+                    <tr><td>D</td><td>Отчёт по кадровым рискам</td><td>Сводка кадровой службы</td><td>Ежемесячно</td><td>HR-менеджер</td></tr>
+                    <tr><td>E</td><td>Реестр открытых корректирующих действий с просрочками</td><td>Консолидированный отчёт</td><td>Еженедельно</td><td>Руководитель качества</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+        </article>
+
+        <!-- 03 Приоритеты -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">03</span><h3>Матрица приоритетов руководителя</h3></div>
+          <p class="dc-desc">Распределение задач руководителя по квадрантам Эйзенхауэра с указанием делегирования, профилактики/автоматизации и привязки к кодам процессов. Задаёт режим личного времени руководителя.</p>
+          <div class="dc-meta"><span>Задач: 25</span><span>Целевое время: 15/70/10/5</span><span>Владелец: РП</span></div>
+          <details class="doc-full">
+            <summary>Открыть полный документ</summary>
+            <div class="doc-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Квадрант</th><th>Задача</th><th>Делегирование</th><th>Профилактика / автоматизация</th><th>Процесс</th></tr></thead>
+                  <tbody>
+                    <tr><td rowspan="8" class="nowrap">Срочно и важно</td><td>Аварийная остановка линии / крупная поломка, угрожающая срыву плана</td><td>Делать самому, привлекать главного механика</td><td>Система раннего предупреждения (вибродиагностика) — в квадрант 2</td><td class="cv">MNT-03-01, MNT-04-02</td></tr>
+                    <tr><td>Крупный брак или рекламация от ключевого клиента</td><td>Делать самому, координировать с ОТК и коммерцией</td><td>Анализ причин и разработка ПКД — в квадрант 2</td><td class="cv">QUAL-06-01, QUAL-05-02</td></tr>
+                    <tr><td>Травма / опасный инцидент</td><td>Делать самому (организация расследования)</td><td>Систематическое обучение безопасности — в квадрант 2</td><td class="cv">HRP-02-03</td></tr>
+                    <tr><td>Срыв поставки сырья, угрожающий остановкой</td><td>Лично связаться с поставщиком; если системно — через головную организацию</td><td>Система минимальных запасов и альтернативных поставщиков</td><td class="cv">PLAN-03-01</td></tr>
+                    <tr><td>Критическое отклонение по бюджету</td><td>Лично разобраться с экономической службой</td><td>Ежемесячный план-факт анализ — в квадрант 2</td><td class="cv">ANLZ-01-03</td></tr>
+                    <tr><td>Срыв выполнения ССЗ из-за поломки / отсутствия сырья</td><td>Лично перепланировать, координировать с цехом и снабжением</td><td>Страховые запасы критического сырья — в квадрант 2</td><td class="cv">PLAN-01-03, PLAN-03-01</td></tr>
+                    <tr><td>Ошибка в данных OEE</td><td>Лично выяснить причину, скорректировать данные</td><td>Автоматизация сбора данных — в квадрант 2</td><td class="cv">ANLZ-01-01</td></tr>
+                    <tr><td>Сбой в подаче вторичного сырья</td><td>Лично скоординировать с цехом и складом</td><td>Планирование запасов вторички — в квадрант 2</td><td class="cv">PLAN-03-01</td></tr>
+
+                    <tr><td rowspan="15" class="nowrap">Важно,<br>но не срочно</td><td>Стратегические проекты (модернизация, новые продукты)</td><td>Личное ведение</td><td>—</td><td class="cv">MNT-07, ENG-01</td></tr>
+                    <tr><td>Разработка и каскадирование целей на год (Хосин Канри)</td><td>Личное ведение</td><td>—</td><td class="cv">STRAT-01-03</td></tr>
+                    <tr><td>Формирование кадрового резерва и развитие команды</td><td>Лично с HR</td><td>—</td><td class="cv">HRP-01-04</td></tr>
+                    <tr><td>Внедрение Lean-инструментов (VSM, SMED, TPM)</td><td>Личное спонсорство, делегировать Lean-координатору</td><td>—</td><td class="cv">ANLZ-01-06, MFG-02-04</td></tr>
+                    <tr><td>Ежегодная стратегическая сессия</td><td>Личное ведение</td><td>—</td><td class="cv">STRAT-01</td></tr>
+                    <tr><td>Устранение системных причин повторяющихся «пожаров» (A3)</td><td>Личное участие в разборе, делегировать анализ команде</td><td>—</td><td class="cv">IMPR-02</td></tr>
+                    <tr><td>Управление рисками и возможностями в области производства</td><td>Личное спонсорство, делегировать анализ инженеру по качеству</td><td>Ежеквартальный пересмотр</td><td class="cv">QUAL-09</td></tr>
+                    <tr><td>Планирование и проведение бенчмаркинга</td><td>Личное участие, делегировать сбор данных аналитику</td><td>—</td><td class="cv">IMPR-03</td></tr>
+                    <tr><td>Анализ результативности СМК (анализ со стороны руководства)</td><td>Утверждение отчёта, участие в совещании</td><td>—</td><td class="cv">QUAL-07-04</td></tr>
+                    <tr><td>Утверждение годового плана улучшений</td><td>Личное утверждение, согласование с головной организацией</td><td>—</td><td class="cv">IMPR-02-01</td></tr>
+                    <tr><td>Актуализация нормативов запасов и норм выработки</td><td>Лично с технологом и экономической службой</td><td>—</td><td class="cv">PLAN-03-01, ORG-02-01</td></tr>
+                    <tr><td>ABC/XYZ-анализ номенклатуры сырья и материалов</td><td>Лично, данные от инженера по планированию</td><td>—</td><td class="cv">PLAN-03-02</td></tr>
+                    <tr><td>Анализ потерь OEE и разработка мероприятий по снижению</td><td>Лично, данные от учётчиков и мастеров</td><td>—</td><td class="cv">ANLZ-01-01</td></tr>
+                    <tr><td>Оптимизация переналадок (SMED), хронометраж</td><td>Делегировать технологу / мастеру, личный контроль</td><td>—</td><td class="cv">MFG-02-04</td></tr>
+                    <tr><td>Формирование консолидированной отчётности для руководства</td><td>Лично</td><td>—</td><td class="cv">PLAN-02</td></tr>
+
+                    <tr><td rowspan="2" class="nowrap">Срочно,<br>но не важно</td><td>Текущие отчёты в головную организацию (без личного решения)</td><td>Делегировать экономической службе с контролем достоверности</td><td>Дашборды для автоматической выгрузки</td><td class="cv">PLAN-02-03</td></tr>
+                    <tr><td>Корректировка ССЗ из-за мелких отклонений (замена типоразмера)</td><td>Делегировать сменному мастеру с контролем</td><td>—</td><td class="cv">PLAN-01-03</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p><strong>Целевое распределение времени:</strong> 15% / 70% / 10% / 5% (через 6 мес. — 25/60/10/5; через год — 15/70/10/5).</p>
+            </div>
+          </details>
+        </article>
+
+        <!-- 04 Сетка событий -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">04</span><h3>Сетка регулярных событий (совещаний)</h3></div>
+          <p class="dc-desc">Каденция управленческих событий руководителя: периодичность, длительность, участники, повестка, вход/выход и привязка к процессам. Задаёт ритм управления и эскалации.</p>
+          <div class="dc-meta"><span>Событий РП-владельца: 13</span><span>Горизонты: день → год</span><span>Владелец: РП</span></div>
+          <details class="doc-full">
+            <summary>Открыть полный документ</summary>
+            <div class="doc-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Период</th><th>Событие</th><th>Длит.</th><th>Участники</th><th>Выход</th><th>Процессы</th></tr></thead>
+                  <tbody>
+                    <tr><td class="nowrap">Ежедневно</td><td>Tier 3 — Общезаводская оперативка</td><td>20–30 мин</td><td>ГТ, ГМ, РК, РП, ГД</td><td>Решения по ресурсам, протокол</td><td class="cv">ANLZ-01-02, STRAT-01-03, EMG-01</td></tr>
+                    <tr><td class="nowrap">Ежедневно</td><td>Сводка оперативных данных (учёт выработки)</td><td>—</td><td>—</td><td>Отчёт по смене</td><td class="cv">PLAN-02-01, PLAN-02-04</td></tr>
+                    <tr><td class="nowrap">До 9:00 след. дня</td><td>Сдача суточного отчёта на вышестоящий уровень</td><td>—</td><td>—</td><td>Утверждённый отчёт</td><td class="cv">PLAN-02-03</td></tr>
+                    <tr><td class="nowrap">Пн, утро</td><td>Совещание по эффективности (Tier 4 / «Большой обзор»)</td><td>90–120 мин</td><td>ГМ, РК, РП, ГД, HR, ГТ</td><td>План на неделю, решения по «красным» зонам</td><td class="cv">ANLZ-01-02, IMPR-02, STRAT-01-03</td></tr>
+                    <tr><td class="nowrap">1-я декада</td><td>Бюджетный комитет (план-факт анализ)</td><td>60–90 мин</td><td>РП, ГД</td><td>Корректировка бюджета</td><td class="cv">ANLZ-01-03, STRAT-01-02</td></tr>
+                    <tr><td class="nowrap">3-я декада</td><td>Обзор проектов развития</td><td>60–90 мин</td><td>—</td><td>Решения о продолжении/закрытии проектов</td><td class="cv">IMPR-02-02, IMPR-02-03</td></tr>
+                    <tr><td class="nowrap">1-й месяц кв.</td><td>ABC/XYZ-анализ запасов</td><td>1–2 дня</td><td>—</td><td>Матрица ABC/XYZ, рекомендации по нормативам</td><td class="cv">PLAN-03-02</td></tr>
+                    <tr><td class="nowrap">3-й месяц кв.</td><td>Планирование БТЗ/БИЗ на квартал</td><td>2–4 часа</td><td>РП, ГД</td><td>Утверждённые бюджеты (БТЗ, БИЗ)</td><td class="cv">MNT-02-01, MNT-02-02</td></tr>
+                    <tr><td class="nowrap">В течение кв.</td><td>День 5S (массовый аудит)</td><td>2–4 часа</td><td>—</td><td>Отчёт, план улучшений по 5S</td><td class="cv">ORG-01-01</td></tr>
+                    <tr><td class="nowrap">Сент.–нояб.</td><td>Годовое планирование (STRAT-01)</td><td>2–3 мес.</td><td>—</td><td>Производственная программа, бюджет, Х-матрица</td><td class="cv">STRAT-01-01, -02, -03</td></tr>
+                    <tr><td class="nowrap">Январь</td><td>Стратегическая сессия (выездная)</td><td>1–2 дня</td><td>—</td><td>Цели и приоритеты на год, план развития</td><td class="cv">STRAT-01-03, IMPR-03</td></tr>
+                    <tr><td class="nowrap">≥1 раз/год</td><td>Актуализация карт VSM для ключевых продуктов</td><td>—</td><td>—</td><td>Карты текущего и будущего состояния</td><td class="cv">ANLZ-01-06</td></tr>
+                    <tr><td class="nowrap">1 раз/год</td><td>Пересмотр матриц компетенций</td><td>—</td><td>—</td><td>Актуализированные матрицы компетенций</td><td class="cv">HRP-01-01</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="block-note">Кроме владения, РП участвует в событиях других владельцев (HR-совет, анализ норм и нормативов, утверждение плана-графика ППР, согласование плана улучшений, анализ портфеля проектов). Показаны события, где РП — владелец.</p>
+            </div>
+          </details>
+        </article>
+
+        <!-- 05 КУ -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">05</span><h3>КУ — требования к квалификации</h3></div>
+          <p class="dc-desc">Пакет оценки руководителя: целевой уровень КУ, области знаний, навыки, личностные компетенции, KPI и методика расчёта итогового балла. Унифицировано под процессы группы PLAN и роль РП.</p>
+          <div class="dc-meta"><span>Целевой уровень: 4</span><span>Знаний: 12 · Навыков: 11 · Личностных: 7</span><span>Уровни 1–5 · приложения</span></div>
+          <a class="doc-link" href="/genome/role/#ku">Открыть полный документ &rarr;</a>
+        </article>
+
+        <!-- 06 Профиль -->
+        <article class="doc-card">
+          <div class="dc-head"><span class="dc-no">06</span><h3>Профиль должности</h3></div>
+          <p class="dc-desc">Сводный профиль позиции: назначение, место в структуре, главная цель, целевой уровень КУ, ключевые KPI и требования к кандидату. Служит источником для подбора, адаптации и оценки.</p>
+          <div class="dc-meta"><span>Целевой КУ: 4–5</span><span>Источник: КУ + регламент роли</span><span>Полная версия</span><span>Владелец: РП</span></div>
+          <a class="doc-link" href="/genome/role/#profile">Открыть полный документ &rarr;</a>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 7. ОФФЕР -->
+    <section class="section" id="offer">
+      <h2 class="section-title">Как это получить</h2>
+      <p class="section-desc">От экспресс-диагностики до полной проработки процессов вашего предприятия по модели — или готовая библиотека для самостоятельной работы.</p>
+      <div class="packs">
+        <div class="pack">
+          <div class="tag">ВХОД</div>
+          <h3>Экспресс-диагностика</h3>
+          <p>Аудит процессов «как есть», разрывы, дубли и узкие места по модели. Короткий цикл, понятный отчёт.</p>
+          <a href="https://t.me/antimanager" rel="noopener" class="btn btn-sm">Обсудить</a>
+        </div>
+        <div class="pack featured">
+          <div class="tag">ОСНОВНОЙ</div>
+          <h3>Проработка процессов</h3>
+          <p>Описать процессы вашего завода по модели и выдать полную цепочку: СОП, КТК, приоритеты, события, КУ, профили.</p>
+          <a href="https://t.me/antimanager" rel="noopener" class="btn btn-sm btn-primary">Заказать</a>
+        </div>
+        <div class="pack">
+          <div class="tag">САМОСТОЯТЕЛЬНО</div>
+          <h3>Библиотека + правила</h3>
+          <p>Готовая унифицированная библиотека процессов и правила вывода документов — для самостоятельной адаптации.</p>
+          <a href="https://t.me/antimanager" rel="noopener" class="btn btn-sm">Запросить</a>
+        </div>
+        <div class="pack">
+          <div class="tag">ПИЛОТ</div>
+          <h3>Одна группа</h3>
+          <p>Сделать один контур (например, ТОиР) — «попробовать метод на своём», увидеть результат вживую.</p>
+          <a href="https://t.me/antimanager" rel="noopener" class="btn btn-sm">Попробовать</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <h2>Начните с одного процесса</h2>
+      <p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Покажем, как из вашего реального процесса выводится вся цепочка документов — на встрече или в Штабе.</p>
+      <a href="https://t.me/antimanager" rel="noopener" class="btn btn-primary">Оставить заявку</a>
+      <a href="/headquarters/" class="btn">Задать вопрос в Штаб</a>
+      <p class="disclaimer">Образец — группа PLAN целиком (3 процесса / 11 подпроцессов / 49 операций с трудоёмкостью и стоимостью) и полный комплект по роли РП (СОП, КТК, приоритеты, сетка событий, КУ, профиль). Фото в СОП заменены заглушками; полные КУ (дескрипторы уровней 1–5, банк вопросов, кейсы) и профиль рекрутера — на странице документов роли.</p>
+    </section>

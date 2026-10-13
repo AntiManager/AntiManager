@@ -169,7 +169,7 @@ test.describe('AX04 — Responsive breakpoints', () => {
   });
 
   test('no horizontal scroll on all pages', async ({ page }) => {
-    const paths = ['/', '/arsenal/', '/cases/', '/archive/', '/weapons/antikrizis/'];
+    const paths = ['/', '/arsenal/', '/cases/', '/archive/', '/weapons/antikrizis/', '/genome/', '/genome/role/'];
     for (const p of paths) {
       await page.goto(p);
       await page.waitForLoadState('networkidle');

@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20260728b';
+const VERSION = '20261013a';
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
@@ -695,6 +695,15 @@ write('about/index.html', renderPage('О проекте | AntiManager', 'Ант�
 write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в арсенал AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
 write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
 
+// Genome section: the landing (model + free PLAN sample + doc cards) and the
+// full role documents (КУ + recruiter profile). Authored partials; the role page's
+// generated block is refreshed offline by .kilo/scripts/genome_doc_build.py.
+const genomeLandingBody = read('src/content/genome/landing.html');
+const genomeRoleBody = read('src/content/genome/role.html');
+write('genome/index.html', renderPage('Геном завода | AntiManager', 'Геном завода — типизированная библиотека процессов и цепочка управленческих документов: модель, бесплатный образец группы PLAN и полные документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + '/genome/', structuredData: makeStructuredData('static', { name: 'Геном завода', url: SITE_URL + '/genome/' }) }));
+write('genome/role/index.html', renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + '/genome/role/', structuredData: makeStructuredData('static', { name: 'Документы роли — Геном завода', url: SITE_URL + '/genome/role/' }) }));
+console.log('  ✓ genome + genome/role');
+
 // Weapon pages
 for (var wi = 0; wi < weapons.length; wi++) {
   var w = weapons[wi];
@@ -816,6 +825,8 @@ var sitemapUrls = [
   { loc: SITE_URL + '/cases/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/headquarters/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/about/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
 ];
 for (var si = 0; si < weapons.length; si++) {
   var weaponDate = weapons[si].date || BUILD_DATE;

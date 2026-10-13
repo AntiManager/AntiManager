@@ -1,41 +1,29 @@
 # AntiManager — Active Context
-> Updated: 2026-10-13 · status: **parked** (artifact chain DONE + committed; next session: editorial series 30–35)
+> Updated: 2026-10-13 · status: **in progress** (prototype ported to the site build — `/genome/` + `/genome/role/`; RESUME: controlled deploy + live verify)
 
-## Last session — artifact chain close-out (DONE, committed)
-Reviewed the uncommitted Phase E+F diff (`/review uncommitted`) and fixed: 1 **IMPORTANT** —
-`traceability.py` printed `OK`/exit 0 on an empty/wrong vault (false «acceptance green») →
-`build()` reports `artifact_files`, `main()` exits 2 when 0; 3 **COSMETIC** — `ktk_rows`→`ktk_links`,
-H1b documented (checker docstring + `T4.8 §3`), docstring exit-2 narrowed. New regression test.
-**pytest 119**; checker `OK`; `--cross --semantic` H\*=0 (W1×5 waived, W2×21 signed off);
-traceability 171/201/45 gaps 0/0; `specs/T4.8` re-mirrored (byte-identical). Six sub-plans →
-`.kilo/plans/archive/`; harness 7/7/9 + 8/2/10, `/check-harness` clean.
+## In progress — «Геном завода» section integrated (RESUME = deploy + live verify)
+Prototype → production section, now part of the static build (plan `1791902606513`):
+- **Pages:** `/genome/` (landing: model + free PLAN-group sample + 6 doc cards) and `/genome/role/` (full КУ package + recruiter profile). Both indexable, in sitemap (0.7 / 0.6) and nav («Геном»).
+- **Content:** authored partials `site/src/content/genome/{landing,role}.html`. The role page's KU/profile block is generated offline by `.kilo/scripts/genome_doc_build.py` (ported from the prototype `_build-doc.py`, idempotent, fills `<!--KU:*-->` / `<!--PROFILE:*-->` markers from the vault) — **build stays vault-independent**.
+- **Wiring:** `site/build.js` writes both pages (`renderPage` + static BreadcrumbList), `VERSION` bumped `20261013a`; styles in `brutalist.css` §GENOME; CTAs → `https://t.me/antimanager`, one → `/headquarters/`.
+- **Tests:** `site/unit/build-genome.test.js` (unit **9/9**), `site/tests/genome.spec.js` + no-hscroll paths (Playwright **120/120**). Fixed a mobile/tablet overflow (`.anchor-code` nowrap → wraps).
+- **Deploy control:** `site/scripts/verify-deploy.ps1` (post-deploy GET 200 + sitemap check). Full detail → `.memory/progress.md` (2026-10-13 entry).
 
-## Completed — artifact chain (plan 1791810263662) — DONE + committed
-Phases A–F: `specs/T4.0/1/2/3/8/9`, `role_registry.json`, 10 `КТК/<КОД>_КТК.md`, `Роли.md`,
-`Приоритеты_руководителей.md`, `Сетка_регулярных_событий.md` (vault `library/artifacts/` +
-`library/INDEX.md`). Tooling `pipelines/proc-library/`; vault env `PROC_LIB_VAULT`.
+**RESUME (next session):** controlled deploy — commit the integration (rollback point), `cd site; .\deploy.ps1`, then `.\scripts\verify-deploy.ps1` + browser spot-check. SSH 2222 flaky → verify live before re-running. Then close the plan (`/retro`, fold a lesson). Optional cleanup: `docs/prototype/` is now redundant (still untracked) — remove after verify (user-confirmed).
+
 
 ## Next editorial (resume) — DRAFT series 30–35
-JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция развития НЦ/НС — each needs
-frontmatter + related sections + case/conclusion before `/full/`. Procedure: `content-publisher`
-skill + `/full-article <slug>`.
-- Tests: unit **8/8**; Playwright **99/99** (33 × 3) — `cd site; npm test`. Docker Desktop holds
-  port 3000 → if Playwright `webServer` aborts, use a temp config on another port.
-- Two-pass PDF rule: `build → render:pdf → build → render:pdf → build`; each render rewrites
-  `/CreationDate` → `git checkout -- site/materials` restores untouched PDFs.
+JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция развития НЦ/НС — each needs frontmatter + related sections + case/conclusion before `/full/`. Procedure: `content-publisher` skill + `/full-article <slug>`.
+- Tests: unit **9/9**; Playwright **120/120** (40 × 3) — `cd site; npm test`. Docker Desktop holds port 3000 → if Playwright `webServer` aborts, use a temp config on another port.
+- Two-pass PDF rule: `build → render:pdf → build → render:pdf → build`; each render rewrites `/CreationDate` → `git checkout -- site/materials` restores untouched PDFs.
 
 ## Harness state
-- Skills 8, commands 10, agents 2. MCP: obsidian, github (project `.kilo/kilo.json`), context7 (global `kilo.jsonc`).
-- `content-publisher` + `/full-article`; `article-readiness` + `/article-readiness`;
-  `pipelines/obsidian-to-site/{article_readiness,md_to_partial}.py`; `/check-site` = `npm test`.
+- Skills 8, commands 10, agents 2. MCP: obsidian, github (project `.kilo/kilo.json`), context7 (global `kilo.jsonc`). `/check-harness` clean: global 7/7/9, project 8/2/10, 0 real orphans.
+- `content-publisher` + `/full-article`; `article-readiness` + `/article-readiness`; `pipelines/obsidian-to-site/{article_readiness,md_to_partial}.py`; `/check-site` = `npm test`.
 
 ## Hot rules / deferred
-- Metrika `webvisor:true` vs `/privacy/` wording — deferred (compliance risk).
+- Plans policy (`.kilo/AGENTS.md`): `.kilo/plans/` is gitignored; the 3 tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch.
+- **SSH 2222 flaky (VPS):** `deploy.ps1` may abort on a mid-run ssh timeout although the upload landed — verify live (GET 200) before re-running.
 - `yandex-verification` meta needs the user's code.
-- GitVerse token in `.git/config` `origin.pushurl` (plaintext) — rotate + move to credential helper/SSH (HIGH).
-- `chapters.json`/`tools.json` — unreferenced dead data (decide separately).
-- `build.js` `VERSION` static vs dynamic `BUILD_DATE` — couple on next release.
-- Residual: `content_body` is raw HTML (malicious PR risk) — rely on PR review/branch protection.
-- **SSH 2222 flaky (VPS):** `deploy.ps1` may abort on a mid-run ssh timeout although the upload
-  landed — verify live (GET 200) before re-running.
-- Full history → `.memory/archive/active_context-2026-10.md`.
+- Open tech debt (Metrika `webvisor` vs `/privacy/`, GitVerse token rotation, `chapters.json`/`tools.json` dead data, `VERSION`/`BUILD_DATE`, raw `content_body`) → `.memory/progress.md` §Technical Debt.
+- Full history → `.memory/archive/`; completed-session detail → `.memory/progress.md`.
