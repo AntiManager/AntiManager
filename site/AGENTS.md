@@ -67,8 +67,11 @@ A consulting-service section, not an arsenal weapon. Two indexable static pages 
 - `role.html` — full role documents: the КУ package (levels 1–5 descriptors, question bank,
   cases, 360°) and the recruiter profile. The KU/profile block is generated offline from the
   Obsidian vault by `.kilo/scripts/genome_doc_build.py` (idempotent, fills the `<!--KU:*-->` /
-  `<!--PROFILE:*-->` markers). Re-run it after vault edits, then commit the regenerated partial —
+  `<!--PROFILE:*-->`   markers). Re-run it after vault edits, then commit the regenerated partial —
   `node build.js` itself stays vault-independent.
+- The generator emits an `<a>` only for servable targets (`http(s)`, `mailto:`, `#`, `/`);
+  vault-relative and `.md` references are rendered as plain text, so a dead `.md` link can
+  never leak onto the published page.
 
 CTAs: commercial buttons go to `https://t.me/antimanager`; «Задать вопрос в Штаб» → `/headquarters/`.
 Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.

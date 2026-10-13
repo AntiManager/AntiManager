@@ -54,14 +54,14 @@ test('genome pages ship, are indexable, and carry no prototype chrome', function
     assert.ok(!landing.includes('proto-banner'), 'prototype banner must be dropped');
     assert.ok(!landing.includes('nav-pending'), 'prototype nav marker must be dropped');
     assert.ok(!/\{\{[a-z_]+\}\}/.test(landing), 'no template tokens may remain in the landing');
-    assert.ok(!landing.includes('name="robots"'), 'the landing must be indexable');
+    assert.ok(/<meta name="robots" content="index, follow/.test(landing), 'the landing must be indexable');
 
     const role = readDist('genome', 'role', 'index.html');
     assert.ok(role.includes('id="ku"'), 'role page needs the #ku anchor');
     assert.ok(role.includes('id="profile"'), 'role page needs the #profile anchor');
     assert.ok(role.includes('class="doc-doc"'), 'role page must render the converted documents');
     assert.ok(!/\{\{[a-z_]+\}\}/.test(role), 'no template tokens may remain in the role page');
-    assert.ok(!role.includes('name="robots"'), 'the role page must be indexable');
+    assert.ok(/<meta name="robots" content="index, follow/.test(role), 'the role page must be indexable');
 
     // Discovery + routing.
     assert.ok(readDist('index.html').includes('href="/genome/"'), 'header nav must link to /genome/');

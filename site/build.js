@@ -270,16 +270,25 @@ function makeStructuredData(pageType, data) {
     });
   }
   if (pageType === 'static') {
+    // `breadcrumbs` lets a nested page (e.g. /genome/role/) declare its full
+    // trail; a flat page falls back to Home → section.
+    var crumbData = data.breadcrumbs || [
+      { name: 'Главная', url: SITE_URL + '/' },
+      { name: data.name || 'Раздел', url: data.url || SITE_URL + '/' }
+    ];
+    var crumbItems = crumbData.map(function(c, i) {
+      var item = { '@type': 'ListItem', 'position': i + 1, 'name': c.name };
+      if (c.url) item.item = c.url;
+      return item;
+    });
     return json({
       '@context': 'https://schema.org',
       '@graph': [
         websiteNode(),
+        orgNode(),
         {
           '@type': 'BreadcrumbList',
-          'itemListElement': [
-            { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-            { '@type': 'ListItem', 'position': 2, 'name': data.name || 'Раздел', 'item': data.url || SITE_URL + '/' }
-          ]
+          'itemListElement': crumbItems
         }
       ]
     });
@@ -301,8 +310,16 @@ function renderPage(title, description, content, opts) {
   const ogImageMeta = opts.ogImage
     ? ''
     : '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n';
+  // Indexing-friendly defaults; a noindex page gets its own robots meta appended
+  // at the end (see opts.noindex), so this must not be emitted for it.
+  const robotsMeta = opts.noindex
+    ? ''
+    : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">\n';
+  // Avoid "AntiManager — … | AntiManager" double branding: only prefix the alt
+  // when the page title does not already name the site.
+  const ogAlt = /AntiManager/.test(title) ? title : 'AntiManager — ' + title;
 
-  let headTags = ''
+  let headTags = robotsMeta
     + '<link rel="canonical" href="' + canonicalUrl + '">\n'
     + '<meta property="og:title" content="' + escapeHtml(title) + '">\n'
     + '<meta property="og:description" content="' + escapeHtml(desc) + '">\n'
@@ -310,14 +327,14 @@ function renderPage(title, description, content, opts) {
     + '<meta property="og:type" content="' + ogType + '">\n'
     + '<meta property="og:image" content="' + ogImage + '">\n'
     + ogImageMeta
-    + '<meta property="og:image:alt" content="' + escapeHtml('AntiManager — ' + title) + '">\n'
+    + '<meta property="og:image:alt" content="' + escapeHtml(ogAlt) + '">\n'
     + '<meta property="og:site_name" content="AntiManager">\n'
     + '<meta property="og:locale" content="ru_RU">\n'
     + '<meta name="twitter:card" content="summary_large_image">\n'
     + '<meta name="twitter:title" content="' + escapeHtml(title) + '">\n'
     + '<meta name="twitter:description" content="' + escapeHtml(desc) + '">\n'
     + '<meta name="twitter:image" content="' + ogImage + '">\n'
-    + '<meta name="twitter:image:alt" content="' + escapeHtml('AntiManager — ' + title) + '">';
+    + '<meta name="twitter:image:alt" content="' + escapeHtml(ogAlt) + '">';
 
   if (opts.structuredData) headTags += opts.structuredData;
 
@@ -700,8 +717,8 @@ write('privacy/index.html', renderPage('Политика конфиденциа�
 // generated block is refreshed offline by .kilo/scripts/genome_doc_build.py.
 const genomeLandingBody = read('src/content/genome/landing.html');
 const genomeRoleBody = read('src/content/genome/role.html');
-write('genome/index.html', renderPage('Геном завода | AntiManager', 'Геном завода — типизированная библиотека процессов и цепочка управленческих документов: модель, бесплатный образец группы PLAN и полные документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + '/genome/', structuredData: makeStructuredData('static', { name: 'Геном завода', url: SITE_URL + '/genome/' }) }));
-write('genome/role/index.html', renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + '/genome/role/', structuredData: makeStructuredData('static', { name: 'Документы роли — Геном завода', url: SITE_URL + '/genome/role/' }) }));
+write('genome/index.html', renderPage('Геном завода — библиотека процессов | AntiManager', 'Геном завода — типизированная библиотека процессов и цепочка управленческих документов: модель, бесплатный образец группы PLAN и полные документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + '/genome/', structuredData: makeStructuredData('static', { name: 'Геном завода', url: SITE_URL + '/genome/' }) }));
+write('genome/role/index.html', renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + '/genome/role/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Документы роли', url: SITE_URL + '/genome/role/' }] }) }));
 console.log('  ✓ genome + genome/role');
 
 // Weapon pages

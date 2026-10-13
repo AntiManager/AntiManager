@@ -32,14 +32,22 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _link(m):
+    text, href = m.group(1), m.group(2).strip()
+    # Vault-relative / .md references are not servable on the public site — keep
+    # the visible text but drop the dead anchor.
+    if re.match(r"^(https?:|mailto:|#|/)", href):
+        return '<a href="%s">%s</a>' % (href.replace('"', "&quot;"), text)
+    return text
+
+
 def inline(s):
     s = re.sub(r"\\([!-/:-@\[-`{-~])", r"\1", s)
     s = esc(s)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
     s = re.sub(r"\[\[([^\]|]+)\|([^\]]+)\]\]", r"\2", s)
     s = re.sub(r"\[\[([^\]]+)\]\]", r"\1", s)
-    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
-               lambda m: '<a href="%s">%s</a>' % (m.group(2).replace('"', "&quot;"), m.group(1)), s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", _link, s)
     s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
     s = re.sub(r"(?<!\*)\*([^*\n]+?)\*(?!\*)", r"<em>\1</em>", s)
     return s.strip()
