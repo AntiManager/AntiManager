@@ -188,6 +188,15 @@ def test_unknown_role_h1a():
     assert any("H1a" in e and "ХХ" in e for e in res["errors"]), res["errors"]
 
 
+def test_missing_roles_frontmatter_h1b():
+    txt = ktk("РП", "Руководитель производства",
+              [ktk_row(1, "TST-01", "Владелец", "да", "high")])
+    txt = txt.replace("roles: [РП]\n", "")  # break the T4.9 §2 contract
+    v = build_vault({"TST.md": LIB_FIXTURE, "artifacts/КТК/ТСТ_КТК.md": txt})
+    res = run(v)
+    assert any("H1b" in e for e in res["errors"]), res["errors"]
+
+
 # --- grid horizons ---------------------------------------------------------
 def test_grid_h3_h4():
     secs = [("Ежедневные события",
@@ -371,6 +380,36 @@ def test_role_resolution_maps():
     assert set(ca.roles_for_string(reg, "ПЭО")) == {"РП", "ГД"}   # fold_map multi
     assert ca.roles_for_string(reg, "Оператор") == []             # worker
     assert ca.role_for_string(reg, "Начальник транспортной службы") == "РС"
+
+
+# --- traceability report (E4) ---------------------------------------------
+def test_traceability_no_gaps():
+    import traceability as tr
+    rep = tr.build(_full_vault())
+    assert rep["counts"]["no_code"] == 0, rep["gaps"]
+    assert rep["counts"]["unresolved"] == 0, rep["gaps"]
+    assert rep["counts"]["ktk_links"] == len(CODES)
+    assert rep["ktk"][0]["goal"] is not None
+
+
+def test_traceability_reports_gap():
+    import traceability as tr
+    v = build_vault({
+        "TST.md": LIB_FIXTURE,
+        "artifacts/КТК/ТСТ_КТК.md": ktk(
+            "РП", "Руководитель производства",
+            [ktk_row(1, "—", "Владелец", "да", "high")]),
+    })
+    rep = tr.build(v)
+    assert rep["counts"]["no_code"] == 1, rep["gaps"]
+
+
+def test_traceability_empty_vault_not_ok():
+    """A vault with no artifacts must not report a green OK (exit 2)."""
+    import traceability as tr
+    v = build_vault({"TST.md": LIB_FIXTURE})
+    assert tr.build(v)["artifact_files"] == 0
+    assert tr.main([v]) == 2
 
 
 # --- vault guards ----------------------------------------------------------

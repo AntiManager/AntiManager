@@ -10,6 +10,7 @@ does NOT extend the ontology validator.
 
 Hard checks (always):
   H1a  artifact role codes are a non-empty subset of the register
+  H1b  recognized-kind artifact declares a 'roles:' frontmatter key (T4.9 §2)
   H2   every referenced process code resolves to a library node
   H3   every grid event has a non-empty Горизонт (in the allowed vocabulary)
   H4   each event's Горизонт matches its section cadence
@@ -192,6 +193,7 @@ def parse_file(path):
     out = {
         "path": path,
         "kind": kind if kind in KINDS else None,
+        "has_roles_fm": "roles" in fm,
         "fm_roles": _fm_roles(fm.get("roles")),
         "heading_roles": [],
         "tables": [],
@@ -289,6 +291,10 @@ def check_structure(reg, artifacts, lib):
         if a["kind"] is None:
             continue
         base = os.path.basename(a["path"])
+
+        # H1b: recognized-kind artifact declares roles in frontmatter (T4.9 §2)
+        if not a["has_roles_fm"]:
+            errors.append(f"H1b {base}: frontmatter missing required 'roles:' key (T4.9)")
 
         # H1a: role codes ⊆ register, non-empty
         rset = set(a["fm_roles"]) | set(a["heading_roles"])
