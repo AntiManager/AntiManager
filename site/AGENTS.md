@@ -128,3 +128,6 @@ Caddy-reload step after "Restarting Docker container", verify live (GET 200) bef
   `dateModified` and static-page `lastmod` use the build date
 - Thinker photos ship as `<picture>` (generated `.webp` + original fallback); build guards on
   the `.webp` existing, so a missing generation degrades gracefully to the raster
+- Long inline code/identifier chips (`.anchor-code`, `.cv`) must **wrap** (`overflow-wrap: anywhere`),
+  never `white-space: nowrap` — a nowrap chip caused page-level horizontal scroll on `/genome/`
+  (375/768px). The shared no-hscroll Playwright test (`ux-critical` AX04) guards this.

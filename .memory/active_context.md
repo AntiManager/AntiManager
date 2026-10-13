@@ -1,28 +1,26 @@
 # AntiManager — Active Context
-> Updated: 2026-10-13 · status: **in progress** (prototype ported to the site build — `/genome/` + `/genome/role/`; RESUME: controlled deploy + live verify)
+> Updated: 2026-10-13 · status: **deployed** («Геном завода» → `/genome/` + `/genome/role/` live & verified; plan `1791902606513` closed)
 
-## In progress — «Геном завода» section integrated (RESUME = deploy + live verify)
-Prototype → production section, now part of the static build (plan `1791902606513`):
-- **Pages:** `/genome/` (landing: model + free PLAN-group sample + 6 doc cards) and `/genome/role/` (full КУ package + recruiter profile). Both indexable, in sitemap (0.7 / 0.6) and nav («Геном»).
-- **Content:** authored partials `site/src/content/genome/{landing,role}.html`. The role page's KU/profile block is generated offline by `.kilo/scripts/genome_doc_build.py` (ported from the prototype `_build-doc.py`, idempotent, fills `<!--KU:*-->` / `<!--PROFILE:*-->` markers from the vault) — **build stays vault-independent**.
-- **Wiring:** `site/build.js` writes both pages (`renderPage` + static BreadcrumbList), `VERSION` bumped `20261013a`; styles in `brutalist.css` §GENOME; CTAs → `https://t.me/antimanager`, one → `/headquarters/`.
-- **Tests:** `site/unit/build-genome.test.js` (unit **9/9**), `site/tests/genome.spec.js` + no-hscroll paths (Playwright **120/120**). Fixed a mobile/tablet overflow (`.anchor-code` nowrap → wraps).
-- **Deploy control:** `site/scripts/verify-deploy.ps1` (post-deploy GET 200 + sitemap check). Full detail → `.memory/progress.md` (2026-10-13 entry).
+## Done this session — «Геном завода» live (plan `1791902606513`)
+Prototype → production, **deployed + verified live**:
+- Pages `/genome/` (landing + free PLAN-group sample + 6 doc cards) and `/genome/role/` (full КУ + recruiter profile) — indexable, sitemap (0.7/0.6), nav «Геном».
+- Partials `site/src/content/genome/{landing,role}.html`; role KU/profile filled offline by `.kilo/scripts/genome_doc_build.py` (idempotent, 43 tables) — build stays vault-independent.
+- `build.js` renders both, `VERSION` `20261013a`; styles `brutalist.css` §GENOME; CTAs → `t.me/antimanager`. Tests unit **9/9**, Playwright **120/120** (fixed mobile hscroll via `overflow-wrap:anywhere`).
+- Deploy `0d87762` → `deploy.ps1` → `verify-deploy.ps1` **3/3 OK**; plan + log archived.
+- Cleanup (2026-10-13): removed `docs/prototype/` (backup in `%TEMP%\kilo\backups`); compacted `.memory`; harness clean.
 
-**RESUME (next session):** controlled deploy — commit the integration (rollback point), `cd site; .\deploy.ps1`, then `.\scripts\verify-deploy.ps1` + browser spot-check. SSH 2222 flaky → verify live before re-running. Then close the plan (`/retro`, fold a lesson). Optional cleanup: `docs/prototype/` is now redundant (still untracked) — remove after verify (user-confirmed).
-
+**Deferred review fixes (`0d87762`, COSMETIC):** (1) `landing.html` h1 `Геном<br>завода` → «Геномзавода» (a11y/SEO) — add space/`aria-label`; (2) JSON-LD breadcrumb `/genome/role/` flat (2 levels) → extend to 3; (3) hero-CTA «Заказать проработку» → `#offer` vs direct Telegram; (4) hardcoded `#141414`/`#1b1b1b` in §GENOME → `--color-surface`.
 
 ## Next editorial (resume) — DRAFT series 30–35
 JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция развития НЦ/НС — each needs frontmatter + related sections + case/conclusion before `/full/`. Procedure: `content-publisher` skill + `/full-article <slug>`.
-- Tests: unit **9/9**; Playwright **120/120** (40 × 3) — `cd site; npm test`. Docker Desktop holds port 3000 → if Playwright `webServer` aborts, use a temp config on another port.
+- Tests: unit **9/9**; Playwright **120/120** (40 × 3) — `cd site; npm test`. Docker holds port 3000 → if Playwright `webServer` aborts, use a temp config on another port.
 - Two-pass PDF rule: `build → render:pdf → build → render:pdf → build`; each render rewrites `/CreationDate` → `git checkout -- site/materials` restores untouched PDFs.
 
 ## Harness state
-- Skills 8, commands 10, agents 2. MCP: obsidian, github (project `.kilo/kilo.json`), context7 (global `kilo.jsonc`). `/check-harness` clean: global 7/7/9, project 8/2/10, 0 real orphans.
-- `content-publisher` + `/full-article`; `article-readiness` + `/article-readiness`; `pipelines/obsidian-to-site/{article_readiness,md_to_partial}.py`; `/check-site` = `npm test`.
+- Skills 8, commands 10, agents 2. MCP: obsidian+github (project `.kilo/kilo.json`), context7 (global). `/check-harness` clean: global 7/7/9, project 8/2/10, 0 orphans. `/check-site` = `npm test`.
 
 ## Hot rules / deferred
-- Plans policy (`.kilo/AGENTS.md`): `.kilo/plans/` is gitignored; the 3 tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch.
+- Plans policy (`.kilo/AGENTS.md`): `.kilo/plans/` gitignored; the 3 tracked plans are history — do not touch.
 - **SSH 2222 flaky (VPS):** `deploy.ps1` may abort on a mid-run ssh timeout although the upload landed — verify live (GET 200) before re-running.
 - `yandex-verification` meta needs the user's code.
 - Open tech debt (Metrika `webvisor` vs `/privacy/`, GitVerse token rotation, `chapters.json`/`tools.json` dead data, `VERSION`/`BUILD_DATE`, raw `content_body`) → `.memory/progress.md` §Technical Debt.
