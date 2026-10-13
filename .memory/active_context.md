@@ -1,13 +1,22 @@
 # AntiManager — Active Context
-> Updated: 2026-10-12 · status: **parked** (resume with Phase D, event grid)
+> Updated: 2026-10-13 · status: **parked** (resume with Phase E, conformance)
 
 ## Current track — artifact chain (plan 1791810263662)
-Phases A–C DONE (КТК, priority matrix). Next: **sub-plan 04 (Phase D, event grid)** —
-`specs/T4.3`; author `library/artifacts/Сетка_регулярных_событий.md` (11 source sections →
-cadence sections, H3/H4, W2, token 0), depends on 01+02+03. Then E (conformance), F
-(closeout/INDEX). Log: `.kilo/plans/1791810263662-…-execution-log.md`.
-- Tooling: `pipelines/proc-library/` (`check_artifacts.py`, `token_scan.py`, `author_*.py`,
-  `engine.py`); vault path is env-driven (`PROC_LIB_VAULT`).
+Phases A–D DONE (КТК, priority matrix, event grid). Next: **sub-plan 05 (Phase E,
+conformance validation)** — `specs/T4.8`; run `check_artifacts.py <vault> --cross
+--semantic`; review W1 (5, КТК keystones absent from matrix/grid), W2 (21,
+meeting-convener vs process-owner — signed off in log), W6; traceability gaps 0;
+then F (closeout/INDEX). Log: `.kilo/plans/1791810263662-…-execution-log.md`.
+- Tooling: `pipelines/proc-library/` (`check_artifacts.py`, `token_scan.py`,
+  `author_*.py` incl. `author_event_grid.py`, `engine.py`); vault path env-driven
+  (`PROC_LIB_VAULT`).
+
+## Next session (deferred by user, 2026-10-13)
+(1) `/review uncommitted` on Phase D → fix findings — **DONE** (session 6: F1–F6 fixed;
+T4.3 mirror `4167 043A`; pytest 115). Remaining: (2) cleanup + optimization pass over
+`.kilo/plans/` + harness; (3) commit + push (GitHub + GitVerse) — Phase D diff is still
+uncommitted (registry + T4.0 + new `author_event_grid.py` + `test_author_event_grid.py`
++ updated T4.3). Then resume **Phase E** (sub-plan 05).
 
 ## Next editorial (resume)
 DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция
