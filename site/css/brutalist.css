@@ -396,6 +396,13 @@ tr:hover td { background: rgba(220, 38, 38, 0.05); }
   .material-item .btn { width: 100%; text-align: center; }
 }
 
+/* === LOSS MAP (article 07 inline SVG) === */
+.loss-map { margin: var(--space-6) 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.loss-map svg { width: 100%; height: auto; display: block; background: #101010; border: 1px solid var(--color-steel); border-radius: 12px; }
+.loss-map svg text { font-family: var(--font-heading); }
+.loss-map figcaption { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--color-muted); }
+@media (max-width: 768px) { .loss-map svg { min-width: 760px; } }
+
 /* Print: the article only, no site chrome */
 @media print {
   body { background: #fff; color: #000; }
@@ -407,6 +414,9 @@ tr:hover td { background: rgba(220, 38, 38, 0.05); }
   .full-article a, .full-hero a { color: #000; text-decoration: underline; }
   .full-article a[href^="/"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #555; }
   .block-principle, .block-case, .block-note, .materials-section, table, th, td { border-color: #999; color: #000; }
+  /* The wide map is illegible at print width and prints as a solid dark block;
+     the causal table right below is its readable text equivalent. */
+  .loss-map { display: none; }
 }
 
 /* Weapon hero on article page */

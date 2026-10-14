@@ -81,6 +81,33 @@ test('rollout: migrated landings link to their full text pages', function() {
   }
 });
 
+test('article 07 ships eight monsters and the inline loss map; ch.06 canonises eight', function() {
+  try {
+    runBuild({ BUILD_DATE: '2026-01-02' });
+
+    const full = readDist('weapons', 'dengi-v-dvizhenii', 'full', 'index.html');
+    assert.ok(full.includes('class="loss-map"'), '07 full page must embed the loss map');
+    assert.ok(full.includes('role="img"'), 'loss map must expose an accessible role');
+    assert.ok(full.includes('aria-labelledby="lossmap-title"'), 'loss map must reference its accessible title');
+    assert.ok(full.includes('id="lossmap-title"'), 'loss map must ship a <title>');
+    assert.ok(full.includes('8. Монстр Нереализованный потенциал'), '07 must list the eighth monster');
+    assert.ok(full.includes('Взаимосвязь монстров'), '07 must ship the interconnection section');
+    assert.ok(!full.includes('Семь пожирател'), '07 must no longer say "Семь пожирателей"');
+    assert.ok(!full.includes('неиспользованный потенциал сотрудников'), 'old 8th-waste wording must be gone from 07');
+
+    const lite = readDist('weapons', 'dengi-v-dvizhenii', 'index.html');
+    assert.ok(lite.includes('Восемь пожирателей прибыли'), '07 landing heading must read "Восемь"');
+    assert.ok(lite.includes('Нереализованный потенциал'), '07 landing table must include the eighth monster');
+
+    const p = readDist('weapons', 'processy', 'full', 'index.html');
+    assert.ok(p.includes('Классические 7 видов «муда» плюс добавленный позже восьмой'), 'ch.06 must frame the eight as 7 classic + 1 later');
+    assert.ok(p.includes('<li>Нереализованный потенциал сотрудников</li>'), 'ch.06 must list the 8th waste item');
+    assert.ok(!p.includes('А я добавлю девятый'), 'ch.06 must not offer a ninth waste');
+  } finally {
+    runBuild();
+  }
+});
+
 test('materials.json rejects unsafe hrefs and escapes titles', function() {
   const payload = '<img src=x onerror="window.__xss=1">';
   const good = writeFixture('antimanager-materials', [{
