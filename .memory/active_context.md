@@ -1,5 +1,11 @@
 # AntiManager — Active Context
-> Updated: 2026-10-13 · **PARKED до 2026-10-14** · «Геном завода» + SEO-хардening live & verified (commit `241092e`)
+> Updated: 2026-10-14 · Article 07 → **восемь** пожирателей + inline loss map live & verified (commit `9cfd8e7`)
+
+## Session done — Article 07 eight monsters + inline loss map (2026-10-14)
+- Ch.3 переписан на **восемь** монстров (+«Нереализованный потенциал сотрудников», Лайкер) + раздел «Взаимосвязь монстров» + причинная таблица; inline SVG-карта на `/weapons/dengi-v-dvizhenii/full/` (`role=img` + `<title>`/`<desc>`, скрыта в print — таблица ниже = текстовый эквивалент). Ch.06 приведён к канону «восемь» (нет «девятого вида», «информационные пробки» — усилитель); Ch.05 уже был каноничным.
+- Правки vault `07_…md`/`06_…md` через `guard_encoding.py` (backup → OK); docx соавтора проверен — без tracked changes/comments. `VERSION → 20261014a`. Unit **10/10**, Playwright **120/120** (AX04 no-hscroll); PDF `dengi-v-dvizhenii.pdf` (345 KB, 0 картинок) + `processy.pdf` перегенерированы. Commit `9cfd8e7` → deploy → live-verified.
+- **Open COSMETIC:** карта читается мелко на десктопе (вне print); при желании — `<h4>`/полноширинная обёртка. Сам SVG статичный (черновик называл его «интерактивной схемой»).
+- **Урок (в `site/AGENTS.md`):** не запускать `render:pdf` параллельно с `build`/тестами (оба пишут `dist/`) — иначе в PDF попадает устаревшая разметка; широкий inline SVG в print скрывать, отдавая таблицу.
 
 ## Session done — «Геном завода» live + SEO-хардening
 - `/genome/` (landing + PLAN sample + 6 doc cards) и `/genome/role/` (КУ + recruiter profile) — индекс, sitemap 0.7/0.6, nav «Геном». Deploy `0d87762`, затем SEO `241092e` → `verify-deploy.ps1` **3/3 OK** (live 200).

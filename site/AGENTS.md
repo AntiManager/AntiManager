@@ -98,6 +98,13 @@ Unit tests run with `--test-concurrency=1`: any unit test that shells out to `bu
 writes the shared `dist/`, so parallel test files would race. Keep that flag.
 `build.js` accepts a `BUILD_DATE` env override (used by tests for deterministic dates).
 
+`render:pdf` serves `dist/` and prints each `/full/` page in print media — never run it
+concurrently with `build.js`/tests (they rewrite the shared `dist/`), or the PDF captures
+stale markup (a phantom ~3× size jump / embedded images is the tell). Wide inline SVGs
+(e.g. the article-07 loss map, `viewBox 1500×1120`) are illegible at A4 print width and
+print as a dark block: hide them under `@media print` (`.loss-map { display: none }`) and
+keep a table/text equivalent right below.
+
 ## SSH / Deploy
 
 See `.env` for connection details. Default deploy configuration:
