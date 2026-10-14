@@ -198,7 +198,7 @@ function materialsBlockHtml(w) {
     + (items ? '<ul class="materials-list">' + items + '</ul>' : '')
     + empty
     + '<div class="materials-actions">' + printBtn
-    + '<a class="btn btn-ghost btn-sm" href="https://t.me/antimanagerpro_bot">Новые материалы — в Штабе</a></div>'
+    + '<a class="btn btn-ghost btn-sm" href="https://t.me/antimanagerpro_bot">Спросить в Telegram</a></div>'
     + '</section>';
 }
 
@@ -555,7 +555,7 @@ const hqContent = '<section class="content-page" style="text-align:center;paddin
   + '<h1>Штаб</h1>'
   + '<p class="weapon-subtitle">Закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
   + '<p style="color:var(--color-steel);margin:var(--space-4) 0;">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
-  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-crisis" style="margin-top:var(--space-6);">💬 ВСТУПИТЬ В TELEGRAM</a>'
+  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-crisis" style="margin-top:var(--space-6);">💬 НАПИСАТЬ В TELEGRAM</a>'
   + '</section>';
 
 const aboutContent = '<section class="content-page">'
@@ -655,7 +655,7 @@ const landingContent = '<section class="hero">'
   + '<h2 class="section-title">ВСТУПАЙ В ШТАБ</h2>'
   + '<p class="section-desc">Это закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
   + '<p class="section-desc">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
-  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">💬 ВСТУПИТЬ В TELEGRAM</a>'
+  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">💬 НАПИСАТЬ В TELEGRAM</a>'
   + '</section>'
 
   + '<section style="text-align:center;padding-bottom:var(--space-8);">'
