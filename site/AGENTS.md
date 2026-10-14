@@ -73,7 +73,29 @@ A consulting-service section, not an arsenal weapon. Two indexable static pages 
   vault-relative and `.md` references are rendered as plain text, so a dead `.md` link can
   never leak onto the published page.
 
-CTAs: commercial buttons go to `https://t.me/antimanager`; «Задать вопрос в Штаб» → `/headquarters/`.
+CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/headquarters/`.
+
+## Contact / feedback form (`/contact/`)
+
+The `/contact/` page hosts the feedback form. It is a static partial (`src/content/contact.html`,
+wired in `build.js` with `js/contact.js`), so the site stays static. Submitting posts JSON to the
+**same-origin** `POST /api/feedback`, proxy-passed by nginx to the `antimanager-feedback` container
+(the `site/feedback/` microservice: Python stdlib, no deps) which forwards the message to the owner's
+Telegram chat via the bot. The offer CTAs on `/genome/` and `cta-band` link to `/contact/` (with a
+`?pack=` context slug); the footer carries «Связаться».
+
+Rules:
+- The **bot token never leaves the server**: it lives only in `$REMOTE_DIR/feedback.env`
+  (`chmod 600`, passed with `--env-file`). Never put it in client JS, `dist/`, or the repo; the
+  same-origin proxy exists precisely so the browser never needs the token or CORS.
+- Because the endpoint is same-origin, the existing CSP (`form-action 'self'`, no `connect-src`)
+  already permits it — do not move the endpoint to another origin without adding `connect-src`.
+- The service is covered by `python -m unittest discover -s site/feedback/tests` (not by
+  `npm test`, which only runs the site build + Playwright); the Playwright `contact.spec.js`
+  intercepts `/api/feedback`, so no real network call is made in tests (the static `serve` cannot
+  answer POST).
+- Deploy the service (`site/feedback/deploy.ps1`) before/independently of the site; nginx resolves
+  the container by name on the shared `vps_shared` network.
 Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
 
 ## Commands
