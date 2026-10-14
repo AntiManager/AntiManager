@@ -21,10 +21,10 @@
 - SEO: `robots index, follow, max-image-preview:large, max-snippet:-1`; JSON-LD `Organization` в static `@graph` (висячий `publisher` устранён); role breadcrumb 3 уровня; `og:image:alt` без дубля бренда; `<h1>` без склейки; битая `.md`-ссылка → plain text (генератор нейтрализует `.md`/rel-ссылки); `<title>` лендинга усилен. Unit **9/9**, Playwright **120/120**.
 - Cleanup: `docs/prototype/` удалён (backup `%TEMP%\kilo\backups`); memory compacted; harness clean (global 7/7/9, project 8/2/10, 0 orphans).
 
-## RESUME (2026-10-14)
+## RESUME (2026-10-14) — PARKED until 2026-10-15 («паркуемся до завтра»)
 - **Feedback form:** reviewed + fixed + committed + pushed + **deployed & live-verified** (2026-10-14). No open blockers. Token was reused (not rotated) — rotate later if desired.
-- **Editorial:** DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция НЦ/НС) — frontmatter + related + case/conclusion, затем `/full/` (`content-publisher` + `/full-article <slug>`).
-- **Open COSMETIC** (продуктовое): hero-CTA «Заказать проработку» → `#offer`, не прямой Telegram.
+- **Next (first action tomorrow):** editorial DRAFT series **30–35** (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция НЦ/НС) — frontmatter + related + case/conclusion, затем `/full/` (`content-publisher` + `/full-article <slug>`).
+- **Open COSMETIC** (продуктовое): hero-CTA «Заказать проработку» → `#offer`, не прямой Telegram; «Штаб»/клубный каркас на `/headquarters/` + hq-section лендинга («ВСТУПАЙ В ШТАБ», «закрытый клуб») всё ещё описывает сообщество, хотя точка входа — бот (переформулировать под бота, если нужно).
 - Tests: unit **11/11**; Playwright **135/135** (45×3) — `cd site; npm test`; service `python -m unittest discover -s site/feedback/tests` (**20/20**). Docker держит порт 3000 → при abort `webServer` — временный config на другом порту.
 - Two-pass PDF: `build → render:pdf → build → render:pdf → build`; render переписывает `/CreationDate` → `git checkout -- site/materials`.
 
