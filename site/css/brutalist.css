@@ -596,3 +596,31 @@ body.flash-in { animation: red-flash 0.5s ease-out; }
 
 /* Deep-link anchors on the role page clear the sticky header */
 .section#ku, .section#profile { scroll-margin-top: 90px; }
+
+/* === CONTACT (/contact/ — feedback form) === */
+.contact-page { max-width: 720px; margin: 0 auto; padding: var(--space-10) var(--space-4) var(--space-16); overflow-wrap: anywhere; }
+.contact-page h1 { margin-bottom: var(--space-4); }
+.contact-lead { font-size: var(--text-lg); line-height: 1.7; color: var(--color-muted); margin-bottom: var(--space-8); }
+.contact-pack { display: inline-block; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-accent-text); border: 1px solid var(--color-steel); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-6); }
+.contact-pack[hidden] { display: none; }
+.field { margin-bottom: var(--space-5); }
+.field label { display: block; font-family: var(--font-heading); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--text-sm); margin-bottom: var(--space-2); }
+.field .req { color: var(--color-accent-text); }
+.field input[type="text"], .field textarea {
+  width: 100%; background: #141414; border: 2px solid var(--color-steel); color: var(--color-text);
+  font-family: var(--font-body); font-size: var(--text-base); padding: var(--space-3);
+}
+.field input[type="text"]:focus, .field textarea:focus { outline: none; border-color: var(--color-accent); }
+.field textarea { min-height: 140px; resize: vertical; }
+.field .hint { font-size: var(--text-xs); color: var(--color-muted); margin-top: var(--space-1); }
+.consent { display: flex; gap: var(--space-3); align-items: flex-start; margin-bottom: var(--space-6); }
+.consent input { width: 20px; height: 20px; flex: none; margin-top: 3px; accent-color: var(--color-accent); }
+.consent label { font-size: var(--text-sm); color: var(--color-muted); }
+.consent a { color: var(--color-accent-text); }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-status { margin-top: var(--space-4); font-family: var(--font-heading); font-weight: 700; font-size: var(--text-sm); }
+.form-status:empty { display: none; }
+.form-status.ok { color: var(--color-accent-text); }
+.form-status.err { color: var(--color-warning); }
+.contact-alt { margin-top: var(--space-8); font-size: var(--text-sm); color: var(--color-muted); }
+.contact-alt a { color: var(--color-accent-text); }

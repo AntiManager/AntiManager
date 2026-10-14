@@ -1,0 +1,41 @@
+<section class="contact-page">
+  <h1>Связаться</h1>
+  <p class="contact-lead">Опишите задачу — отвечу лично. Заявка уходит прямо в мой Telegram, на сайте ничего не хранится.</p>
+
+  <form id="feedbackForm" class="contact-form" method="post" action="/api/feedback">
+    <p class="contact-pack" id="packNote" hidden></p>
+    <input type="hidden" name="pack" id="cf-pack" value="">
+
+    <div class="field">
+      <label for="cf-name">Имя <span class="req">*</span></label>
+      <input id="cf-name" name="name" type="text" required maxlength="100" autocomplete="name">
+    </div>
+
+    <div class="field">
+      <label for="cf-contact">Контакт <span class="req">*</span></label>
+      <input id="cf-contact" name="contact" type="text" required maxlength="200" autocomplete="off">
+      <p class="hint">Telegram, email или телефон — как удобнее ответить.</p>
+    </div>
+
+    <div class="field">
+      <label for="cf-message">Сообщение <span class="req">*</span></label>
+      <textarea id="cf-message" name="message" required maxlength="3000" rows="6"></textarea>
+    </div>
+
+    <div class="hp-field" aria-hidden="true">
+      <label for="cf-website">Website</label>
+      <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="consent">
+      <input id="cf-consent" name="consent" type="checkbox" required>
+      <label for="cf-consent">Согласен(на) на обработку персональных данных в соответствии с <a href="/privacy/">политикой конфиденциальности</a> <span class="req">*</span></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Отправить</button>
+    <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+  </form>
+
+  <p class="contact-alt">Не любите формы? Напишите напрямую в Telegram: <a href="https://t.me/antimanagerpro_bot" rel="noopener">@antimanagerpro_bot</a>.</p>
+  <noscript><p class="contact-alt">Для отправки формы нужен JavaScript — либо напишите напрямую: <a href="https://t.me/antimanagerpro_bot" rel="noopener">@antimanagerpro_bot</a>.</p></noscript>
+</section>

@@ -21,11 +21,11 @@ test.describe('GEN01 — Genome landing', () => {
     await expect(page.locator('.doc-card')).toHaveCount(6);
   });
 
-  test('commercial CTAs point to the Telegram Штаб, one to /headquarters/', async ({ page }) => {
+  test('commercial CTAs open the feedback form, one to /headquarters/', async ({ page }) => {
     await page.goto(LANDING);
 
-    await expect(page.locator('.packs a.btn[href="https://t.me/antimanager"]')).toHaveCount(4);
-    await expect(page.locator('.cta-band a[href="https://t.me/antimanager"]')).toHaveCount(1);
+    await expect(page.locator('.packs a.btn[href^="/contact/?pack="]')).toHaveCount(4);
+    await expect(page.locator('.cta-band a[href="/contact/"]')).toHaveCount(1);
     await expect(page.locator('.cta-band a[href="/headquarters/"]')).toHaveCount(1);
     await expect(page.locator('a[href="#"]')).toHaveCount(0);
   });

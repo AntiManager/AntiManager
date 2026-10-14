@@ -710,7 +710,27 @@ write('cases/index.html', renderPage('Полевые дневники | AntiMana
 write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
 write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
 write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в арсенал AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
-write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Политика конфиденциальности', '<section class="content-page"><h1>Политика конфиденциальности</h1><p>Мы не собираем персональные данные пользователей. Сайт использует только технические файлы cookie, необходимые для работы.</p></section>', { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
+const privacyContent = '<section class="content-page">'
+  + '<h1>Политика конфиденциальности</h1>'
+  + '<p>Сайт antimanager.pro не собирает персональные данные автоматически. Единственный случай, когда вы передаёте данные добровольно, — заполнение формы обратной связи на странице «Связаться».</p>'
+  + '<h2>Какие данные собираются</h2>'
+  + '<p>Через форму обратной связи: имя, контакт (Telegram, email или телефон) и текст сообщения, а также контекст обращения (интересующий формат работы).</p>'
+  + '<h2>Зачем</h2>'
+  + '<p>Только чтобы ответить на ваше обращение.</p>'
+  + '<h2>Как обрабатываются данные</h2>'
+  + '<p>Данные из формы пересылаются в приватный чат Telegram и не сохраняются на сайте и в базе данных сайта. Дальнейшая обработка происходит в сервисе Telegram.</p>'
+  + '<h2>Согласие и его отзыв</h2>'
+  + '<p>Отправляя форму, вы даёте согласие на обработку указанных данных для ответа на обращение. Согласие можно отозвать в любой момент — напишите об этом в ответном сообщении, и данные будут удалены.</p>'
+  + '<h2>Cookie и статистика</h2>'
+  + '<p>Сайт использует только технические файлы cookie, необходимые для работы, и сервис веб-аналитики Яндекс.Метрика для статистики посещаемости.</p>'
+  + '</section>';
+write('privacy/index.html', renderPage('Политика конфиденциальности | AntiManager', 'Как antimanager.pro обрабатывает данные обратной связи', privacyContent, { noindex: true, canonicalUrl: SITE_URL + '/privacy/' }));
+
+// Contact page: the feedback form posts same-origin to /api/feedback, served by
+// the feedback microservice (site/feedback/).
+const contactContent = read('src/content/contact.html');
+write('contact/index.html', renderPage('Связаться | AntiManager', 'Форма обратной связи: опишите задачу — заявка уйдёт напрямую в Telegram.', contactContent, { canonicalUrl: SITE_URL + '/contact/', scripts: '<script src="/js/contact.js?v=' + VERSION + '" defer></script>', structuredData: makeStructuredData('static', { name: 'Связаться', url: SITE_URL + '/contact/' }) }));
+console.log('  ✓ contact + privacy');
 
 // Genome section: the landing (model + free PLAN sample + doc cards) and the
 // full role documents (КУ + recruiter profile). Authored partials; the role page's
@@ -842,6 +862,7 @@ var sitemapUrls = [
   { loc: SITE_URL + '/cases/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/headquarters/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/about/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/contact/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
 ];

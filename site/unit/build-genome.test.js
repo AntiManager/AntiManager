@@ -46,7 +46,8 @@ test('genome pages ship, are indexable, and carry no prototype chrome', function
     assert.ok(landing.includes('/genome/role/#profile'), 'profile card must link to the role page #profile');
 
     // CTA targets resolved (no dead "#" links).
-    assert.ok(landing.includes('https://t.me/antimanager'), 'CTAs must point to the Telegram Штаб');
+    assert.ok(landing.includes('/contact/?pack=process'), 'offer CTAs must open the feedback form');
+    assert.ok(landing.includes('href="/contact/"'), 'the request CTA must point to /contact/');
     assert.ok(landing.includes('href="/headquarters/"'), 'the question CTA must point to /headquarters/');
     assert.ok(!landing.includes('href="#"'), 'no dead "#" links may remain');
 
