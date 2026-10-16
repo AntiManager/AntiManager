@@ -68,7 +68,3 @@ With the structure:
 - `book-writing` — after index, check article frontmatter
 - `management-research` — after index, add links between concepts
 - `/fix-encoding` — before index, check encoding
-
-## Automation in AGENTS.md
-
-On every session start related to the vault, run `/vault-index quick` for context.

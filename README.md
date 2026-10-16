@@ -10,7 +10,7 @@
 
 ## О проекте
 
-22 главы, 22 инструмента, 10 кейсов — единая связанная система управления производством в пяти контурах:
+Главы, инструменты и кейсы — единая связанная система управления производством в пяти контурах:
 
 | Контур | Главы | Фокус |
 |--------|-------|-------|
@@ -26,7 +26,7 @@
 - Статическая генерация через Node.js (`site/build.js`)
 - Self-hosted шрифты: Golos Text, PT Serif, JetBrains Mono (woff2, Cyrillic/Latin split)
 - Бруталистская дизайн-система: чёрно-красно-белая палитра, шум
-- Playwright e2e-тесты (3 вьюпорта × 22 тест-сьюта = 66 тестов)
+- Playwright e2e-тесты (несколько вьюпортов × тест-сьюты)
 - Docker: nginx:alpine + Caddy на VPS
 
 ## Структура
@@ -41,11 +41,11 @@ site/                # Код и деплой сайта
     components/      # header, footer (HTML-компоненты)
     templates/       # base.html, og-image.svg
     data/            # weapons.json, scenarios.json, thinkers.json, cases.json
-    content/         # HTML-контент 22 глав
+    content/         # HTML-контент статей и разделов
   css/               # brutalist.css, fonts.css
   js/                # brutalist.js (flash, scroll-reveal, menu, scroll-top)
   fonts/             # Golos Text, PT Serif, JetBrains Mono (woff2 × 10)
-  tests/             # Playwright (ux-critical.spec.js — 66 тестов)
+  tests/             # Playwright e2e-тесты
   deploy/            # deploy.ps1, nginx.conf
   dist/              # Build output (gitignored)
 ```

@@ -18,7 +18,7 @@ Follow the `content-publisher` skill (full-text process). Atomic recipe:
    `cd site; node build.js; npm run render:pdf; node build.js; npm run render:pdf; node build.js`
    The first render runs before `site/materials/<slug>.pdf` exists; the second embeds
    the real download link in the PDF itself.
-6. **Tests.** `cd site; npm test` (expected: unit 8/8, e2e 99/99; if port 3000 is held
+6. **Tests.** `cd site; npm test` (all green, 0 failures; if port 3000 is held
    by Docker, run on an alternate port via a temp config).
 7. **Stage PDFs cleanly.** Renders rewrite `/CreationDate` on every tracked PDF —
    `git checkout -- site/materials` restores untouched ones; commit only genuinely

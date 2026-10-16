@@ -30,7 +30,6 @@ description: Writing and editing the book — structure, tags, encoding, links b
 - Terminology: verify against `Книга/03 - Инструменты/` (all files)
 
 ### After publication
-1. Update the book's `README.md` (status in the table)
-2. Update `Roadmap/Дорожная карта доработок.md`
-3. Add backlinks: grep related topics, add `[[NN_Название]]` to the "Связанные главы" section
-4. Create/update backlinks in related articles (if they have encoding issues — fix those first)
+1. Update `Roadmap/Дорожная карта доработок.md` (status in the table)
+2. Add backlinks: grep related topics, add `[[NN_Название]]` to the "Связанные главы" section
+3. Create/update backlinks in related articles (if they have encoding issues — fix those first)

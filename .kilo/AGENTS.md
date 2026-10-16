@@ -7,7 +7,7 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 
 ## Language policy
 
-- Agent-facing docs (skills, agents, commands, new plans, new execution-log entries, `.memory`, this file) — English.
+- Agent-facing docs (skills, agents, commands, new plans, new execution-log entries, this file) — English. `.memory/` is English for `active_context.md`/`progress.md`; `project_brief.md`/`tech_context.md`/`system_patterns.md` still carry Russian domain wording (grandfathered — translate on the next substantial edit).
 - Human-facing content (articles, UI strings, `manifesto-*`) — Russian.
 - Agent reasoning — English; answers to the user — Russian.
 - Russian literals that are real product UI strings or vault paths inside agent docs stay verbatim.
@@ -42,10 +42,10 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
 - vault-auditor — vault structure audit
 
-## MCP (3 active)
+## MCP (2 project + 1 global)
 
-- obsidian — batch note processing, vault read/write (`.kilo/kilo.json`)
-- github — commits/pushes, deploy (`.kilo/kilo.json`)
+- obsidian — batch note processing, vault read/write (project `.kilo/kilo.json`)
+- github — commits/pushes, deploy (project `.kilo/kilo.json`)
 - context7 — library/framework reference docs (global `kilo.jsonc`)
 
 ---
@@ -62,7 +62,7 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 
 ## Security protocol (absolute priority)
 
-1. **Back up before editing.** Any write operation starts with a backup to `$env:TEMP\kilo\backups\<date>\`.
+1. **Back up before editing.** Any write operation starts with a backup under `$env:TEMP\kilo\backups\` (the encoding guard uses a flat `<timestamp>_<file>` naming).
 2. **PowerShell for ASCII and simple operations only.** Handle Cyrillic through Python (ftfy).
 3. **Guard Encoding: mandatory before and after.** Before any `edit`/`write` to vault files, run `python pipelines/common/guard_encoding.py --backup <file>`. After the operation, run `python pipelines/common/guard_encoding.py <file>`. If CORRUPT — restore from the backup and alert the user.
 4. **Verify.** Check the result after every change. If the algorithm did not produce the expected result — roll back.

@@ -12,6 +12,6 @@ Pop-Location
 ```
 
 `npm test` = `npm run test:unit` (Node test runner, `--test-concurrency=1`) followed by
-`npx playwright test`. Return the unit pass/fail counts and the Playwright
-`passed`/`failed` counts. Expected: 8 unit tests; 99 Playwright tests
-(33 per project: mobile, tablet, desktop).
+`npx playwright test`. Report the unit pass/fail counts and the Playwright
+`passed`/`failed` counts straight from the run output — there is no fixed number
+to hard-code (the suite grows per feature); a green run means 0 failures.
