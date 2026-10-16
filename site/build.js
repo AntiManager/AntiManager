@@ -157,6 +157,9 @@ function withToc(html) {
   const out = String(html).replace(/<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi, function(m, level, attrs, inner) {
     const text = inner.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     if (!text) return m;
+    // A heading marked data-toc="skip" (e.g. the interlinks block) stays in the
+    // page but is not listed in the article table of contents.
+    if (/\bdata-toc="skip"/.test(attrs || '')) return m;
     n++;
     const idMatch = (attrs || '').match(/\bid="([^"]+)"/);
     let id;

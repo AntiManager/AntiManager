@@ -16,6 +16,7 @@ AntiManager/
     src/content/     # Topic-landing partials (XX-slug.html)
     src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
     src/content/genome/ # «Геном завода» section partials (landing.html, role.html)
+    src/content/strategy/ # «Стратегия» long-read partials (XX-slug.html)
     materials/       # Downloadable assets: <slug>.pdf (generated) + <slug>/ (authored extras)
     scripts/         # render-og.js, render-pdf.js
     css/             # Stylesheets
@@ -74,6 +75,21 @@ A consulting-service section, not an arsenal weapon. Two indexable static pages 
   never leak onto the published page.
 
 CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/headquarters/`.
+Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
+
+## «Стратегия» section (`/strategy/`)
+
+One-tier long-reads. The hub `/strategy/` lists the articles; each `/strategy/<slug>/` is a full
+article (TOC, FAQ, materials, Telegram CTA) with a three-level breadcrumb and FAQPage JSON-LD.
+Data lives in `src/data/strategy.json` (kept separate from `weapons.json`, whose counts stay pinned
+for the SEO tests). Article partials are generated offline from the vault by
+`.kilo/scripts/gen_strategy_partials.py` (Markdown links → real `<a>`; appends the «Читайте также»
+interlinks block). Re-run the generator after vault edits, then commit the regenerated partial —
+`node build.js` itself stays vault-independent. Site interlinks live only in the generator, never
+in the vault `.md`: the converter drops Markdown links, and the vault keeps its native `[[wiki]]`
+backlinks. A heading marked `data-toc="skip"` (the interlinks title) stays on the page but is
+excluded from the auto-generated table of contents. Section styles: `/* === STRATEGY SECTION === */`
+in `css/brutalist.css`.
 
 ## Contact / feedback form (`/contact/`)
 
@@ -96,7 +112,7 @@ Rules:
   answer POST).
 - Deploy the service (`site/feedback/deploy.ps1`) before/independently of the site; nginx resolves
   the container by name on the shared `vps_shared` network.
-Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
+Section styles live in the `/* === CONTACT === */` block of `css/brutalist.css`.
 
 ## Commands
 
@@ -115,6 +131,8 @@ npm run optimize:thinkers  # generate .webp siblings for thinker photos (run aft
 ```
 Regenerate the genome role documents after vault edits (needs the local Obsidian vault):
 `python ..\.kilo\scripts\genome_doc_build.py`
+Regenerate the strategy long-read partials after vault edits (same vault):
+`python ..\.kilo\scripts\gen_strategy_partials.py`
 
 Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
 writes the shared `dist/`, so parallel test files would race. Keep that flag.

@@ -74,8 +74,9 @@ def links_block(items):
         '<li><a href="%s">%s</a> — %s</li>' % (href, label, desc)
         for href, label, desc in items
     )
+    # data-toc="skip" keeps the interlinks heading out of the article TOC.
     return ('<section class="strategy-links">\n'
-            '<h2>Читайте также</h2>\n'
+            '<h2 data-toc="skip">Читайте также</h2>\n'
             '<ul>' + lis + '</ul>\n'
             '</section>')
 

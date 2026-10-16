@@ -54,6 +54,8 @@ test('each strategy article ships TOC, 3-level breadcrumb, FAQPage, materials an
       const html = readDist('strategy', a.slug, 'index.html');
       assert.ok(html.includes('article-toc'), a.slug + ' needs a table of contents');
       assert.ok(html.includes('id="sec-'), a.slug + ' TOC anchors must be injected into headings');
+      const toc = (html.match(/<nav class="article-toc"[\s\S]*?<\/nav>/) || [''])[0];
+      assert.ok(toc && !toc.includes('Читайте также'), a.slug + ' TOC must not list the interlinks block');
       assert.ok(html.includes('/strategy/"'), a.slug + ' breadcrumb must link the hub');
       assert.ok(html.includes('"@type": "BreadcrumbList"'), a.slug + ' needs BreadcrumbList');
       assert.ok(html.includes('"position": 3'), a.slug + ' breadcrumb must be three levels deep');
