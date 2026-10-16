@@ -38,6 +38,8 @@ test('contact page ships the feedback form and is reachable', function () {
       assert.ok(contact.includes('id="' + id + '"'), 'field #' + id + ' missing');
     });
     assert.ok(contact.includes('name="website"'), 'honeypot field must be present');
+    assert.ok(contact.includes('aria-describedby="cf-contact-hint"'), 'contact field must reference its hint');
+    assert.ok(contact.includes('id="cf-contact-hint"'), 'the hint must carry the referenced id');
     assert.ok(contact.includes('/js/contact.js'), 'contact.js must be loaded');
     assert.ok(contact.includes('href="/privacy/"'), 'consent must link to /privacy/');
     assert.ok(/<meta name="robots" content="index, follow/.test(contact), 'contact page must be indexable');

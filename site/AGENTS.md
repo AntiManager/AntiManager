@@ -112,6 +112,16 @@ Rules:
   answer POST).
 - Deploy the service (`site/feedback/deploy.ps1`) before/independently of the site; nginx resolves
   the container by name on the shared `vps_shared` network.
+- The form is progressive: with JavaScript it POSTs JSON; without it the browser
+  submits `application/x-www-form-urlencoded` natively, which `server.py` also parses
+  (a checked consent checkbox arrives as `consent=on`) and answers with a small HTML
+  notice when the request `Accept`s HTML. Do not break either path.
+- Component focus styles must not kill the global ring: a `.field input:focus { outline: none }`
+  rule outranks the global `:focus-visible { outline: 3px }` by specificity and silently removes
+  the keyboard indicator. Rely on the global rule; change only `border-color` locally.
+- Keep the page background on `html` (`html { background: var(--color-bg) }`), not only `body`:
+  a body-only background leaves the canvas unpainted, which flashes white on mobile overscroll
+  and renders white/transparent in full-page captures.
 Section styles live in the `/* === CONTACT === */` block of `css/brutalist.css`.
 
 ## Commands

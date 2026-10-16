@@ -98,6 +98,26 @@ def _get(port, path):
             exc.close()
 
 
+def _post_form(port, path, fields, headers=None):
+    """POST an application/x-www-form-urlencoded body (the no-JS browser path).
+
+    Returns (status, body_text, content_type).
+    """
+    data = urllib.parse.urlencode(fields).encode("utf-8")
+    request = urllib.request.Request("http://127.0.0.1:%d%s" % (port, path), data=data, method="POST")
+    request.add_header("Content-Type", "application/x-www-form-urlencoded")
+    for key, value in (headers or {}).items():
+        request.add_header(key, value)
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return response.status, response.read().decode("utf-8"), response.headers.get("Content-Type")
+    except urllib.error.HTTPError as exc:
+        try:
+            return exc.code, exc.read().decode("utf-8"), exc.headers.get("Content-Type")
+        finally:
+            exc.close()
+
+
 def _post_raw(port, path, body):
     """POST an arbitrary raw body (already bytes) and return the status code."""
     request = urllib.request.Request("http://127.0.0.1:%d%s" % (port, path), data=body, method="POST")
@@ -278,6 +298,35 @@ class EndpointTests(unittest.TestCase):
         port = self._start()
         status = _post_raw(port, "/api/feedback", json.dumps([1, 2, 3]).encode("utf-8"))
         self.assertEqual(status, 400)
+
+    def test_no_js_form_submission_delivers_and_returns_html(self):
+        # A browser with JavaScript off posts the form natively; the checkbox is
+        # sent as "consent=on" and the response should be an HTML page, not JSON.
+        port = self._start()
+        fields = {"name": "Иван", "contact": "+7 900 000-00-00", "message": "Нужен аудит", "pack": "process", "consent": "on"}
+        status, body, ctype = _post_form(port, "/api/feedback", fields,
+                                         {"X-Real-IP": "10.0.0.7", "Accept": "text/html,application/xhtml+xml"})
+        self.assertEqual(status, 200)
+        self.assertIn("text/html", ctype)
+        self.assertIn("Заявка отправлена", body)
+        self.assertEqual(len(_StubTelegram.calls), 1)
+        self.assertIn("Нужен аудит", _StubTelegram.calls[0][1]["text"])
+
+    def test_no_js_form_without_consent_is_rejected(self):
+        port = self._start()
+        fields = {"name": "Иван", "contact": "c", "message": "m"}
+        status, _body, _ctype = _post_form(port, "/api/feedback", fields,
+                                           {"X-Real-IP": "10.0.0.8", "Accept": "text/html"})
+        self.assertEqual(status, 400)
+        self.assertEqual(_StubTelegram.calls, [])
+
+    def test_form_submission_without_html_accept_returns_json(self):
+        port = self._start()
+        fields = {"name": "Иван", "contact": "c", "message": "m", "consent": "on"}
+        status, body, ctype = _post_form(port, "/api/feedback", fields, {"X-Real-IP": "10.0.0.10"})
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", ctype)
+        self.assertTrue(json.loads(body)["ok"])
 
     def test_unknown_path_is_not_found(self):
         port = self._start()

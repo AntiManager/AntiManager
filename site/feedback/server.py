@@ -27,6 +27,16 @@ MAX_MESSAGE = 3000
 MAX_BODY = 16 * 1024
 TELEGRAM_TEXT_LIMIT = 4096
 
+# Minimal HTML page returned to a no-JS browser that submits the form natively
+# (application/x-www-form-urlencoded). API clients still get JSON.
+HTML_NOTICE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title} — AntiManager</title></head>
+<body style="font-family:system-ui,sans-serif;background:#0a0a0a;color:#fff;max-width:34rem;margin:4rem auto;padding:0 1.25rem;line-height:1.6">
+<h1 style="font-size:1.5rem">{title}</h1>
+<p><a href="/contact/" style="color:#ef4444">Вернуться на сайт</a></p>
+</body></html>"""
+
 # Context labels for the "Интересует" line. Keys match the ?pack= slugs the
 # offer CTAs pass to /contact/.
 PACK_LABELS = {
@@ -143,6 +153,48 @@ def make_handler(config, sender, limiter):
             self.end_headers()
             self.wfile.write(body)
 
+        def _send_html(self, status, title):
+            body = HTML_NOTICE.format(title=title).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _is_form(self):
+            ctype = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+            return ctype == "application/x-www-form-urlencoded"
+
+        def _parse_body(self, raw):
+            """Parse the request body into a payload dict, or None when unreadable.
+
+            JSON is the API contract; a no-JS browser form POST arrives as
+            application/x-www-form-urlencoded, where a checked checkbox is sent
+            as "consent=on" and is absent when unchecked.
+            """
+            try:
+                text = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                return None
+            if self._is_form():
+                fields = urllib.parse.parse_qs(text, keep_blank_values=True)
+                payload = {key: value[0] for key, value in fields.items()}
+                payload["consent"] = "consent" in fields
+                return payload
+            try:
+                return json.loads(text)
+            except ValueError:
+                return None
+
+        def _reply(self, status, obj, html_title):
+            """JSON for API clients; a small HTML page for a no-JS browser submit."""
+            accept = self.headers.get("Accept") or ""
+            if self._is_form() and "text/html" in accept:
+                self._send_html(status, html_title)
+            else:
+                self._send_json(status, obj)
+
         def _path(self):
             return (self.path.split("?")[0].rstrip("/") or "/")
 
@@ -168,43 +220,42 @@ def make_handler(config, sender, limiter):
 
         def do_POST(self):
             if self._path() != "/api/feedback":
-                self._send_json(404, {"error": "not found"})
+                self._reply(404, {"error": "not found"}, "Страница не найдена")
                 return
             try:
                 length = int(self.headers.get("Content-Length") or 0)
             except ValueError:
                 length = 0
             if length <= 0 or length > MAX_BODY:
-                self._send_json(400, {"error": "invalid"})
+                self._reply(400, {"error": "invalid"}, "Проверьте форму и попробуйте снова")
                 return
             raw = self.rfile.read(length)
-            try:
-                payload = json.loads(raw.decode("utf-8"))
-            except (ValueError, UnicodeDecodeError):
-                self._send_json(400, {"error": "invalid"})
+            payload = self._parse_body(raw)
+            if payload is None:
+                self._reply(400, {"error": "invalid"}, "Проверьте форму и попробуйте снова")
                 return
 
             # Honeypot: a filled hidden field means a bot — accept and drop silently.
             if isinstance(payload, dict) and str(payload.get("website") or "").strip():
-                self._send_json(200, {"ok": True})
+                self._reply(200, {"ok": True}, "Заявка отправлена")
                 return
 
             data, _error = validate(payload)
             if data is None:
-                self._send_json(400, {"error": "invalid"})
+                self._reply(400, {"error": "invalid"}, "Проверьте форму и попробуйте снова")
                 return
 
             if not limiter.allow(self._client_ip()):
-                self._send_json(429, {"error": "too many requests"})
+                self._reply(429, {"error": "too many requests"}, "Слишком много заявок — напишите в Telegram")
                 return
 
             try:
                 sender.send(format_message(data))
             except Exception as exc:  # noqa: BLE001 - never leak delivery details
                 print("telegram send failed: %s" % exc, file=sys.stderr)
-                self._send_json(502, {"error": "delivery failed"})
+                self._reply(502, {"error": "delivery failed"}, "Не удалось отправить — напишите в Telegram")
                 return
-            self._send_json(200, {"ok": True})
+            self._reply(200, {"ok": True}, "Заявка отправлена")
 
         def log_message(self, fmt, *args):
             sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))

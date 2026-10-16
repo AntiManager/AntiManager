@@ -1,5 +1,11 @@
 # AntiManager — Active Context
-> Updated: 2026-10-16 · Review + fixes + plan/harness doc cleanup DONE; strategy follow-up committed & pushed. NEXT: editorial DRAFT series 30–35 → `/full/` (see below).
+> Updated: 2026-10-16 · Contact-form Playwright QA + all 7 fixes DONE (uncommitted). NEXT: editorial DRAFT series 30–35 → `/full/` (see below).
+
+## Session done — /contact/ form QA + fixes (2026-10-16, uncommitted)
+- **QA** in real Chromium (320–1280 px): adaptability clean (no hscroll, tap targets ≥44px, 16px inputs → no iOS zoom), functional flows green (keyboard-only, Enter-submit, double-submit guard, native validation, `?pack=`). Full report served to user.
+- **Fixed all 7 findings:** (1) `:focus`+`outline:none` on `.field input/textarea` beat the global `:focus-visible` → removed `outline:none`, keyboard ring restored; (2) `.btn:disabled{opacity:.5;cursor:not-allowed}`; (3) 429 now shows a specific «Слишком много заявок» message (`contact.js` carries `err.status`); (4) `html{background:var(--color-bg)}` (was body-only → white overscroll/capture artifact); (5) consent checkbox 20→24px (WCAG 2.5.8); (6) `aria-describedby="cf-contact-hint"` on the contact field; (7) no-JS path now works — `feedback/server.py` accepts `application/x-www-form-urlencoded` and returns a small HTML notice for `Accept: text/html`, JSON otherwise; noscript text updated.
+- **Evidence:** site `npm test` → unit OK + Playwright **162/162** (153 + 3 new CF01 tests ×3 viewports); service `python -m unittest discover -s site/feedback/tests` → **23/23** (+3). Re-verified live in browser: focus ring present, checkbox 24×24, `html` bg, disabled opacity 0.5.
+- **Lesson folded into `site/AGENTS.md`** (Contact): a component `:focus { outline:none }` silently overrides the global `:focus-visible` ring (higher specificity) — audit components after adding global focus styles; keep the background on `html`.
 
 ## Session done — review + fixes + cleanup + commit (2026-10-16)
 - **Review** of the uncommitted strategy follow-up + the `fcace02` feature. Findings & fixes:

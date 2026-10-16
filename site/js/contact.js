@@ -64,14 +64,22 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }).then(function (response) {
-        if (!response.ok) throw new Error('bad status ' + response.status);
+        if (!response.ok) {
+          var err = new Error('bad status ' + response.status);
+          err.status = response.status;
+          throw err;
+        }
         return response.json();
       }).then(function () {
         form.reset();
         if (packInput) packInput.value = pack;
         setStatus('Заявка отправлена. Отвечу в ближайшее время.', 'ok');
-      }).catch(function () {
-        setStatus('Не удалось отправить. Попробуйте ещё раз или напишите в Telegram.', 'err');
+      }).catch(function (err) {
+        if (err && err.status === 429) {
+          setStatus('Слишком много заявок подряд. Напишите, пожалуйста, в Telegram.', 'err');
+        } else {
+          setStatus('Не удалось отправить. Попробуйте ещё раз или напишите в Telegram.', 'err');
+        }
       }).finally(function () {
         if (button) button.disabled = false;
       });

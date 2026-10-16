@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261016a';
+const VERSION = '20261016b';
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
