@@ -1,5 +1,5 @@
 # AntiManager — Project Brief
-> Updated: 2026-10-11
+> Updated: 2026-10-16
 
 ## Overview
 Интерактивная книга-сайт для руководителей производства. Бруталистский редизайн (v2): Black+Red+White, карта звёзд (статичный data-driven SVG), 32 страницы.
@@ -11,7 +11,7 @@
 - **Fonts**: Golos Text, PT Serif, JetBrains Mono (self-hosted woff2)
 - **Deploy**: nginx, cache-busting `?v=`, deploy.ps1
 - **Analytics**: Yandex Metrika (id: 111010335)
-- **Tests**: unit (Node) **8/8** + Playwright **99/99** (33 × 3 viewports) — `site/unit/` + `site/tests/`; run `cd site; npm test`
+- **Tests**: unit (Node) + Playwright in `site/unit/` + `site/tests/`; run `cd site; npm test` (counts grow per feature — read them from the run output)
 
 ## Structure
 - `site/` — website (css/, deploy/, fonts/, js/, src/, build.js, package.json)

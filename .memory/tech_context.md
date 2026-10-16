@@ -11,7 +11,7 @@ npm run optimize:thinkers  # generate .webp siblings for thinker photos (Playwri
 ## Config
 - `.env` (gitignored): Yandex Metrika ID, deploy secrets
 - `site/package.json`: `antimanager-site`
-- `kilo.json.example`: Kilo project config template
+- `.kilo/kilo.json.example`: Kilo project config template
 
 ## Git
 - Branch: `main`
