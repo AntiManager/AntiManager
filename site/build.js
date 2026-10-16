@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261014a';
+const VERSION = '20261016a';
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
@@ -55,6 +55,18 @@ weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlu
 // `date` flows into an HTML attribute, the sitemap XML and JSON-LD; keep it a
 // strict ISO date, otherwise drop it so every consumer falls back to BUILD_DATE.
 weapons.forEach(function(w) { if (w.date && !/^\d{4}-\d{2}-\d{2}$/.test(w.date)) delete w.date; });
+
+// Strategy long-reads: a separate one-tier section (/strategy/) — no arsenal
+// widget, no weapons.json coupling. Text fields are escaped; slug/id are paths.
+const strategy = sanitize(JSON.parse(read('src/data/strategy.json')), ['title', 'subtitle', 'seoTitle', 'seoDescription', 'articleSection']);
+strategy.forEach(function(s) {
+  assertSlug(s.slug, 'strategy.json slug');
+  assertSlug(s.id, 'strategy.json id');
+  if (s.date && !/^\d{4}-\d{2}-\d{2}$/.test(s.date)) delete s.date;
+  if (Array.isArray(s.faq)) {
+    s.faq = s.faq.map(function(f) { return { q: escapeHtml(String(f.q || '')), a: escapeHtml(String(f.a || '')) }; });
+  }
+});
 
 // Per-article downloadable materials. The article PDF itself is auto-detected
 // from site/materials/<slug>.pdf; this file holds the extra hand-authored
@@ -292,6 +304,38 @@ function makeStructuredData(pageType, data) {
         }
       ]
     });
+  }
+  if (pageType === 'strategy') {
+    var sArticle = {
+      '@type': 'Article',
+      'headline': data.title,
+      'description': data.subtitle || data.title,
+      'url': data.canonicalUrl,
+      'mainEntityOfPage': data.canonicalUrl,
+      'image': OG_IMAGE_URL,
+      'datePublished': data.datePublished || BUILD_DATE,
+      'dateModified': BUILD_DATE,
+      'inLanguage': 'ru',
+      'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
+      'publisher': orgNode(),
+      'isPartOf': { '@id': SITE_URL + '/#website' }
+    };
+    if (data.articleSection) sArticle.articleSection = data.articleSection;
+    var sCrumbs = [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Стратегия', 'item': SITE_URL + '/strategy/' },
+      { '@type': 'ListItem', 'position': 3, 'name': data.title }
+    ];
+    var strategyGraph = [ websiteNode(), sArticle, { '@type': 'BreadcrumbList', 'itemListElement': sCrumbs } ];
+    if (data.faq && data.faq.length) {
+      strategyGraph.push({
+        '@type': 'FAQPage',
+        'mainEntity': data.faq.map(function(f) {
+          return { '@type': 'Question', 'name': f.q, 'acceptedAnswer': { '@type': 'Answer', 'text': f.a } };
+        })
+      });
+    }
+    return json({ '@context': 'https://schema.org', '@graph': strategyGraph });
   }
   return '';
 }
@@ -852,6 +896,84 @@ for (var wi = 0; wi < weapons.length; wi++) {
   }
 }
 
+// === STRATEGY SECTION (/strategy/) ===
+// One-tier long-reads: breadcrumb (3 levels) → full-hero → TOC → full article →
+// FAQ block → materials → CTA band. Article partials live in src/content/strategy/.
+function strategyArticleBody(s) {
+  var p = path.join(__dirname, 'src', 'content', 'strategy', s.id + '-' + s.slug + '.html');
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : '';
+}
+function faqSectionHtml(faq) {
+  if (!faq || !faq.length) return '';
+  return '<section class="strategy-faq">'
+    + '<h2>Частые вопросы</h2>'
+    + faq.map(function(f) {
+        return '<div class="faq-item"><h3>' + f.q + '</h3><p>' + f.a + '</p></div>';
+      }).join('')
+    + '</section>';
+}
+var strategyCtaBand = '<section class="cta-band">'
+  + '<h2>Разобрать вашу ситуацию</h2>'
+  + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Опишите свой рынок и цикл — обсудим, где вы на матрице и что делать с портфелем, мощностями и капиталом.</p>'
+  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">Написать в Telegram</a>'
+  + '<a href="/headquarters/" class="btn">Заглянуть в Штаб</a>'
+  + '</section>';
+
+var strategyTemplate = '<div class="content-page full-article-page strategy-article-page">'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/strategy/">Стратегия</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+  + '<div class="reading-progress" aria-hidden="true"><div class="reading-progress-fill"></div></div>'
+  + '<header class="full-hero">'
+  + '<h1>{{title}}</h1>'
+  + '<p class="weapon-subtitle">{{subtitle}}</p>'
+  + '<p class="full-meta">⏱ {{read_minutes}} мин чтения · Стратегия</p>'
+  + '</header>'
+  + '{{toc}}'
+  + '<article class="full-article">{{content_body}}</article>'
+  + '{{faq_section}}'
+  + '{{materials_section}}'
+  + '{{cta_band}}'
+  + '</div>';
+
+var strategyCards = strategy.map(function(s) {
+  var body = strategyArticleBody(s);
+  var mins = body ? readMinutes(body) : '';
+  return '<a href="/strategy/' + escapeHtml(s.slug) + '/" class="strategy-card">'
+    + '<div class="strategy-card-title">' + s.title + '</div>'
+    + '<div class="strategy-card-sub">' + (s.subtitle || '') + '</div>'
+    + (mins ? '<div class="strategy-card-meta">⏱ ' + mins + ' мин чтения</div>' : '')
+    + '</a>';
+}).join('');
+
+var strategyIndexContent = '<section class="content-page">'
+  + '<h1>Стратегия</h1>'
+  + '<p class="weapon-subtitle">Long-reads о том, как выигрывать на пульсирующих промышленных рынках: управляемое сжатие, антихрупкий портфель, амортизация и дисциплина капитала.</p>'
+  + '<p>Раздел про стратегию на падающем рынке — то, чего нет в каноническом управленческом инструментарии. Здесь не про захват доли, а про то, что отдавать, что защищать, кого нанимать и когда покупать. Полный текст, без гейтинга.</p>'
+  + '<div class="strategy-grid">' + strategyCards + '</div>'
+  + '</section>';
+
+write('strategy/index.html', renderPage('Стратегия | AntiManager', 'Long-reads по стратегии на пульсирующих промышленных рынках: управляемое сжатие, антихрупкий портфель, амортизация и дисциплина капитала.', strategyIndexContent, { canonicalUrl: SITE_URL + '/strategy/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Стратегия', url: SITE_URL + '/strategy/' }] }) }));
+console.log('  ✓ strategy hub');
+
+for (var sj = 0; sj < strategy.length; sj++) {
+  var st = strategy[sj];
+  var stBody = strategyArticleBody(st);
+  var stToc = withToc(stBody);
+  var stHtml = strategyTemplate;
+  stHtml = stHtml.replace(/{{title}}/g, function() { return st.title; });
+  stHtml = stHtml.replace('{{subtitle}}', function() { return st.subtitle || ''; });
+  stHtml = stHtml.replace('{{read_minutes}}', function() { return String(readMinutes(stBody)); });
+  stHtml = stHtml.replace('{{toc}}', function() { return stToc.toc; });
+  stHtml = stHtml.replace('{{content_body}}', function() { return stToc.html; });
+  stHtml = stHtml.replace('{{faq_section}}', function() { return faqSectionHtml(st.faq); });
+  stHtml = stHtml.replace('{{materials_section}}', function() { return materialsBlockHtml(st); });
+  stHtml = stHtml.replace('{{cta_band}}', function() { return strategyCtaBand; });
+
+  var stUrl = SITE_URL + '/strategy/' + escapeHtml(st.slug) + '/';
+  var stZone = st.articleSection || 'СТРАТЕГИЯ';
+  write('strategy/' + st.slug + '/index.html', renderPage(st.seoTitle + ' | AntiManager', st.seoDescription || st.subtitle || '', stHtml, { canonicalUrl: stUrl, ogType: 'article', ogArticleSection: stZone, ogTags: st.tags, publishedTime: st.date, structuredData: makeStructuredData('strategy', { title: st.title, subtitle: st.subtitle, canonicalUrl: stUrl, articleSection: stZone, datePublished: st.date, faq: st.faq }) }));
+  console.log('  ✓ strategy ' + st.id + ' ' + st.slug);
+}
+
 // Sitemap
 var sitemapUrls = [
   { loc: SITE_URL + '/', priority: '1.0', changefreq: 'daily', lastmod: BUILD_DATE },
@@ -865,7 +987,11 @@ var sitemapUrls = [
   { loc: SITE_URL + '/contact/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/strategy/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
+for (var sk = 0; sk < strategy.length; sk++) {
+  sitemapUrls.push({ loc: SITE_URL + '/strategy/' + strategy[sk].slug + '/', priority: '0.8', changefreq: 'monthly', lastmod: strategy[sk].date || BUILD_DATE });
+}
 for (var si = 0; si < weapons.length; si++) {
   var weaponDate = weapons[si].date || BUILD_DATE;
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {

@@ -15,6 +15,7 @@ const SITE_DIR = path.join(__dirname, '..');
 const DIST = path.join(SITE_DIR, 'dist');
 const OUT = path.join(SITE_DIR, 'materials');
 const FULL_DIR = path.join(SITE_DIR, 'src', 'content', 'full');
+const STRATEGY_DIR = path.join(SITE_DIR, 'src', 'content', 'strategy');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -47,13 +48,26 @@ function serve(root) {
   });
 }
 
-function fullSlugs() {
-  if (!fs.existsSync(FULL_DIR)) return [];
-  return fs.readdirSync(FULL_DIR)
+function dirSlugs(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
     .filter(function(f) { return f.endsWith('.html'); })
     .map(function(f) { return f.replace(/^\d+-(.+)\.html$/, '$1'); })
     .filter(Boolean)
     .sort();
+}
+
+// Every PDF target: arsenal full-text pages (/weapons/<slug>/full/) and the
+// /strategy/ long-reads (/strategy/<slug>/). Both map to materials/<slug>.pdf.
+function targets() {
+  const list = [];
+  dirSlugs(FULL_DIR).forEach(function(slug) {
+    list.push({ slug: slug, url: '/weapons/' + slug + '/full/' });
+  });
+  dirSlugs(STRATEGY_DIR).forEach(function(slug) {
+    list.push({ slug: slug, url: '/strategy/' + slug + '/' });
+  });
+  return list;
 }
 
 async function main() {
@@ -61,8 +75,8 @@ async function main() {
     console.error('dist/ not found — run `npm run build` first.');
     process.exit(1);
   }
-  const slugs = fullSlugs();
-  if (!slugs.length) {
+  const items = targets();
+  if (!items.length) {
     console.log('No full-text articles found; nothing to render.');
     return;
   }
@@ -73,10 +87,10 @@ async function main() {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
-    for (const slug of slugs) {
-      await page.goto('http://127.0.0.1:' + port + '/weapons/' + slug + '/full/', { waitUntil: 'networkidle' });
+    for (const it of items) {
+      await page.goto('http://127.0.0.1:' + port + it.url, { waitUntil: 'networkidle' });
       await page.emulateMedia({ media: 'print' });
-      const out = path.join(OUT, slug + '.pdf');
+      const out = path.join(OUT, it.slug + '.pdf');
       await page.pdf({
         path: out,
         format: 'A4',
@@ -89,7 +103,7 @@ async function main() {
     await browser.close();
     server.close();
   }
-  console.log('\n✅ PDF materials rendered: ' + slugs.length + '\n');
+  console.log('\n✅ PDF materials rendered: ' + items.length + '\n');
 }
 
 main().catch(function(err) { console.error(err); process.exit(1); });
