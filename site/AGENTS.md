@@ -64,7 +64,7 @@ When publishing the full text:
 
 ## «Геном завода» section (`/genome/`, `/genome/role/`)
 
-A consulting-service section, not an arsenal weapon. Two indexable static pages rendered by
+A consulting-service section, not an arsenal weapon. Indexable static pages rendered by
 `build.js` from authored partials in `src/content/genome/`:
 - `landing.html` — model, comparison, the free PLAN-group sample (3 processes / 11 subprocesses
   / 49 operations) and six document cards (05/06 link to the role page anchors).
@@ -79,6 +79,31 @@ A consulting-service section, not an arsenal weapon. Two indexable static pages 
 
 CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/headquarters/`.
 Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
+
+## «Экспресс-аудит» (`/genome/audit/`)
+
+A static tool page nested under Геном: the 40-criterion express checklist with 0–5 anchors (one
+native `<details>` per criterion) plus a fillable XLSX
+(`materials/ps-express-audit/express-audit-ps.xlsx`). Source of truth:
+`Аудит ПС/Экспресс-чек-лист-аудита-ПС.md` in the vault; the full 120-criterion checklist is never
+published.
+- `src/content/genome/audit.html` is authored, but its seven `<!--AUDIT:*:START/END-->` regions are
+  generated offline by `.kilo/scripts/gen_ps_audit_page.py` (same pattern as the role documents).
+  Run it after vault edits and commit the regenerated partial together with the workbook.
+  `build.js` throws when a marker region is empty, so an un-generated partial cannot ship empty
+  sections. There is no npm script: the generator needs the local vault.
+- `gen_ps_audit_page.py --check` compares marker inner regions and workbook cell/formula values
+  (never the zip bytes, which churn) and exits 1 on drift.
+- `<details>` works without JS; `js/audit.js` adds toggle-all, opening the criterion named in the
+  URL hash, and expanding everything before printing (restored after). Print CSS re-enables
+  `.section-title`, which the global print block hides, and keeps `.audit-block-title` visible.
+- The download href carries `?v=<vault version>`: bump the vault frontmatter `version` and the
+  authored href together.
+- The request-context slug is `audit`: registered in both `js/contact.js` and
+  `feedback/server.py` (unknown packs are silently dropped by the service, so update both and
+  redeploy the feedback container with the site).
+- Section styles live in the `/* === GENOME AUDIT (/genome/audit/) === */` block of
+  `css/brutalist.css`.
 
 ## «Статьи» library (`/articles/`)
 

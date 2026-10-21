@@ -169,7 +169,7 @@ test.describe('AX04 — Responsive breakpoints', () => {
   });
 
   test('no horizontal scroll on all pages', async ({ page }) => {
-    const paths = ['/', '/arsenal/', '/cases/', '/archive/', '/weapons/antikrizis/', '/genome/', '/genome/role/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
+    const paths = ['/', '/arsenal/', '/cases/', '/archive/', '/weapons/antikrizis/', '/genome/', '/genome/role/', '/genome/audit/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
     for (const p of paths) {
       await page.goto(p);
       await page.waitForLoadState('networkidle');

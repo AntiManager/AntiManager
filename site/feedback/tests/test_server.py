@@ -193,6 +193,13 @@ class ValidateTests(unittest.TestCase):
         self.assertIsNone(error)
         self.assertEqual(data["pack"], "")
 
+    def test_audit_pack_is_accepted(self):
+        good = dict(VALID)
+        good["pack"] = "audit"
+        data, error = server.validate(good)
+        self.assertIsNone(error)
+        self.assertEqual(data["pack"], "audit")
+
 
 class FormatMessageTests(unittest.TestCase):
     def test_includes_fields_and_pack_label(self):
@@ -205,6 +212,10 @@ class FormatMessageTests(unittest.TestCase):
     def test_is_truncated_to_the_telegram_limit(self):
         data = {"name": "N", "contact": "C", "message": "m" * 5000, "pack": ""}
         self.assertLessEqual(len(server.format_message(data)), server.TELEGRAM_TEXT_LIMIT)
+
+    def test_audit_pack_label_is_formatted(self):
+        data, _ = server.validate(dict(VALID, pack="audit"))
+        self.assertIn("Полный чек-лист ПС (120 критериев)", server.format_message(data))
 
 
 class RateLimiterTests(unittest.TestCase):

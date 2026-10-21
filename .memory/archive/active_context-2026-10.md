@@ -213,3 +213,45 @@ JDR-аудит/экспресс/middle/plant-manager, сборник тесто�
 - **Open COSMETIC** (продуктовое): hero-CTA «Заказать проработку» → `#offer`, не прямой Telegram; «Штаб»/клубный каркас на `/headquarters/` + hq-section лендинга («ВСТУПАЙ В ШТАБ», «закрытый клуб») всё ещё описывает сообщество, хотя точка входа — бот (переформулировать под бота, если нужно).
 - Tests: unit **11/11**; Playwright **135/135** (45×3) — `cd site; npm test`; service `python -m unittest discover -s site/feedback/tests` (**20/20**). Docker держит порт 3000 → при abort `webServer` — временный config на другом порту.
 - Two-pass PDF: `build → render:pdf → build → render:pdf → build`; render переписывает `/CreationDate` → `git checkout -- site/materials`.
+
+
+## Archive append 2026-10-21 (boot-trio compaction)
+
+Previous `active_context.md`, kept unchanged for lossless history.
+
+# AntiManager — Active Context
+> Updated: 2026-10-21 · **PS-audit follow-up complete: express rebuilt as a strict 40-criterion subset of the full checklist (v3.0).** No active plan.
+
+## Current state
+- **PS-audit toolset (vault, outside git).** Folder `Аудит ПС/`: `Полный-чек-лист-аудита-ПС.md` (120 criteria, 6 blocks, 0–5 anchors, KPI + verification columns), `Экспресс-чек-лист-аудита-ПС.md` (v3.0: 40 criteria selected from the base, 12/6/5/6/5/6 per block; every row — title, anchors 0–5, KPI, verification — is byte-identical to its base row; no cross-cutting criteria, no weights, no system cards, no three views, no KPI passport), `Индекс.md`. Root `Карточки-систем.md` and `Приложение-формы-артефактов.md` untouched. Linter `.kilo/scripts/check_ps_audit.py` enforces base structure + express-row identity + no `S##`/card references → **0 errors, 0 warnings**; encoding guard clean (no BOM); descriptor register `.kilo/reports/descriptor-audit-ps.md`.
+- **Articles library.** `/articles/` hub → topic hub → article page. Topics live: `strategy`, `economics`, `management`, `digital`. Articles 40, 41, 50–55 published; series «Управление способностью» has 6 members. Release C: 53 «Цифровизация 1.0», 54 «Цифровизация 2.0», 55 «ИИ-зоопарк» — readiness 12/12, 12/12, 11/12; `?v=20261019c`; unit **16/16**, Playwright **192/192**; PDF **31**.
+- Deploy hit the known optional Caddy-reload SSH :2222 timeout after the container restart; live verified instead.
+
+## Next (in priority order)
+1. **PS-audit follow-up (optional):** human blind-scoring of 5 criteria with two real readers (the agent-side pass is logged); publish the toolset to the site only after a separate plan.
+2. **Editorial:** DRAFT series 30–35 (JDR-аудит/экспресс/middle/plant-manager, сборник тестов, концепция развития НЦ/НС) — frontmatter + related sections + case/conclusion before `/full/`.
+3. **Process-library** (plan `1791721561689`): Phase 2, T2.6 tranche 2 — convert `MFG-02/03`, then `MFG-04/05`; then MFG flow links → economics → roll-up (`author_operations.py` + `mfg_operations.json`).
+4. **Content extras:** publish per-article extras into `site/materials/<slug>/` + `materials.json`.
+
+## Next session (user agenda, 2026-10-20)
+- **PS-audit docs (done 2026-10-21):** client 120-criteria audit neutralized into `Аудит ПС/Полный-чек-лист-аудита-ПС.md` (client org intros and `E‑Staff` removed, 1.13 reframed from KPI to practice, duplicates delimited, KPI column added). Express rebuilt as v3.0 — a strict 40-criterion subset of the base (12/6/5/6/5/6 per block), rows identical to the base (0–5 anchors, KPI, verification), cross-cutting criteria/weights/system cards/three views/KPI passport removed; `Индекс.md` records the selection rationale and history. Cards/forms untouched at root.
+- **Docs/plans/harness cleanup (done 2026-10-21):** archived completed local plans (`1792179538920`, `1792500184362`, `articles-library-brief`), fixed README structure/commands and `site/AGENTS.md` drift (`unit/`, `feedback/`, date sources), added the plan-archive convention + scripts map to `.kilo/AGENTS.md`; harness checker `EXIT=0`.
+
+## Open COSMETIC (product)
+- «Штаб»/club framing on `/headquarters/` + landing hq-section still describes a community, though the entry point is the bot.
+- hero-CTA «Заказать проработку» → `#offer`, not a Telegram link.
+- `README.md` contour table sums 22 while weapons=23 (article 23 unplaced).
+
+## Harness / hot rules
+- **Working tree:** Release A+B+C and the docs/plans cleanup were **committed and pushed on 2026-10-21** after an explicit user request. Vault edits (40/41/50–55) live outside git.
+- Skills 8, commands 10, agents 2; MCP 2 project + 1 global. `/check-site` = `npm test`.
+- **Obsidian MCP writes are broken on Cyrillic paths** (transactions roll back; journal stores UTF-8→cp1251 mojibake). Use `Write`/`Edit` + file-based Python for vault content/moves; MCP only for reads. Rule recorded in `.kilo/AGENTS.md` §Security 7.
+- `Аудит ПС/` validator: `python .kilo/scripts/check_ps_audit.py "<vault>"` → 0/0.
+- Single source of truth: `articles.json` + `article-topics.json` + `article-series.json`; `strategy.json` is gone.
+- Only `status: published` renders; empty topic hubs are suppressed. Tests derive article/topic/sitemap expectations from data — do not re-freeze lists.
+- **Generator precondition:** `md_to_partial.convert` drops everything through the first `---` after the frontmatter — every article needs a title block followed by `---`.
+- **No Mermaid renderer.** The converter has no code-fence support, so diagrams must be tables/lists; a fenced block leaks as paragraph text.
+- `render:pdf` reads `articles.json`; two-pass rule: `build → render:pdf → build → render:pdf → build`. It retries a just-written PDF 3× (Windows antivirus locks).
+- **SSH 2222 flaky:** deploy may abort on the optional Caddy-reload step after the container restart — verify live before retrying.
+- Test counts: unit 16, Playwright 192 (Release C baseline); counts grow with new articles (read from output).
+- Full session history → `.memory/archive/`; completed-session detail → `progress.md`.

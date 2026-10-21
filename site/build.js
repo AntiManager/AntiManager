@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261019c';
+const VERSION = '20261021a';
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
@@ -851,7 +851,17 @@ const genomeLandingBody = read('src/content/genome/landing.html');
 const genomeRoleBody = read('src/content/genome/role.html');
 write('genome/index.html', renderPage('Геном завода — библиотека процессов | AntiManager', 'Геном завода — типизированная библиотека процессов и цепочка управленческих документов: модель, бесплатный образец группы PLAN и полные документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + '/genome/', structuredData: makeStructuredData('static', { name: 'Геном завода', url: SITE_URL + '/genome/' }) }));
 write('genome/role/index.html', renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + '/genome/role/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Документы роли', url: SITE_URL + '/genome/role/' }] }) }));
-console.log('  ✓ genome + genome/role');
+
+// PS express audit (/genome/audit/): a static tool page plus a fillable XLSX.
+// The page body is generated offline from the vault by
+// .kilo/scripts/gen_ps_audit_page.py; an un-generated partial must fail the
+// build instead of shipping empty sections.
+const auditBody = read('src/content/genome/audit.html');
+if (/<!--AUDIT:[A-Z]+:START-->\s*<!--AUDIT:[A-Z]+:END-->/.test(auditBody)) {
+  throw new Error('genome/audit.html has an empty marker region — run gen_ps_audit_page.py');
+}
+write('genome/audit/index.html', renderPage('Экспресс-аудит производственной системы | AntiManager', '40 критериев для экспресс-оценки производственной системы: якоря уровней 0–5, правила оценки, покрытие и топ-5 разрывов, Excel с автоматическим расчётом.', auditBody, { canonicalUrl: SITE_URL + '/genome/audit/', scripts: '<script src="/js/audit.js?v=' + VERSION + '" defer></script>', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Экспресс-аудит', url: SITE_URL + '/genome/audit/' }] }) }));
+console.log('  ✓ genome + genome/role + genome/audit');
 
 // Weapon pages
 for (var wi = 0; wi < weapons.length; wi++) {
@@ -1113,6 +1123,7 @@ var sitemapUrls = [
   { loc: SITE_URL + '/contact/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/genome/audit/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/articles/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 publishedTopics.forEach(function(t) {

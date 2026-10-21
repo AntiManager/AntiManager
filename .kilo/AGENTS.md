@@ -42,10 +42,12 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
 - vault-auditor — vault structure audit
 
-## Scripts (2)
+## Scripts (4)
 
 - `genome_doc_build.py` — regenerate `/genome/role/` documents from the vault
 - `gen_article_partials.py` — regenerate `/articles/` long-read partials from the vault
+- `gen_ps_audit_page.py` — regenerate the `/genome/audit/` page regions and the fillable `express-audit-ps.xlsx` from the vault; `--check` exits 1 on drift
+- `check_ps_audit.py` — `Аудит ПС/` linter: base structure, express-row identity with the base, banned tokens and system-card references
 
 ## MCP (2 project + 1 global)
 
@@ -73,3 +75,4 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 4. **Verify.** Check the result after every change. If the algorithm did not produce the expected result — roll back.
 5. **No bulk runs.** One file → verify → commit. No mass applies.
 6. **Cyrillic through Write/Edit.** If a file contains Cyrillic, modify content with Python only (`ftfy.fix_text`). Never pass Cyrillic through PowerShell.
+7. **Do not use the Obsidian MCP for writes/moves on Cyrillic paths.** On this host `create_note` / `move_note` / `edit_note` roll back deterministically: the transaction journal stores the path as UTF-8→cp1251 mojibake (`РђСѓРґРёС‚ РџРЎ/...`). Use `Write`/`Edit` for content and a file-based Python script (ASCII source, `chr()`-built paths) for delete/move, with a backup under `%TEMP%\kilo\backups`. MCP stays reliable for reads.
