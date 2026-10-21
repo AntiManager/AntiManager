@@ -47,9 +47,9 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - `genome_doc_build.py` — regenerate `/genome/role/` documents from the vault
 - `gen_article_partials.py` — regenerate `/articles/` long-read partials from the vault
 - `gen_ps_audit_page.py` — regenerate the `/genome/audit/` page regions and the fillable `express-audit-ps.xlsx` from the vault; `--check` exits 1 on drift
-- `gen_systems_page.py` — regenerate the `/genome/systems/` regions, the owner document (`Карта-систем-собственнику.md/.docx`) and the blank card template from `Карточки-систем.md`; `--check` exits 1 on drift
+- `gen_systems_page.py` — regenerate the `/genome/systems/` regions, the owner document (`Заказчики/КАБЭКС/Карта-систем-собственнику.md/.docx`) and the blank card template from `Методология ПС/Карточки-систем.md`; `--check` exits 1 on drift
 - `check_ps_audit.py` — `Аудит ПС/` linter: base structure, express-row identity with the base, banned tokens and system-card references
-- `check_system_cards.py` — `Карточки-систем.md` linter: 14 cards, 12-field count, base-id criterion refs, process-code resolution, artifact ids, project-interface lines, orphan marking, no project-type appendices, S14 model reference
+- `check_system_cards.py` — `Методология ПС/Карточки-систем.md` linter: 14 cards, 12-field count, base-id criterion refs, process-code resolution, artifact ids, project-interface lines, orphan marking, no project-type appendices, S14 model reference
 
 ## MCP (2 project + 1 global)
 

@@ -1,10 +1,10 @@
 """Generate the /genome/systems/ page, the owner document and the blank card template.
 
-Source of truth: the Obsidian vault note `Карточки-систем.md`.
+Source of truth: the Obsidian vault note `Методология ПС/Карточки-систем.md`.
 Outputs:
   site/src/content/genome/systems.html          — filled <!--SYSTEMS:*--> regions
-  <vault>/Карта-систем-собственнику.md           — compact owner document
-  <vault>/Карта-систем-собственнику.docx         — sendable copy (pandoc)
+  <vault>/Заказчики/КАБЭКС/Карта-систем-собственнику.md   — compact owner document
+  <vault>/Заказчики/КАБЭКС/Карта-систем-собственнику.docx — sendable copy (pandoc)
   site/materials/ps-systems-map/system-card-template.md/.docx — blank 12-field template
 
 `node build.js` stays vault-independent: this script runs offline after vault edits.
@@ -26,10 +26,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
 DEFAULT_VAULT = Path(r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault")
-NOTE_REL = Path("Карточки-систем.md")
+NOTE_REL = Path("Методология ПС") / "Карточки-систем.md"
 PARTIAL = HERE / "site" / "src" / "content" / "genome" / "systems.html"
-OWNER_MD_REL = Path("Карта-систем-собственнику.md")
-OWNER_DOCX_REL = Path("Карта-систем-собственнику.docx")
+OWNER_DIR_REL = Path("Заказчики") / "КАБЭКС"
+OWNER_MD_REL = OWNER_DIR_REL / "Карта-систем-собственнику.md"
+OWNER_DOCX_REL = OWNER_DIR_REL / "Карта-систем-собственнику.docx"
 TEMPLATE_DIR = HERE / "site" / "materials" / "ps-systems-map"
 TEMPLATE_MD = TEMPLATE_DIR / "system-card-template.md"
 TEMPLATE_DOCX = TEMPLATE_DIR / "system-card-template.docx"
@@ -360,6 +361,7 @@ def main() -> int:
         return 0
 
     PARTIAL.write_text(partial_new, encoding="utf-8", newline="\n")
+    (vault / OWNER_DIR_REL).mkdir(parents=True, exist_ok=True)
     (vault / OWNER_MD_REL).write_text(owner_md, encoding="utf-8", newline="\n")
     TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
     TEMPLATE_MD.write_text(template_md, encoding="utf-8", newline="\n")

@@ -108,13 +108,15 @@ published.
 ## «Карта систем» (`/genome/systems/`)
 
 A nested Геном page that publishes the 14 system cards as a uniform 12-field template, plus a
-blank card template for a client's own systems. Source of truth: `Карточки-систем.md` in the vault.
+blank card template for a client's own systems. Source of truth: `Методология ПС/Карточки-систем.md`
+in the vault; the client edition `Заказчики/КАБЭКС/Карта-систем-собственнику.md` is generated,
+never hand-edited.
 - `src/content/genome/systems.html` is authored; its three `<!--SYSTEMS:META/SUMMARY/CARDS:*-->`
   regions are generated offline by `.kilo/scripts/gen_systems_page.py`. Run it after vault edits
   and commit the regenerated partial together with the downloads. `build.js` throws on an empty
   marker region. There is no npm script: the generator needs the local vault.
-- The same generator writes the compact owner document (`Карта-систем-собственнику.md` + `.docx`
-  in the vault) and the blank template (`materials/ps-systems-map/system-card-template.md/.docx`)
+- The same generator writes the compact owner document (`Заказчики/КАБЭКС/Карта-систем-собственнику.md`
+  + `.docx` in the vault) and the blank template (`materials/ps-systems-map/system-card-template.md/.docx`)
   via pandoc; `--check` compares the marker regions, the owner Markdown and the template and exits
   1 on drift.
 - The page reuses `.doc-cards` / `.doc-card` / `.doc-full` and the summary `.table-wrap`; page
