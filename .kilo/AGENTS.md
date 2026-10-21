@@ -3,7 +3,7 @@
 Vault map: `Roadmap/Дорожная карта доработок.md`.
 Site plan: `.kilo/plans/site-development-plan.md`.
 Repository plan: `.kilo/plans/antimanager-repo-restructure.md`.
-Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the repository only deliberately; tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch. Do not modify `.gitignore`.
+Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the repository only deliberately; tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch. Completed local plans move to `.kilo/plans/archive/`; only the active plan stays at the root. Do not modify `.gitignore`.
 
 ## Language policy
 
@@ -42,6 +42,11 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
 - vault-auditor — vault structure audit
 
+## Scripts (2)
+
+- `genome_doc_build.py` — regenerate `/genome/role/` documents from the vault
+- `gen_article_partials.py` — regenerate `/articles/` long-read partials from the vault
+
 ## MCP (2 project + 1 global)
 
 - obsidian — batch note processing, vault read/write (project `.kilo/kilo.json`)
@@ -56,7 +61,7 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 2. Clone the repo: `git clone https://github.com/AntiManager/AntiManager`
 3. Copy `.kilo/kilo.json.example` → `.kilo/kilo.json` and fill in the paths
 4. Sync the vault (remotely-save pulls content only)
-5. Done — the vault is clean, the config lives in the repo
+5. Done — the vault is clean, the config template lives in the repo
 
 ---
 

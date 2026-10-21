@@ -15,7 +15,7 @@ const SITE_DIR = path.join(__dirname, '..');
 const DIST = path.join(SITE_DIR, 'dist');
 const OUT = path.join(SITE_DIR, 'materials');
 const FULL_DIR = path.join(SITE_DIR, 'src', 'content', 'full');
-const STRATEGY_DIR = path.join(SITE_DIR, 'src', 'content', 'strategy');
+const ARTICLES_DATA = path.join(SITE_DIR, 'src', 'data', 'articles.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -58,16 +58,53 @@ function dirSlugs(dir) {
 }
 
 // Every PDF target: arsenal full-text pages (/weapons/<slug>/full/) and the
-// /strategy/ long-reads (/strategy/<slug>/). Both map to materials/<slug>.pdf.
+// /articles/<topic>/<slug>/ long-reads. Both map to materials/<slug>.pdf. The
+// article URL needs the topic segment, so it is read from articles.json rather
+// than derived from a directory scan.
+function articleTargets() {
+  if (!fs.existsSync(ARTICLES_DATA)) return [];
+  const raw = JSON.parse(fs.readFileSync(ARTICLES_DATA, 'utf-8'));
+  return raw
+    .filter(function(a) { return a.status === 'published'; })
+    .map(function(a) {
+      return { slug: a.slug, url: '/articles/' + a.topic + '/' + a.slug + '/' };
+    });
+}
+
 function targets() {
   const list = [];
   dirSlugs(FULL_DIR).forEach(function(slug) {
     list.push({ slug: slug, url: '/weapons/' + slug + '/full/' });
   });
-  dirSlugs(STRATEGY_DIR).forEach(function(slug) {
-    list.push({ slug: slug, url: '/strategy/' + slug + '/' });
-  });
+  articleTargets().forEach(function(t) { list.push(t); });
   return list;
+}
+
+// A stale dist/ would otherwise print the 404 page into a PDF for every
+// target the build does not know about.
+function distPage(url) {
+  const segments = decodeURIComponent(url).replace(/^\/|\/$/g, '').split('/');
+  return path.join.apply(path, [DIST].concat(segments, ['index.html']));
+}
+
+// Windows antivirus/indexers intermittently hold a just-written PDF open, so
+// Chromium's write fails with UNKNOWN. Retry with a short backoff instead of
+// aborting the whole batch.
+async function writePdf(page, out) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.pdf({
+        path: out,
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '16mm', bottom: '16mm', left: '14mm', right: '14mm' },
+      });
+      return;
+    } catch (err) {
+      if (attempt >= 3) throw err;
+      await new Promise(function(resolve) { setTimeout(resolve, attempt * 1000); });
+    }
+  }
 }
 
 async function main() {
@@ -88,15 +125,13 @@ async function main() {
   try {
     const page = await browser.newPage();
     for (const it of items) {
+      if (!fs.existsSync(distPage(it.url))) {
+        throw new Error('dist page missing for ' + it.url + ' — run the build first.');
+      }
       await page.goto('http://127.0.0.1:' + port + it.url, { waitUntil: 'networkidle' });
       await page.emulateMedia({ media: 'print' });
       const out = path.join(OUT, it.slug + '.pdf');
-      await page.pdf({
-        path: out,
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '16mm', bottom: '16mm', left: '14mm', right: '14mm' },
-      });
+      await writePdf(page, out);
       console.log('  ✓ ' + path.relative(SITE_DIR, out));
     }
   } finally {

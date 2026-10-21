@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261016b';
+const VERSION = '20261019c';
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
@@ -56,17 +56,58 @@ weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlu
 // strict ISO date, otherwise drop it so every consumer falls back to BUILD_DATE.
 weapons.forEach(function(w) { if (w.date && !/^\d{4}-\d{2}-\d{2}$/.test(w.date)) delete w.date; });
 
-// Strategy long-reads: a separate one-tier section (/strategy/) — no arsenal
-// widget, no weapons.json coupling. Text fields are escaped; slug/id are paths.
-const strategy = sanitize(JSON.parse(read('src/data/strategy.json')), ['title', 'subtitle', 'seoTitle', 'seoDescription', 'articleSection']);
-strategy.forEach(function(s) {
-  assertSlug(s.slug, 'strategy.json slug');
-  assertSlug(s.id, 'strategy.json id');
-  if (s.date && !/^\d{4}-\d{2}-\d{2}$/.test(s.date)) delete s.date;
-  if (Array.isArray(s.faq)) {
-    s.faq = s.faq.map(function(f) { return { q: escapeHtml(String(f.q || '')), a: escapeHtml(String(f.a || '')) }; });
+// Articles library (/articles/): long-reads grouped by topic. Kept separate
+// from weapons.json, whose counts are pinned by the SEO tests. Text fields are
+// escaped; slug/id/topic/series are path/URL keys and stay raw.
+const articleTopics = sanitize(JSON.parse(read('src/data/article-topics.json')), ['title', 'description']);
+const articleSeries = sanitize(JSON.parse(read('src/data/article-series.json')), ['title', 'description']);
+const articles = sanitize(JSON.parse(read('src/data/articles.json')), ['title', 'subtitle', 'seoTitle', 'seoDescription', 'articleSection']);
+
+// Topic/series keys are output paths and URL segments — fail the build on
+// anything that could traverse directories. Every article must reference a
+// declared topic (and a declared series when set) so no orphan hub is emitted.
+articleTopics.forEach(function(t) { assertSlug(t.slug, 'article-topics.json slug'); });
+articleSeries.forEach(function(s) { assertSlug(s.slug, 'article-series.json slug'); });
+articles.forEach(function(a) {
+  assertSlug(a.id, 'articles.json id');
+  assertSlug(a.slug, 'articles.json slug');
+  assertSlug(a.topic, 'articles.json topic');
+  if (a.series) assertSlug(a.series, 'articles.json series');
+  if (!articleTopics.some(function(t) { return t.slug === a.topic; })) {
+    throw new Error('articles.json topic not declared: ' + a.topic);
+  }
+  if (a.series && !articleSeries.some(function(s) { return s.slug === a.series; })) {
+    throw new Error('articles.json series not declared: ' + a.series);
+  }
+  if (a.date && !/^\d{4}-\d{2}-\d{2}$/.test(a.date)) delete a.date;
+  if (Array.isArray(a.faq)) {
+    a.faq = a.faq.map(function(f) { return { q: escapeHtml(String(f.q || '')), a: escapeHtml(String(f.a || '')) }; });
   }
 });
+
+// `order` drives the topic order and the card order inside a topic.
+function byOrder(x, y) { return (x.order || 0) - (y.order || 0); }
+const sortedTopics = articleTopics.slice().sort(byOrder);
+const publishedArticles = articles.filter(function(a) { return a.status === 'published'; });
+publishedArticles.sort(function(a, b) {
+  var ta = sortedTopics.findIndex(function(t) { return t.slug === a.topic; });
+  var tb = sortedTopics.findIndex(function(t) { return t.slug === b.topic; });
+  return ta !== tb ? ta - tb : (a.order || 0) - (b.order || 0);
+});
+// Topic hubs render only for topics with at least one published article.
+const publishedTopics = sortedTopics.filter(function(t) {
+  return publishedArticles.some(function(a) { return a.topic === t.slug; });
+});
+// A published entry with no generated partial would produce a hub card and a
+// sitemap URL pointing at a missing page — fail fast instead.
+publishedArticles.forEach(function(a) {
+  var partial = path.join(__dirname, 'src', 'content', 'articles', a.id + '-' + a.slug + '.html');
+  if (!fs.existsSync(partial)) {
+    throw new Error('articles.json: published article has no partial: ' + path.basename(partial));
+  }
+});
+function topicBySlug(slug) { return articleTopics.find(function(t) { return t.slug === slug; }); }
+function seriesBySlug(slug) { return articleSeries.find(function(s) { return s.slug === slug; }); }
 
 // Per-article downloadable materials. The article PDF itself is auto-detected
 // from site/materials/<slug>.pdf; this file holds the extra hand-authored
@@ -308,8 +349,8 @@ function makeStructuredData(pageType, data) {
       ]
     });
   }
-  if (pageType === 'strategy') {
-    var sArticle = {
+  if (pageType === 'article') {
+    var aArticle = {
       '@type': 'Article',
       'headline': data.title,
       'description': data.subtitle || data.title,
@@ -323,22 +364,46 @@ function makeStructuredData(pageType, data) {
       'publisher': orgNode(),
       'isPartOf': { '@id': SITE_URL + '/#website' }
     };
-    if (data.articleSection) sArticle.articleSection = data.articleSection;
-    var sCrumbs = [
+    if (data.articleSection) aArticle.articleSection = data.articleSection;
+    var aCrumbs = [
       { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-      { '@type': 'ListItem', 'position': 2, 'name': 'Стратегия', 'item': SITE_URL + '/strategy/' },
-      { '@type': 'ListItem', 'position': 3, 'name': data.title }
+      { '@type': 'ListItem', 'position': 2, 'name': 'Статьи', 'item': SITE_URL + '/articles/' },
+      { '@type': 'ListItem', 'position': 3, 'name': data.topicTitle, 'item': SITE_URL + '/articles/' + data.topic + '/' },
+      { '@type': 'ListItem', 'position': 4, 'name': data.title }
     ];
-    var strategyGraph = [ websiteNode(), sArticle, { '@type': 'BreadcrumbList', 'itemListElement': sCrumbs } ];
+    var articleGraph = [ websiteNode(), aArticle, { '@type': 'BreadcrumbList', 'itemListElement': aCrumbs } ];
     if (data.faq && data.faq.length) {
-      strategyGraph.push({
+      articleGraph.push({
         '@type': 'FAQPage',
         'mainEntity': data.faq.map(function(f) {
           return { '@type': 'Question', 'name': f.q, 'acceptedAnswer': { '@type': 'Answer', 'text': f.a } };
         })
       });
     }
-    return json({ '@context': 'https://schema.org', '@graph': strategyGraph });
+    return json({ '@context': 'https://schema.org', '@graph': articleGraph });
+  }
+  if (pageType === 'collection') {
+    var cCrumbs = (data.breadcrumbs || []).map(function(c, i) {
+      var item = { '@type': 'ListItem', 'position': i + 1, 'name': c.name };
+      if (c.url) item.item = c.url;
+      return item;
+    });
+    return json({
+      '@context': 'https://schema.org',
+      '@graph': [
+        websiteNode(),
+        orgNode(),
+        {
+          '@type': 'CollectionPage',
+          'name': data.name,
+          'description': data.description || data.name,
+          'url': data.url,
+          'inLanguage': 'ru',
+          'isPartOf': { '@id': SITE_URL + '/#website' }
+        },
+        { '@type': 'BreadcrumbList', 'itemListElement': cCrumbs }
+      ]
+    });
   }
   return '';
 }
@@ -899,83 +964,141 @@ for (var wi = 0; wi < weapons.length; wi++) {
   }
 }
 
-// === STRATEGY SECTION (/strategy/) ===
-// One-tier long-reads: breadcrumb (3 levels) → full-hero → TOC → full article →
-// FAQ block → materials → CTA band. Article partials live in src/content/strategy/.
-function strategyArticleBody(s) {
-  var p = path.join(__dirname, 'src', 'content', 'strategy', s.id + '-' + s.slug + '.html');
+// === ARTICLES LIBRARY (/articles/) ===
+// Topic-grouped long-reads: /articles/ hub → /articles/<topic>/ → article page.
+// Article partials live in src/content/articles/<id>-<slug>.html and are
+// generated offline from the vault; build.js stays vault-independent.
+function articleBody(a) {
+  var p = path.join(__dirname, 'src', 'content', 'articles', a.id + '-' + a.slug + '.html');
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : '';
 }
 function faqSectionHtml(faq) {
   if (!faq || !faq.length) return '';
-  return '<section class="strategy-faq">'
+  return '<section class="article-faq">'
     + '<h2>Частые вопросы</h2>'
     + faq.map(function(f) {
         return '<div class="faq-item"><h3>' + f.q + '</h3><p>' + f.a + '</p></div>';
       }).join('')
     + '</section>';
 }
-var strategyCtaBand = '<section class="cta-band">'
+var articleCtaBand = '<section class="cta-band">'
   + '<h2>Разобрать вашу ситуацию</h2>'
-  + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Опишите свой рынок и цикл — обсудим, где вы на матрице и что делать с портфелем, мощностями и капиталом.</p>'
+  + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Опишите свой контур и ограничения — обсудим, где узкое место и что делать с экономикой, развитием и цифровым контуром.</p>'
   + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">Написать в Telegram</a>'
   + '<a href="/headquarters/" class="btn">Заглянуть в Штаб</a>'
   + '</section>';
 
-var strategyTemplate = '<div class="content-page full-article-page strategy-article-page">'
-  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/strategy/">Стратегия</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+function articleCardHtml(a) {
+  var body = articleBody(a);
+  var mins = body ? readMinutes(body) : '';
+  var topic = topicBySlug(a.topic);
+  return '<a href="/articles/' + escapeHtml(a.topic) + '/' + escapeHtml(a.slug) + '/" class="article-card">'
+    + '<span class="article-card-topic">' + (topic ? topic.title : '') + '</span>'
+    + '<div class="article-card-title">' + a.title + '</div>'
+    + '<div class="article-card-sub">' + (a.subtitle || '') + '</div>'
+    + (mins ? '<div class="article-card-meta">⏱ ' + mins + ' мин чтения</div>' : '')
+    + '</a>';
+}
+
+// Series block: published members only; `excludeId` keeps the current article
+// out of its own sibling list.
+function seriesBlockHtml(seriesSlug, excludeId) {
+  var series = seriesBySlug(seriesSlug);
+  if (!series) return '';
+  var members = publishedArticles.filter(function(a) {
+    return a.series === seriesSlug && a.id !== excludeId;
+  });
+  if (!members.length) return '';
+  return '<section class="article-series-block">'
+    + '<h2>' + series.title + '</h2>'
+    + '<p class="article-series-desc">' + (series.description || '') + '</p>'
+    + '<div class="article-grid">' + members.map(articleCardHtml).join('') + '</div>'
+    + '</section>';
+}
+
+var articleTemplate = '<div class="content-page full-article-page article-page">'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/articles/">Статьи</a> <span class="sep">→</span> <a href="/articles/{{topic}}/">{{topic_title}}</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
   + '<div class="reading-progress" aria-hidden="true"><div class="reading-progress-fill"></div></div>'
   + '<header class="full-hero">'
   + '<h1>{{title}}</h1>'
   + '<p class="weapon-subtitle">{{subtitle}}</p>'
-  + '<p class="full-meta">⏱ {{read_minutes}} мин чтения · Стратегия</p>'
+  + '<p class="full-meta">⏱ {{read_minutes}} мин чтения · {{topic_title}}</p>'
   + '</header>'
   + '{{toc}}'
   + '<article class="full-article">{{content_body}}</article>'
+  + '{{series_section}}'
   + '{{faq_section}}'
   + '{{materials_section}}'
   + '{{cta_band}}'
   + '</div>';
 
-var strategyCards = strategy.map(function(s) {
-  var body = strategyArticleBody(s);
-  var mins = body ? readMinutes(body) : '';
-  return '<a href="/strategy/' + escapeHtml(s.slug) + '/" class="strategy-card">'
-    + '<div class="strategy-card-title">' + s.title + '</div>'
-    + '<div class="strategy-card-sub">' + (s.subtitle || '') + '</div>'
-    + (mins ? '<div class="strategy-card-meta">⏱ ' + mins + ' мин чтения</div>' : '')
-    + '</a>';
+// Main hub: intro, topic chips, published series, then one section per topic
+// (topic order, then article order).
+var topicChips = publishedTopics.map(function(t) {
+  return '<a href="#topic-' + escapeHtml(t.slug) + '">' + t.title + '</a>';
+}).join('');
+var hubTopicSections = publishedTopics.map(function(t) {
+  var inTopic = publishedArticles.filter(function(a) { return a.topic === t.slug; });
+  return '<section class="articles-topic" id="topic-' + escapeHtml(t.slug) + '">'
+    + '<h2><a href="/articles/' + escapeHtml(t.slug) + '/">' + t.title + '</a></h2>'
+    + '<p class="articles-topic-desc">' + (t.description || '') + '</p>'
+    + '<div class="article-grid">' + inTopic.map(articleCardHtml).join('') + '</div>'
+    + '</section>';
 }).join('');
 
-var strategyIndexContent = '<section class="content-page">'
-  + '<h1>Стратегия</h1>'
-  + '<p class="weapon-subtitle">Long-reads о том, как выигрывать на пульсирующих промышленных рынках: управляемое сжатие, антихрупкий портфель, амортизация и дисциплина капитала.</p>'
-  + '<p>Раздел про стратегию на падающем рынке — то, чего нет в каноническом управленческом инструментарии. Здесь не про захват доли, а про то, что отдавать, что защищать, кого нанимать и когда покупать. Полный текст, без гейтинга.</p>'
-  + '<div class="strategy-grid">' + strategyCards + '</div>'
+var articlesIndexContent = '<section class="content-page articles-hub">'
+  + '<h1>Статьи</h1>'
+  + '<p class="weapon-subtitle">Long-reads о стратегии, экономике, управлении и цифровизации производства.</p>'
+  + '<p>Полные тексты без гейтинга: рамки решений, механика денег и себестоимости, развитие способности и цифровой контур. Раздел растёт по темам — начните с темы или серии.</p>'
+  + '<nav class="article-topic-chips" aria-label="Темы">' + topicChips + '</nav>'
+  + seriesBlockHtml('capability', null)
+  + hubTopicSections
   + '</section>';
 
-write('strategy/index.html', renderPage('Стратегия | AntiManager', 'Long-reads по стратегии на пульсирующих промышленных рынках: управляемое сжатие, антихрупкий портфель, амортизация и дисциплина капитала.', strategyIndexContent, { canonicalUrl: SITE_URL + '/strategy/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Стратегия', url: SITE_URL + '/strategy/' }] }) }));
-console.log('  ✓ strategy hub');
+write('articles/index.html', renderPage('Статьи | AntiManager', 'Long-reads о стратегии, экономике, управлении и цифровизации производства: полные тексты без гейтинга.', articlesIndexContent, { canonicalUrl: SITE_URL + '/articles/', structuredData: makeStructuredData('collection', { name: 'Статьи', description: 'Long-reads о стратегии, экономике, управлении и цифровизации производства.', url: SITE_URL + '/articles/', breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + '/articles/' }] }) }));
+console.log('  ✓ articles hub');
 
-for (var sj = 0; sj < strategy.length; sj++) {
-  var st = strategy[sj];
-  var stBody = strategyArticleBody(st);
-  var stToc = withToc(stBody);
-  var stHtml = strategyTemplate;
-  stHtml = stHtml.replace(/{{title}}/g, function() { return st.title; });
-  stHtml = stHtml.replace('{{subtitle}}', function() { return st.subtitle || ''; });
-  stHtml = stHtml.replace('{{read_minutes}}', function() { return String(readMinutes(stBody)); });
-  stHtml = stHtml.replace('{{toc}}', function() { return stToc.toc; });
-  stHtml = stHtml.replace('{{content_body}}', function() { return stToc.html; });
-  stHtml = stHtml.replace('{{faq_section}}', function() { return faqSectionHtml(st.faq); });
-  stHtml = stHtml.replace('{{materials_section}}', function() { return materialsBlockHtml(st); });
-  stHtml = stHtml.replace('{{cta_band}}', function() { return strategyCtaBand; });
+// Topic hubs: only topics that actually have published articles.
+publishedTopics.forEach(function(t) {
+  var inTopic = publishedArticles.filter(function(a) { return a.topic === t.slug; });
+  var content = '<section class="content-page">'
+    + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/articles/">Статьи</a> <span class="sep">→</span> <span>' + t.title + '</span></nav>'
+    + '<h1>' + t.title + '</h1>'
+    + '<p class="weapon-subtitle">' + (t.description || '') + '</p>'
+    + '<div class="article-grid">' + inTopic.map(articleCardHtml).join('') + '</div>'
+    + '<p style="margin-top:var(--space-8);"><a href="/articles/">← Все статьи</a></p>'
+    + '</section>';
+  var topicUrl = SITE_URL + '/articles/' + escapeHtml(t.slug) + '/';
+  write('articles/' + t.slug + '/index.html', renderPage(t.title + ' — статьи | AntiManager', t.description || t.title, content, { canonicalUrl: topicUrl, structuredData: makeStructuredData('collection', { name: t.title, description: t.description, url: topicUrl, breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + '/articles/' }, { name: t.title, url: topicUrl }] }) }));
+  console.log('  ✓ articles topic ' + t.slug);
+});
 
-  var stUrl = SITE_URL + '/strategy/' + escapeHtml(st.slug) + '/';
-  var stZone = st.articleSection || 'СТРАТЕГИЯ';
-  write('strategy/' + st.slug + '/index.html', renderPage(st.seoTitle + ' | AntiManager', st.seoDescription || st.subtitle || '', stHtml, { canonicalUrl: stUrl, ogType: 'article', ogArticleSection: stZone, ogTags: st.tags, publishedTime: st.date, structuredData: makeStructuredData('strategy', { title: st.title, subtitle: st.subtitle, canonicalUrl: stUrl, articleSection: stZone, datePublished: st.date, faq: st.faq }) }));
-  console.log('  ✓ strategy ' + st.id + ' ' + st.slug);
-}
+publishedArticles.forEach(function(a) {
+  var body = articleBody(a);
+  if (!body) {
+    console.log('  ! articles ' + a.id + ' ' + a.slug + ' has no partial — skipped');
+    return;
+  }
+  var topic = topicBySlug(a.topic);
+  var toc = withToc(body);
+  var html = articleTemplate;
+  html = html.replace(/{{title}}/g, function() { return a.title; });
+  html = html.replace('{{subtitle}}', function() { return a.subtitle || ''; });
+  html = html.replace(/{{topic_title}}/g, function() { return topic.title; });
+  html = html.replace('{{topic}}', function() { return escapeHtml(a.topic); });
+  html = html.replace('{{read_minutes}}', function() { return String(readMinutes(body)); });
+  html = html.replace('{{toc}}', function() { return toc.toc; });
+  html = html.replace('{{content_body}}', function() { return toc.html; });
+  html = html.replace('{{series_section}}', function() { return a.series ? seriesBlockHtml(a.series, a.id) : ''; });
+  html = html.replace('{{faq_section}}', function() { return faqSectionHtml(a.faq); });
+  html = html.replace('{{materials_section}}', function() { return materialsBlockHtml(a); });
+  html = html.replace('{{cta_band}}', function() { return articleCtaBand; });
+
+  var aUrl = SITE_URL + '/articles/' + escapeHtml(a.topic) + '/' + escapeHtml(a.slug) + '/';
+  var aSection = a.articleSection || topic.title;
+  write('articles/' + a.topic + '/' + a.slug + '/index.html', renderPage(a.seoTitle + ' | AntiManager', a.seoDescription || a.subtitle || '', html, { canonicalUrl: aUrl, ogType: 'article', ogArticleSection: aSection, ogTags: a.tags, publishedTime: a.date, structuredData: makeStructuredData('article', { title: a.title, subtitle: a.subtitle, canonicalUrl: aUrl, articleSection: aSection, topic: a.topic, topicTitle: topic.title, datePublished: a.date, faq: a.faq }) }));
+  console.log('  ✓ articles ' + a.id + ' ' + a.topic + '/' + a.slug);
+});
 
 // Sitemap
 var sitemapUrls = [
@@ -990,11 +1113,14 @@ var sitemapUrls = [
   { loc: SITE_URL + '/contact/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/strategy/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/articles/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
-for (var sk = 0; sk < strategy.length; sk++) {
-  sitemapUrls.push({ loc: SITE_URL + '/strategy/' + strategy[sk].slug + '/', priority: '0.8', changefreq: 'monthly', lastmod: strategy[sk].date || BUILD_DATE });
-}
+publishedTopics.forEach(function(t) {
+  sitemapUrls.push({ loc: SITE_URL + '/articles/' + t.slug + '/', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE });
+});
+publishedArticles.forEach(function(a) {
+  sitemapUrls.push({ loc: SITE_URL + '/articles/' + a.topic + '/' + a.slug + '/', priority: '0.8', changefreq: 'monthly', lastmod: a.date || BUILD_DATE });
+});
 for (var si = 0; si < weapons.length; si++) {
   var weaponDate = weapons[si].date || BUILD_DATE;
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {

@@ -13,16 +13,19 @@ AntiManager/
   site/              # Website source code
     build.js         # Static site builder
     src/             # Templates, data, chapter content
-    src/content/     # Topic-landing partials (XX-slug.html)
+    src/content/     # Topic-landing partials (XX-slug.html) + contact.html
     src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
     src/content/genome/ # «Геном завода» section partials (landing.html, role.html)
-    src/content/strategy/ # «Стратегия» long-read partials (XX-slug.html)
+    src/content/articles/ # «Статьи» long-read partials (XX-slug.html)
+    src/lib/         # escape.js (shared build helpers)
     materials/       # Downloadable assets: <slug>.pdf (generated) + <slug>/ (authored extras)
     scripts/         # render-og.js, render-pdf.js
     css/             # Stylesheets
     js/              # JavaScript
     fonts/           # Self-hosted woff2
     tests/           # Playwright UX tests
+    unit/            # build unit tests (node --test)
+    feedback/        # feedback-form microservice (Python stdlib)
     deploy/          # nginx config
     deploy.ps1       # Deploy to VPS
     package.json
@@ -77,19 +80,31 @@ A consulting-service section, not an arsenal weapon. Two indexable static pages 
 CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/headquarters/`.
 Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
 
-## «Стратегия» section (`/strategy/`)
+## «Статьи» library (`/articles/`)
 
-One-tier long-reads. The hub `/strategy/` lists the articles; each `/strategy/<slug>/` is a full
-article (TOC, FAQ, materials, Telegram CTA) with a three-level breadcrumb and FAQPage JSON-LD.
-Data lives in `src/data/strategy.json` (kept separate from `weapons.json`, whose counts stay pinned
-for the SEO tests). Article partials are generated offline from the vault by
-`.kilo/scripts/gen_strategy_partials.py` (Markdown links → real `<a>`; appends the «Читайте также»
-interlinks block). Re-run the generator after vault edits, then commit the regenerated partial —
-`node build.js` itself stays vault-independent. Site interlinks live only in the generator, never
-in the vault `.md`: the converter drops Markdown links, and the vault keeps its native `[[wiki]]`
-backlinks. A heading marked `data-toc="skip"` (the interlinks title) stays on the page but is
-excluded from the auto-generated table of contents. Section styles: `/* === STRATEGY SECTION === */`
-in `css/brutalist.css`.
+Topic-grouped long-reads. Route shape: `/articles/` (hub) → `/articles/<topic>/` (topic hub) →
+`/articles/<topic>/<slug>/` (full article: TOC, FAQ, materials, series block, Telegram CTA).
+Data lives in three files under `src/data/`:
+- `article-topics.json` — locked topic taxonomy (`strategy`, `economics`, `management`, `digital`),
+  each with a title, description and `order`;
+- `articles.json` — one entry per article (`id`, `topic`, `order`, optional `series`, text fields,
+  `date`, `tags`, `status`, four `faq` items);
+- `article-series.json` — cross-topic series (`capability` = «Управление способностью»).
+
+Only `status: published` entries render. Topic hubs are emitted only for topics with at least one
+published article, so an empty taxonomy entry never ships a blank page. Article IDs are internal
+file/data keys; the UI never shows numbering. Legacy `/strategy/...` URLs 301 to
+`/articles/strategy/...` (nginx, server level).
+
+Article partials are generated offline from the vault by
+`.kilo/scripts/gen_article_partials.py` (Markdown links → real `<a>`; appends the «Читайте также»
+interlinks block with `data-toc="skip"`). Every source `.md` must keep a `---` after the title
+block: the converter drops everything through the first separator, so a missing one produces an
+empty partial. Re-run the generator after vault edits, then commit the regenerated partial —
+`node build.js` itself stays vault-independent. Site interlinks live only in
+the generator, never in the vault `.md`: the converter drops Markdown links, and the vault keeps its
+native `[[wiki]]` backlinks. Section styles: `/* === ARTICLES LIBRARY (/articles/) === */` in
+`css/brutalist.css`; `.strategy-*` classes remain as one-release aliases for cached pages.
 
 ## Contact / feedback form (`/contact/`)
 
@@ -134,15 +149,15 @@ npm test                # unit + Playwright tests
 npm run test:unit       # unit tests only
 npm run test:e2e        # Playwright only
 npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
-npm run render:pdf      # render materials/<slug>.pdf from each /full/ page (run after build)
+npm run render:pdf      # render materials/<slug>.pdf from each full-text page (run after build)
 npm run optimize:thinkers  # generate .webp siblings for thinker photos (run after adding a photo)
 .\deploy.ps1            # Deploy to VPS (reads .env)
 .\scripts\verify-deploy.ps1  # post-deploy live check: /genome/, /genome/role/, sitemap → exit non-zero on failure
 ```
 Regenerate the genome role documents after vault edits (needs the local Obsidian vault):
 `python ..\.kilo\scripts\genome_doc_build.py`
-Regenerate the strategy long-read partials after vault edits (same vault):
-`python ..\.kilo\scripts\gen_strategy_partials.py`
+Regenerate the article long-read partials after vault edits (same vault):
+`python ..\.kilo\scripts\gen_article_partials.py`
 
 Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
 writes the shared `dist/`, so parallel test files would race. Keep that flag.
@@ -150,7 +165,9 @@ writes the shared `dist/`, so parallel test files would race. Keep that flag.
 
 `render:pdf` serves `dist/` and prints each `/full/` page in print media — never run it
 concurrently with `build.js`/tests (they rewrite the shared `dist/`), or the PDF captures
-stale markup (a phantom ~3× size jump / embedded images is the tell). Wide inline SVGs
+stale markup (a phantom ~3× size jump / embedded images is the tell). It fails fast when a
+target's `dist/` page is missing (instead of printing the 404 page) and retries a just-written
+PDF 3× because Windows antivirus/indexers intermittently lock it. Wide inline SVGs
 (e.g. the article-07 loss map, `viewBox 1500×1120`) are illegible at A4 print width and
 print as a dark block: hide them under `@media print` (`.loss-map { display: none }`) and
 keep a table/text equivalent right below.
@@ -184,8 +201,8 @@ Caddy-reload step after "Restarting Docker container", verify live (GET 200) bef
 - Widgets: one question per screen, back button, step counter, progress bar
 - SEO: `og:image` must be the raster `/og-image.png` (social networks do not render SVG);
   run `npm run render:og` after editing `src/templates/og-image.svg`
-- Article `datePublished` and sitemap `lastmod` use the per-article `date` in `weapons.json`;
-  `dateModified` and static-page `lastmod` use the build date
+- `datePublished` and sitemap `lastmod` use each entry's `date` (`weapons.json` for weapon pages,
+  `articles.json` for `/articles/` long-reads); `dateModified` and static-page `lastmod` use the build date
 - Thinker photos ship as `<picture>` (generated `.webp` + original fallback); build guards on
   the `.webp` existing, so a missing generation degrades gracefully to the raster
 - Long inline code/identifier chips (`.anchor-code`, `.cv`) must **wrap** (`overflow-wrap: anywhere`),
