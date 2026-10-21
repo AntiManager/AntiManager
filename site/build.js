@@ -861,7 +861,15 @@ if (/<!--AUDIT:[A-Z]+:START-->\s*<!--AUDIT:[A-Z]+:END-->/.test(auditBody)) {
   throw new Error('genome/audit.html has an empty marker region — run gen_ps_audit_page.py');
 }
 write('genome/audit/index.html', renderPage('Экспресс-аудит производственной системы | AntiManager', '40 критериев для экспресс-оценки производственной системы: якоря уровней 0–5, правила оценки, покрытие и топ-5 разрывов, Excel с автоматическим расчётом.', auditBody, { canonicalUrl: SITE_URL + '/genome/audit/', scripts: '<script src="/js/audit.js?v=' + VERSION + '" defer></script>', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Экспресс-аудит', url: SITE_URL + '/genome/audit/' }] }) }));
-console.log('  ✓ genome + genome/role + genome/audit');
+// Systems map (/genome/systems/): a templated 14-system map. The authored partial's
+// <!--SYSTEMS:*--> regions are filled offline by .kilo/scripts/gen_systems_page.py;
+// an un-generated partial must fail the build instead of shipping empty sections.
+const systemsBody = read('src/content/genome/systems.html');
+if (/<!--SYSTEMS:[A-Z]+:START-->\s*<!--SYSTEMS:[A-Z]+:END-->/.test(systemsBody)) {
+  throw new Error('genome/systems.html has an empty marker region — run gen_systems_page.py');
+}
+write('genome/systems/index.html', renderPage('Карта систем производственной системы | AntiManager', 'Четырнадцать систем производственной системы: назначение, владелец, минимальные артефакты, KPI, типовой разрыв и шаблон карточки из двенадцати полей.', systemsBody, { canonicalUrl: SITE_URL + '/genome/systems/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Карта систем', url: SITE_URL + '/genome/systems/' }] }) }));
+console.log('  ✓ genome + genome/role + genome/audit + genome/systems');
 
 // Weapon pages
 for (var wi = 0; wi < weapons.length; wi++) {
@@ -1124,6 +1132,7 @@ var sitemapUrls = [
   { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/audit/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/genome/systems/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/articles/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 publishedTopics.forEach(function(t) {

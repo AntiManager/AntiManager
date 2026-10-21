@@ -21,9 +21,16 @@ from pathlib import Path
 BASE_REL = Path("Аудит ПС") / "Полный-чек-лист-аудита-ПС.md"
 EXPRESS_REL = Path("Аудит ПС") / "Экспресс-чек-лист-аудита-ПС.md"
 
-BLOCK_RANGES = {1: 31, 2: 24, 3: 7, 4: 26, 5: 14, 6: 18}
+BLOCK_RANGES = {1: 31, 2: 24, 3: 7, 4: 26, 5: 14, 6: 18, 7: 12}
 BASE_COLUMNS = 9  # Критерий | 0 | 1 | 2 | 3 | 4 | 5 | KPI | Способ верификации
 EXPRESS_COLUMNS = 10  # ID | Критерий | 0 | 1 | 2 | 3 | 4 | 5 | KPI | Способ верификации
+
+# SHA-256 over the normalized rows of blocks 1-6 (criteria 1.1-6.18).
+# Any wording change in the published core invalidates the site/express contract.
+# Regenerate deliberately with: python check_ps_audit.py --print-fingerprint <vault>
+BASE_FINGERPRINT = "da9ad2f2ff70fe6c5695bfa6747098d7dd1549485102218d87956299688b30dd"
+BLOCK7_HEAD = "## Блок 7"
+BLOCK7_END = "## Связанные документы"
 
 SYSTEM_REF = re.compile(r"(?<![А-Яа-яA-Za-z])(?:S\d{2}|Карточки-систем)(?![А-Яа-яA-Za-z])")
 
@@ -81,6 +88,27 @@ def check_tokens(label: str, text: str, errors: list[str], warns: list[str]) -> 
             warns.append(f"{label}: soft frequency «{token}» — requires a quantified period in the same cell")
 
 
+def fingerprint(text: str) -> str:
+    """SHA-256 of the normalized rows of blocks 1-6 (published core)."""
+    import hashlib
+
+    parts = []
+    for cells in (c for n, c in table_rows(text) if n == BASE_COLUMNS):
+        m = re.match(r"^\*{0,2}(\d+)\.(\d+)\.", cells[0])
+        if not m or int(m.group(1)) > 6:
+            continue
+        parts.append("|".join(" ".join(c.split()) for c in cells))
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+
+def block7_text(text: str) -> str:
+    start = text.find(BLOCK7_HEAD)
+    if start < 0:
+        return ""
+    end = text.find(BLOCK7_END, start)
+    return text[start:end if end > 0 else len(text)]
+
+
 def check_base(path: Path, errors: list[str], warns: list[str]) -> None:
     if not path.exists():
         errors.append(f"base file missing: {path}")
@@ -110,8 +138,22 @@ def check_base(path: Path, errors: list[str], warns: list[str]) -> None:
         missing = sorted(expected_ids - set(ids))
         if missing:
             errors.append(f"base: block {block} missing {', '.join(missing)}")
+    total = sum(len(ids) for ids in found.values())
+    if total != sum(BLOCK_RANGES.values()):
+        errors.append(
+            f"base: {total} criteria, expected {sum(BLOCK_RANGES.values())}"
+        )
+    if not block7_text(text):
+        errors.append("base: block 7 «Контур изменений» not found")
+    got = fingerprint(text)
+    if BASE_FINGERPRINT != "__FINGERPRINT__" and got != BASE_FINGERPRINT:
+        errors.append(
+            "base: criteria 1.1-6.18 changed (published core fingerprint mismatch)"
+        )
     body = text.split("---", 2)[-1]
     check_tokens("base", body, errors, warns)
+    for m in SYSTEM_REF.finditer(block7_text(text)):
+        errors.append(f"base: block 7 system-card reference «{m.group(0)}»")
 
 
 def check_express(path: Path, base_text: str, errors: list[str], warns: list[str]) -> None:
@@ -140,6 +182,9 @@ def check_express(path: Path, base_text: str, errors: list[str], warns: list[str
             continue
         base_id = map_match.group(1)
         blocks.add(int(base_id.split(".")[0]))
+        if int(base_id.split(".")[0]) > 6:
+            errors.append(f"express: {cid} maps to block 7 ({base_id}); express covers blocks 1-6 only")
+            continue
         if base_id not in base_rows:
             errors.append(f"express: {cid} maps to missing base criterion {base_id}")
             continue
@@ -172,9 +217,17 @@ def check_express(path: Path, base_text: str, errors: list[str], warns: list[str
 
 
 def main() -> int:
-    vault = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    vault = Path(args[0]) if args else Path(
         r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault"
     )
+    if "--print-fingerprint" in sys.argv:
+        base = vault / BASE_REL
+        if not base.exists():
+            print(f"base file missing: {base}")
+            return 2
+        print(fingerprint(read(base)))
+        return 0
     errors: list[str] = []
     warns: list[str] = []
     base = vault / BASE_REL

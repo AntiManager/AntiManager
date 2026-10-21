@@ -105,6 +105,24 @@ published.
 - Section styles live in the `/* === GENOME AUDIT (/genome/audit/) === */` block of
   `css/brutalist.css`.
 
+## «Карта систем» (`/genome/systems/`)
+
+A nested Геном page that publishes the 14 system cards as a uniform 12-field template, plus a
+blank card template for a client's own systems. Source of truth: `Карточки-систем.md` in the vault.
+- `src/content/genome/systems.html` is authored; its three `<!--SYSTEMS:META/SUMMARY/CARDS:*-->`
+  regions are generated offline by `.kilo/scripts/gen_systems_page.py`. Run it after vault edits
+  and commit the regenerated partial together with the downloads. `build.js` throws on an empty
+  marker region. There is no npm script: the generator needs the local vault.
+- The same generator writes the compact owner document (`Карта-систем-собственнику.md` + `.docx`
+  in the vault) and the blank template (`materials/ps-systems-map/system-card-template.md/.docx`)
+  via pandoc; `--check` compares the marker regions, the owner Markdown and the template and exits
+  1 on drift.
+- The page reuses `.doc-cards` / `.doc-card` / `.doc-full` and the summary `.table-wrap`; page
+  styles live in the `/* === SYSTEMS MAP (/genome/systems/) === */` block of `css/brutalist.css`.
+- Discovery: a `.systems-entry` section on `/genome/` (deliberately not a seventh `.doc-card`, so
+  the landing still renders exactly six role documents), a sitemap entry, and
+  `unit/build-systems.test.js`. `/genome/systems/` is in the `ux-critical` no-hscroll path list.
+
 ## «Статьи» library (`/articles/`)
 
 Topic-grouped long-reads. Route shape: `/articles/` (hub) → `/articles/<topic>/` (topic hub) →

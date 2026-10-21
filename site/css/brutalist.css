@@ -601,6 +601,17 @@ body.flash-in { animation: red-flash 0.5s ease-out; }
 /* Deep-link anchors on the role page clear the sticky header */
 .section#ku, .section#profile { scroll-margin-top: 90px; }
 
+/* === SYSTEMS MAP (/genome/systems/) === */
+
+.systems-page { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-8); overflow-wrap: anywhere; }
+.systems-page .hero-gen { padding-left: 0; padding-right: 0; }
+.systems-page .section { padding-left: 0; padding-right: 0; }
+.systems-meta { font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-4); }
+.sys-card .dc-desc { font-size: var(--text-sm); color: var(--color-muted); }
+.sys-card .doc-body p { margin-bottom: var(--space-3); }
+.sys-artifacts { margin: var(--space-2) 0 var(--space-3); }
+.sys-artifacts li { margin-bottom: var(--space-1); }
+
 /* === GENOME AUDIT (/genome/audit/) === */
 
 .audit-page { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-8); overflow-wrap: anywhere; }
