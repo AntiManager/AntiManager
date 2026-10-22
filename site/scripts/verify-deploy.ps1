@@ -3,10 +3,14 @@
 $ErrorActionPreference = "Stop"
 
 $base = "https://antimanager.pro"
+$indexNowKey = (Get-Content (Join-Path $PSScriptRoot "..\src\indexnow-key.txt") -Raw).Trim()
 $checks = @(
   @{ Url = "$base/genome/";        Match = 'hero-gen' },
   @{ Url = "$base/genome/role/";   Match = 'doc-doc' },
-  @{ Url = "$base/sitemap.xml";    Match = '/genome/role/' }
+  @{ Url = "$base/sitemap.xml";    Match = '/genome/role/' },
+  @{ Url = "$base/sitemap.xml";    Match = '/articles/practice/' },
+  @{ Url = "$base/articles/practice/5s-na-proizvodstve/"; Match = 'article-faq' },
+  @{ Url = "$base/$indexNowKey.txt"; Match = $indexNowKey }
 )
 
 $failed = $false

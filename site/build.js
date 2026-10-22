@@ -8,7 +8,23 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261021a';
+const VERSION = '20261022a';
+// Search-engine verification codes are build-time secrets: a missing code ships
+// nothing, so a placeholder can never reach production. The Yandex code is also
+// used for the HTML-file verification method further down.
+const YANDEX_VERIFICATION = (process.env.YANDEX_VERIFICATION || '').trim();
+const GOOGLE_VERIFICATION = (process.env.GOOGLE_VERIFICATION || '').trim();
+
+function verificationTags() {
+  let tags = '';
+  if (/^[A-Za-z0-9_-]{4,64}$/.test(YANDEX_VERIFICATION)) {
+    tags += '\n<meta name="yandex-verification" content="' + YANDEX_VERIFICATION + '">';
+  }
+  if (/^[A-Za-z0-9_-]{4,128}$/.test(GOOGLE_VERIFICATION)) {
+    tags += '\n<meta name="google-site-verification" content="' + GOOGLE_VERIFICATION + '">';
+  }
+  return tags;
+}
 // Social platforms do not render SVG OG images; prefer the rasterized PNG and
 // fall back to the SVG when it has not been generated yet.
 const OG_IMAGE_PNG = path.join(__dirname, 'src', 'templates', 'og-image.png');
@@ -415,6 +431,10 @@ function renderPage(title, description, content, opts) {
 
   const desc = description || title;
   const canonicalUrl = opts.canonicalUrl || SITE_URL + '/';
+  // Soft guards: Google truncates titles around 60–70 characters and snippets
+  // around 160–200. Warn instead of failing the build so legacy pages still ship.
+  if (title.length > 70) console.warn('  ! SEO title is ' + title.length + ' chars (' + canonicalUrl + ')');
+  if (desc.length > 200) console.warn('  ! meta description is ' + desc.length + ' chars (' + canonicalUrl + ')');
   const ogType = opts.ogType || 'website';
   const ogImage = opts.ogImage || OG_IMAGE_URL;
   // Dimensions are only known for the built-in 1200×630 card; a caller-provided
@@ -446,7 +466,8 @@ function renderPage(title, description, content, opts) {
     + '<meta name="twitter:title" content="' + escapeHtml(title) + '">\n'
     + '<meta name="twitter:description" content="' + escapeHtml(desc) + '">\n'
     + '<meta name="twitter:image" content="' + ogImage + '">\n'
-    + '<meta name="twitter:image:alt" content="' + escapeHtml(ogAlt) + '">';
+    + '<meta name="twitter:image:alt" content="' + escapeHtml(ogAlt) + '">'
+    + verificationTags();
 
   if (opts.structuredData) headTags += opts.structuredData;
 
@@ -814,13 +835,13 @@ console.log('\n🚀 AntiManager Brutalist Build\n');
 write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: ' + plural(scenarios.length, 'контур', 'контура', 'контуров') + ', ' + plural(weapons.length, 'глава', 'главы', 'глав') + ' — инструменты и кейсы для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
 
 // Static pages
-write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления — 10 ценностей и принципов', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static', { name: 'Манифест', url: SITE_URL + '/manifesto/' }) }));
-write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Великие мыслители управления: Шухарт, Деминг, Оно, Богданов, Гастев', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static', { name: 'Архив великих идей', url: SITE_URL + '/archive/' }) }));
-write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Все ' + weapons.length + ' инструментов-орудий Антименеджера', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static', { name: 'Арсенал', url: SITE_URL + '/arsenal/' }) }));
-write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Выбери свой участок фронта: кризис, команда, изменения, система', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static', { name: 'Сценарии', url: SITE_URL + '/scenarios/' }) }));
-write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Реальные истории с заводов', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static', { name: 'Полевые дневники', url: SITE_URL + '/cases/' }) }));
-write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Закрытый клуб партизан — Telegram', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
-write('about/index.html', renderPage('О проекте | AntiManager', 'Антименеджер — это не метод. Это присяга.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
+write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления: десять ценностей и принципов Антименеджера — среда, стандарт и обратная связь вместо мотивационных лозунгов.', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static', { name: 'Манифест', url: SITE_URL + '/manifesto/' }) }));
+write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Архив великих идей управления: Шухарт, Деминг, Оно, Богданов, Гастев, Тейлор и Клаузевиц — что каждый из них на самом деле дал заводу.', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static', { name: 'Архив великих идей', url: SITE_URL + '/archive/' }) }));
+write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Арсенал Антименеджера: ' + plural(weapons.length, 'инструмент-орудие', 'инструмента-орудия', 'инструментов-орудий') + ' для руководителя производства — от системной динамики и процессов до антикризиса и цифрового двойника.', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static', { name: 'Арсенал', url: SITE_URL + '/arsenal/' }) }));
+write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Четыре сценария для руководителя производства — кризис, команда, изменения и система: с чего начать, какие инструменты применить и чего не делать.', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static', { name: 'Сценарии', url: SITE_URL + '/scenarios/' }) }));
+write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Полевые дневники: реальные истории с заводов — что сработало, что провалилось и какие управленческие решения стояли за результатом.', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static', { name: 'Полевые дневники', url: SITE_URL + '/cases/' }) }));
+write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Штаб Антименеджера — закрытый клуб руководителей производства в Telegram: разборы, документы и честные ответы на вопросы, которые не задают на совещаниях.', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
+write('about/index.html', renderPage('О проекте | AntiManager', 'О проекте AntiManager: зачем он существует, во что верит и как устроен — интерактивная книга об управлении производством без консалтинговой пыли.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
 write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в арсенал AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
 const privacyContent = '<section class="content-page">'
   + '<h1>Политика конфиденциальности</h1>'
@@ -1158,6 +1179,14 @@ sitemap += '</urlset>';
 write('sitemap.xml', sitemap);
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
+// IndexNow key file: served from the site root at /<key>.txt and checked by the
+// API against the keyLocation sent by scripts/indexnow.js.
+const INDEXNOW_KEY = read('src/indexnow-key.txt').trim();
+if (!/^[a-f0-9]{32}$/.test(INDEXNOW_KEY)) {
+  throw new Error('src/indexnow-key.txt must hold 32 lowercase hex characters');
+}
+write(INDEXNOW_KEY + '.txt', INDEXNOW_KEY);
+
 // RFC 9116 security.txt — a public channel for vulnerability reports.
 const securityExpires = new Date(new Date(BUILD_DATE).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
 write('.well-known/security.txt',
@@ -1178,9 +1207,8 @@ write('og-image.svg', read('src/templates/og-image.svg'));
 // Yandex.Webmaster verification: ship the real <code>.html file only when a code
 // is provided (YANDEX_VERIFICATION env). The old XXXX placeholder must never
 // reach production; the code is validated so it cannot traverse directories.
-var yandexCode = (process.env.YANDEX_VERIFICATION || '').trim();
-if (/^[A-Za-z0-9_-]{4,64}$/.test(yandexCode)) {
-  write('yandex_' + yandexCode + '.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: ' + yandexCode + '</body></html>');
+if (/^[A-Za-z0-9_-]{4,64}$/.test(YANDEX_VERIFICATION)) {
+  write('yandex_' + YANDEX_VERIFICATION + '.html', '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: ' + YANDEX_VERIFICATION + '</body></html>');
 }
 
 console.log('\n✅ Build complete. Output: ' + path.join(__dirname, 'dist') + '\n');

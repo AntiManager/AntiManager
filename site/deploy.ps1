@@ -1,5 +1,5 @@
 # Deploy antimanager.pro to VPS
-param([switch]$SkipBuild = $false)
+param([switch]$SkipBuild = $false, [switch]$SkipIndexNow = $false)
 
 $ErrorActionPreference = "Stop"
 
@@ -49,5 +49,15 @@ Run-Ssh "docker rm -f antimanager-web 2>/dev/null; docker run -d --name antimana
 
 Write-Host "Reloading Caddy if configured..." -ForegroundColor Cyan
 Run-Ssh "docker exec caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || true" 2>$null
+
+# IndexNow tells Yandex/Bing which URLs changed. It must run after the new key
+# file and pages are live. A failure here is non-fatal: the deploy itself is done.
+if (-not $SkipIndexNow) {
+  Write-Host "Submitting URLs to IndexNow..." -ForegroundColor Cyan
+  node (Join-Path $PSScriptRoot "scripts\indexnow.js")
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "IndexNow submission failed (non-fatal). Re-run: cd site; npm run indexnow"
+  }
+}
 
 Write-Host "Deploy complete! https://antimanager.pro" -ForegroundColor Green

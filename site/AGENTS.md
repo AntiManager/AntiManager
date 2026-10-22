@@ -130,11 +130,17 @@ never hand-edited.
 Topic-grouped long-reads. Route shape: `/articles/` (hub) → `/articles/<topic>/` (topic hub) →
 `/articles/<topic>/<slug>/` (full article: TOC, FAQ, materials, series block, Telegram CTA).
 Data lives in three files under `src/data/`:
-- `article-topics.json` — locked topic taxonomy (`strategy`, `economics`, `management`, `digital`),
+- `article-topics.json` — locked topic taxonomy (`strategy`, `economics`, `management`, `digital`, `practice`),
   each with a title, description and `order`;
 - `articles.json` — one entry per article (`id`, `topic`, `order`, optional `series`, text fields,
   `date`, `tags`, `status`, four `faq` items);
 - `article-series.json` — cross-topic series (`capability` = «Управление способностью»).
+
+`practice` is the applied topic: query-targeted guides (5S, OEE, хронометраж, Lean, KPI).
+Their partials are authored directly in `src/content/articles/`, not generated from the vault,
+so `gen_article_partials.py` leaves them untouched (they are not in its `ARTICLES_MAP`). Each page
+must keep several H2 sections (TOC), five FAQ items (FAQPage JSON-LD) and an `.article-links`
+block with live internal links.
 
 Only `status: published` entries render. Topic hubs are emitted only for topics with at least one
 published article, so an empty taxonomy entry never ships a blank page. Article IDs are internal
@@ -184,6 +190,20 @@ Rules:
   and renders white/transparent in full-page captures.
 Section styles live in the `/* === CONTACT === */` block of `css/brutalist.css`.
 
+## Search visibility (verification, IndexNow)
+
+- `YANDEX_VERIFICATION` and `GOOGLE_VERIFICATION` are read at build time. When set, the
+  build emits the matching `<meta>` tags (and the Yandex `<code>.html` verification file).
+  When unset, nothing is emitted — no placeholder ships. Put the codes in `.env`; `deploy.ps1`
+  loads that file.
+- `src/indexnow-key.txt` holds the public IndexNow key (32 hex chars). The build writes
+  `dist/<key>.txt`; `npm run indexnow` submits every sitemap URL to `api.indexnow.org`
+  (Yandex, Bing and others). `deploy.ps1` runs the submission after the new files are live
+  and treats a failure as non-fatal; `-SkipIndexNow` disables the hook.
+- `scripts/verify-deploy.ps1` checks the sitemap, the practice section and the key file live.
+- The build warns (does not fail) when an SEO title exceeds 70 characters or a meta
+  description exceeds 200.
+
 ## Commands
 
 ```bash
@@ -196,8 +216,9 @@ npm run test:e2e        # Playwright only
 npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
 npm run render:pdf      # render materials/<slug>.pdf from each full-text page (run after build)
 npm run optimize:thinkers  # generate .webp siblings for thinker photos (run after adding a photo)
-.\deploy.ps1            # Deploy to VPS (reads .env)
-.\scripts\verify-deploy.ps1  # post-deploy live check: /genome/, /genome/role/, sitemap → exit non-zero on failure
+npm run indexnow        # submit dist/sitemap.xml URLs to IndexNow (Yandex/Bing)
+.\deploy.ps1            # Deploy to VPS (reads .env; submits IndexNow unless -SkipIndexNow)
+.\scripts\verify-deploy.ps1  # post-deploy live check: genome, practice, sitemap, IndexNow key → non-zero on failure
 ```
 Regenerate the genome role documents after vault edits (needs the local Obsidian vault):
 `python ..\.kilo\scripts\genome_doc_build.py`
