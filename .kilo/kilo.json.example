@@ -2,8 +2,9 @@
   "$schema": "https://app.kilo.ai/config.json",
   "permission": {
     "bash": "allow",
+    "skill": "allow",
     "external_directory": {
-      "C:\\Users\\{{USERNAME}}\\Documents\\Python\\AntiManager\\*": "allow",
+      "D:\\Users\\{{USERNAME}}\\Python\\AntiManager\\*": "allow",
       "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}\\*": "allow",
       "{{TEMP_DIR}}\\*": "allow"
     }
@@ -17,18 +18,9 @@
         "npx",
         "--yes",
         "obsidian-mcp",
-        "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}"
-      ],
-      "enabled": true
-    },
-    "github": {
-      "type": "local",
-      "command": [
-        "cmd",
-        "/c",
-        "npx",
-        "--yes",
-        "@modelcontextprotocol/server-github"
+        "serve",
+        "--vault",
+        "vault=C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}"
       ],
       "enabled": true
     }

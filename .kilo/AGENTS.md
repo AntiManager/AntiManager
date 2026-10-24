@@ -51,11 +51,11 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - `check_ps_audit.py` — `Аудит ПС/` linter: base structure, express-row identity with the base, banned tokens and system-card references
 - `check_system_cards.py` — `Методология ПС/Карточки-систем.md` linter: 14 cards, 12-field count, base-id criterion refs, process-code resolution, artifact ids, project-interface lines, orphan marking, no project-type appendices, S14 model reference
 
-## MCP (2 project + 1 global)
+## MCP (1 project + 1 global)
 
-- obsidian — batch note processing, vault read/write (project `.kilo/kilo.json`)
-- github — commits/pushes, deploy (project `.kilo/kilo.json`)
-- context7 — library/framework reference docs (global `kilo.jsonc`)
+- obsidian — batch note processing, vault **reads** (project `.kilo/kilo.json`); writes/moves on Cyrillic paths are broken — see §7
+- context7 — library/framework reference docs (global `kilo.jsonc`; disabled until the token is rotated)
+- github — not an MCP on this machine; use `gh`/git with `GH_TOKEN`
 
 ---
 

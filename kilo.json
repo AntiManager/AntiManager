@@ -3,6 +3,7 @@
   "model": "deepseek/deepseek-flash",
   "small_model": "deepseek/deepseek-flash",
   "instructions": [
+    ".kilo/AGENTS.md",
     ".memory/project_brief.md",
     ".memory/active_context.md",
     ".memory/progress.md"
@@ -21,7 +22,8 @@
       "*": "ask"
     },
     "webfetch": "allow",
-    "task": "allow"
+    "task": "allow",
+    "skill": "allow"
   },
   "snapshot": false
 }
