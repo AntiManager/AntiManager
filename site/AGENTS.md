@@ -17,8 +17,9 @@ AntiManager/
     src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
     src/content/genome/ # «Геном завода» section partials (landing.html, role.html)
     src/content/articles/ # «Статьи» long-read partials (XX-slug.html)
+    src/content/documents/ # Generated typical-document body partials (/genome/documents/<slug>/)
     src/lib/         # escape.js (shared build helpers)
-    materials/       # Downloadable assets: <slug>.pdf (generated) + <slug>/ (authored extras)
+    materials/       # Downloadable assets: <slug>.pdf/.docx (generated) + <slug>/ (authored extras)
     scripts/         # render-og.js, render-pdf.js
     css/             # Stylesheets
     js/              # JavaScript

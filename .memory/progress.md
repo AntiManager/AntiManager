@@ -1,5 +1,5 @@
 # AntiManager — Progress
-> Updated: 2026-10-24 · Full pre-compaction log → `.memory/archive/progress-history-2026-10-24.md`
+> Updated: 2026-10-26 · Full pre-compaction log → `.memory/archive/progress-history-2026-10-24.md`
 
 Rolling log, recent first. Keep this file under 8 KB; move older entries to `.memory/archive/`.
 
@@ -16,14 +16,8 @@ Rolling log, recent first. Keep this file under 8 KB; move older entries to `.me
 - **Systems map (2026-10-21):** `/genome/systems/` page with 14 cards × 12 fields, summary, blank template; owner `.md/.docx`; generator `gen_systems_page.py --check` = no drift; unit 18/18, Playwright 210/210; deployed, `a0d06a3`.
 - **Terminology «ворота» → ТПР (2026-10-21):** 98 occurrences / 17 vault files; glossary defines `ТПР (точка принятия решения, decision gate)`; English `Gate/DecisionPoint` kept in ontology; checkers 0.
 - **Card correction + project model (2026-10-21):** project types/classes moved to `Проектная-модель.md`; appendices A–D removed from cards; S14 13th field removed; filled artifact examples; `check_system_cards.py` extended; 0 errors.
-- **S14 + audit block 7 + PRJ (2026-10-21):** 14th system «Управление портфелем проектов и изменений»; `PRJ.md` 4/21/42; 132 criteria; cards rewritten; checker + negative tests; evidence clean.
-- **PS express audit page (2026-10-21):** `/genome/audit/` from vault express v3.0 (40 rows, 6 blocks), fillable XLSX, generator `--check`; unit 17/17, feedback 25/25, audit+UX Playwright 120/120.
-- **Boot-trio compaction (2026-10-21):** progress 14.6 → 8.0 KB, active_context 5.5 → 1.5 KB; archives updated; harness 7/7/9 and project 8/10/2, 0 problems.
-- **PS-audit express v3.0 (2026-10-21):** 40 base criteria copied verbatim; removed cross-cutting rows/weights/system dimension; checker extended; 0 errors; backups.
-- **PS-audit neutralization + derived express (2026-10-21):** 120-criterion client-neutral base, 40-criterion express; linter `check_ps_audit.py` 0/0; MCP move/create rolled back on Cyrillic paths → Write + Python; lesson folded into `.kilo/AGENTS.md`.
-- **Docs/plans/harness cleanup + commit (2026-10-21):** archived completed plans; fixed README/`site/AGENTS.md`/`.kilo/AGENTS.md` drift; harness 0 problems; committed/pushed.
-- **Articles 53–55 (2026-10-20):** three digital articles published, fact-check reports, unit 16/16, Playwright 192/192, PDF 31, live 200s.
-- Earlier sessions → `.memory/archive/progress-history-2026.md` and `progress-history-2026-10-24.md`.
+
+- Earlier 2026-10-20/21 entries (systems map, PS-audit, vault split, articles 53–55) → `.memory/archive/progress-history-2026-10-24.md`.
 
 ## Planned
 

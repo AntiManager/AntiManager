@@ -20,7 +20,7 @@
 | **Люди** | 09, 10, 12, 14, 20, 21 | Бей-беги-замри, ситуационное развитие, анти-тайм-менеджмент, живая система, выученная беспомощность, Run/Change |
 | **Адаптация** | 04, 16, 17, 18, 22 | PDCA, хаос, лестница ошибок, антикризис, траектория |
 
-Книгу дополняет библиотека лонгридов [`/articles/`](https://antimanager.pro/articles/) — стратегия, экономика, управление, цифровизация.
+Книгу дополняет библиотека лонгридов [`/articles/`](https://antimanager.pro/articles/) — стратегия, экономика, управление, цифровизация. Типовые документы производственной системы — [`/genome/documents/`](https://antimanager.pro/genome/documents/) — выходят с PDF и редактируемым DOCX.
 
 ## Технологии
 
@@ -42,16 +42,17 @@ site/                # Код и деплой сайта
   src/
     components/      # header, footer (HTML-компоненты)
     templates/       # base.html, og-image.svg/png
-    data/            # weapons, articles, article-topics/series, materials, chapters, tools, thinkers, cases, scenarios
+    data/            # weapons, articles, article-topics/series, materials, chapters, tools, thinkers, cases, scenarios, documents
     content/         # лендинги «оружия» + contact.html
     content/full/    # полные тексты статей (/full/)
     content/articles/# лонгриды библиотеки «Статьи» (/articles/)
+    content/documents/# тексты типовых документов (/genome/documents/<slug>/)
     content/genome/  # раздел «Геном завода»
     lib/             # escape.js
   css/               # brutalist.css, fonts.css
   js/                # brutalist.js, contact.js
   fonts/             # Golos Text, PT Serif, JetBrains Mono (woff2)
-  materials/         # PDF статей и авторские дополнительные материалы
+  materials/         # PDF статей, PDF/DOCX типовых документов и авторские дополнительные материалы
   scripts/           # render-og.js, render-pdf.js, verify-deploy.ps1
   tests/             # Playwright e2e-тесты
   unit/              # unit-тесты сборки (node --test)

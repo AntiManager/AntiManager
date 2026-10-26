@@ -1,6 +1,7 @@
 # AntiManager — Harness Map
 
 Vault map: `Roadmap/Дорожная карта доработок.md`.
+Typical documents: `Методология ПС/Типовые документы/` (public templates + internal СНУ regulation) → site `/genome/documents/`.
 Site plan: `.kilo/plans/site-development-plan.md`.
 Repository plan: `.kilo/plans/antimanager-repo-restructure.md`.
 Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the repository only deliberately; tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch. Completed local plans move to `.kilo/plans/archive/`; only the active plan stays at the root. Do not modify `.gitignore`.

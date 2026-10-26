@@ -39,3 +39,14 @@
 - **GitVerse token** in `.git/config` `origin.pushurl` (plaintext) — rotate + move to credential helper/SSH. Not a repo file.
 - **F16.3** — `Failed to parse frontmatter: No context found for instance` on `.kilo/command|agent/**` writes is an **upstream Kilo 7.7.5 bug** (content-independent; write succeeds). No local fix.
 - Metrika `webvisor:true` vs `/privacy/` claim — deferred by user (compliance risk).
+
+## Restored from the rolling log (2026-10-20/21 entries)
+
+- **S14 + audit block 7 + PRJ (2026-10-21):** 14th system «Управление портфелем проектов и изменений»; `PRJ.md` 4/21/42; 132 criteria; cards rewritten; checker + negative tests; evidence clean.
+- **PS express audit page (2026-10-21):** `/genome/audit/` from vault express v3.0 (40 rows, 6 blocks), fillable XLSX, generator `--check`; unit 17/17, feedback 25/25, audit+UX Playwright 120/120.
+- **Boot-trio compaction (2026-10-21):** progress 14.6 → 8.0 KB, active_context 5.5 → 1.5 KB; archives updated; harness 7/7/9 and project 8/10/2, 0 problems.
+- **PS-audit express v3.0 (2026-10-21):** 40 base criteria copied verbatim; removed cross-cutting rows/weights/system dimension; checker extended; 0 errors; backups.
+- **PS-audit neutralization + derived express (2026-10-21):** 120-criterion client-neutral base, 40-criterion express; linter `check_ps_audit.py` 0/0; MCP move/create rolled back on Cyrillic paths → Write + Python; lesson folded into `.kilo/AGENTS.md`.
+- **Docs/plans/harness cleanup + commit (2026-10-21):** archived completed plans; fixed README/`site/AGENTS.md`/`.kilo/AGENTS.md` drift; harness 0 problems; committed/pushed.
+- **Articles 53–55 (2026-10-20):** three digital articles published, fact-check reports, unit 16/16, Playwright 192/192, PDF 31, live 200s.
+- Earlier sessions → `.memory/archive/progress-history-2026.md` and `progress-history-2026-10-24.md`.
