@@ -8,7 +8,7 @@ const SITE_URL = 'https://antimanager.pro';
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261022a';
+const VERSION = '20261026a';
 // Search-engine verification codes are build-time secrets: a missing code ships
 // nothing, so a placeholder can never reach production. The Yandex code is also
 // used for the HTML-file verification method further down.
@@ -100,6 +100,26 @@ articles.forEach(function(a) {
     a.faq = a.faq.map(function(f) { return { q: escapeHtml(String(f.q || '')), a: escapeHtml(String(f.a || '')) }; });
   }
 });
+
+// Typical documents (/genome/documents/ and one page per document). The data
+// file is public metadata only; the body partials are generated offline from
+// the vault by .kilo/scripts/gen_documents_pages.py. Text fields are escaped;
+// slug stays raw because it is a path/URL key.
+const documents = sanitize(JSON.parse(read('src/data/documents.json')), ['title', 'subtitle', 'summary', 'version', 'license']);
+documents.forEach(function(d) {
+  assertSlug(d.slug, 'documents.json slug');
+  ['title', 'subtitle', 'summary', 'version', 'license'].forEach(function(k) {
+    if (!d[k]) throw new Error('documents.json missing ' + k + ' for ' + d.slug);
+  });
+  if (d.updated && !/^\d{4}-\d{2}-\d{2}$/.test(d.updated)) delete d.updated;
+  if (!Array.isArray(d.links)) throw new Error('documents.json links must be an array: ' + d.slug);
+  d.links.forEach(function(l) {
+    if (!Array.isArray(l) || typeof l[0] !== 'string' || l[0][0] !== '/') {
+      throw new Error('documents.json link href must start with /: ' + d.slug);
+    }
+  });
+});
+documents.sort(byOrder);
 
 // `order` drives the topic order and the card order inside a topic.
 function byOrder(x, y) { return (x.order || 0) - (y.order || 0); }
@@ -274,6 +294,31 @@ function materialsBlockHtml(w) {
     + '</section>';
 }
 
+// Honest download row for a typical document: only files that actually exist
+// are linked. PDF is produced by render:pdf, DOCX by gen_documents_pages.py.
+function docDownloadsHtml(doc) {
+  var base = path.join(__dirname, 'materials', doc.slug);
+  var items = [];
+  if (fs.existsSync(base + '.pdf')) {
+    items.push({ href: '/materials/' + doc.slug + '.pdf', icon: '📄', title: 'PDF · полный текст', meta: 'для печати и чтения офлайн' });
+  }
+  if (fs.existsSync(base + '.docx')) {
+    items.push({ href: '/materials/' + doc.slug + '.docx', icon: '📝', title: 'DOCX · редактируемая версия', meta: 'для адаптации под предприятие' });
+  }
+  if (!items.length) return '';
+  return '<section class="doc-downloads" id="downloads">'
+    + '<h2 data-toc="skip">Скачать документ</h2>'
+    + '<ul class="materials-list">'
+    + items.map(function(it) {
+        return '<li class="material-item">'
+          + '<span class="material-icon" aria-hidden="true">' + it.icon + '</span>'
+          + '<span class="material-body"><span class="material-title">' + it.title + '</span>'
+          + '<span class="material-meta">' + it.meta + '</span></span>'
+          + '<a class="btn btn-primary btn-sm" href="' + escapeHtml(it.href) + '" download>Скачать</a></li>';
+      }).join('')
+    + '</ul></section>';
+}
+
 // Canonical node builders. @id values let Google connect the WebSite/Organization
 // nodes that pages reference instead of treating each as an anonymous entity.
 function orgNode() {
@@ -363,6 +408,35 @@ function makeStructuredData(pageType, data) {
           'itemListElement': crumbItems
         }
       ]
+    });
+  }
+  if (pageType === 'document') {
+    // A typical document is an Article nested under Геном → Документы, with a
+    // four-level breadcrumb. datePublished comes from documents.json.
+    var docArticle = {
+      '@type': 'Article',
+      'headline': data.title,
+      'description': data.subtitle || data.title,
+      'url': data.canonicalUrl,
+      'mainEntityOfPage': data.canonicalUrl,
+      'image': OG_IMAGE_URL,
+      'datePublished': data.datePublished || BUILD_DATE,
+      'dateModified': BUILD_DATE,
+      'inLanguage': 'ru',
+      'author': { '@type': 'Organization', 'name': 'AntiManager', 'url': SITE_URL },
+      'publisher': orgNode(),
+      'isPartOf': { '@id': SITE_URL + '/#website' },
+      'articleSection': 'Документы'
+    };
+    var docCrumbs = [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Геном завода', 'item': SITE_URL + '/genome/' },
+      { '@type': 'ListItem', 'position': 3, 'name': 'Документы', 'item': SITE_URL + '/genome/documents/' },
+      { '@type': 'ListItem', 'position': 4, 'name': data.title }
+    ];
+    return json({
+      '@context': 'https://schema.org',
+      '@graph': [ websiteNode(), docArticle, { '@type': 'BreadcrumbList', 'itemListElement': docCrumbs } ]
     });
   }
   if (pageType === 'article') {
@@ -892,6 +966,93 @@ if (/<!--SYSTEMS:[A-Z]+:START-->\s*<!--SYSTEMS:[A-Z]+:END-->/.test(systemsBody))
 write('genome/systems/index.html', renderPage('Карта систем производственной системы | AntiManager', 'Четырнадцать систем производственной системы: назначение, владелец, минимальные артефакты, KPI, типовой разрыв и шаблон карточки из двенадцати полей.', systemsBody, { canonicalUrl: SITE_URL + '/genome/systems/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Карта систем', url: SITE_URL + '/genome/systems/' }] }) }));
 console.log('  ✓ genome + genome/role + genome/audit + genome/systems');
 
+// === TYPICAL DOCUMENTS (/genome/documents/) ===
+// Authored hub shell + one generated body partial per document. The generator
+// .kilo/scripts/gen_documents_pages.py fills <!--DOCS:LIST:*--> in the hub and
+// writes src/content/documents/<slug>.html; an un-generated partial must fail
+// the build instead of shipping an empty document page.
+function ruDate(iso) {
+  var parts = String(iso || '').split('-');
+  return parts.length === 3 ? parts[2] + '.' + parts[1] + '.' + parts[0] : (iso || '');
+}
+
+function docInterlinksHtml(doc) {
+  if (!doc.links || !doc.links.length) return '';
+  return '<section class="article-links" data-toc="skip">'
+    + '<h2 data-toc="skip">Связанные материалы</h2>'
+    + '<ul>' + doc.links.map(function(l) {
+        return '<li><a href="' + escapeHtml(l[0]) + '">' + escapeHtml(l[1]) + '</a>'
+          + (l[2] ? ' — ' + escapeHtml(l[2]) : '') + '</li>';
+      }).join('') + '</ul>'
+    + '</section>';
+}
+
+var documentTemplate = '<div class="content-page full-article-page document-page">'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/genome/">Геном завода</a> <span class="sep">→</span> <a href="/genome/documents/">Документы</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+  + '<header class="full-hero doc-hero">'
+  + '<div class="doc-kicker">Типовой документ</div>'
+  + '<h1>{{title}}</h1>'
+  + '<p class="weapon-subtitle">{{subtitle}}</p>'
+  + '<p class="full-meta">Версия {{version}} · обновлён {{updated}} · {{license}}</p>'
+  + '</header>'
+  + '{{downloads}}'
+  + '{{toc}}'
+  + '<article class="full-article">{{content_body}}</article>'
+  + '{{interlinks}}'
+  + '<div class="doc-license"><p><strong>Лицензия.</strong> {{license}}. При использовании указывайте автора — AntiManager — и сохраняйте лицензию для производных версий.</p></div>'
+  + '<section class="cta-band"><h2>Адаптировать документ под предприятие</h2>'
+  + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Опишите структуру и текущий ритм управления — предложим, что менять в первую очередь.</p>'
+  + '<a href="/contact/?pack=documents" class="btn btn-primary">Запросить комплект</a>'
+  + '<a href="https://t.me/antimanagerpro_bot" class="btn">Написать в Telegram</a></section>'
+  + '</div>';
+
+var documentsHubBody = read('src/content/genome/documents.html');
+if (/<!--DOCS:LIST:START-->\s*<!--DOCS:LIST:END-->/.test(documentsHubBody)) {
+  throw new Error('genome/documents.html has an empty DOCS:LIST region — run gen_documents_pages.py');
+}
+write('genome/documents/index.html', renderPage(
+  'Типовые документы производственной системы | AntiManager',
+  'Типовые документы производственной системы: ритм совещаний, Gemba-обход и система непрерывных улучшений. PDF и DOCX, лицензия CC BY-SA 4.0.',
+  documentsHubBody,
+  { canonicalUrl: SITE_URL + '/genome/documents/', structuredData: makeStructuredData('collection', {
+      name: 'Типовые документы производственной системы',
+      description: 'Шаблоны ритма совещаний, Gemba-обхода и системы непрерывных улучшений.',
+      url: SITE_URL + '/genome/documents/',
+      breadcrumbs: [
+        { name: 'Главная', url: SITE_URL + '/' },
+        { name: 'Геном завода', url: SITE_URL + '/genome/' },
+        { name: 'Документы', url: SITE_URL + '/genome/documents/' }
+      ]
+    }) }));
+
+documents.forEach(function(d) {
+  var partial = path.join(__dirname, 'src', 'content', 'documents', d.slug + '.html');
+  if (!fs.existsSync(partial)) {
+    throw new Error('documents.json: no generated partial for ' + d.slug + ' — run gen_documents_pages.py');
+  }
+  var body = fs.readFileSync(partial, 'utf-8');
+  var docToc = withToc(body);
+  var docPage = documentTemplate;
+  docPage = docPage.replace(/{{title}}/g, function() { return d.title; });
+  docPage = docPage.replace('{{subtitle}}', function() { return d.subtitle; });
+  docPage = docPage.replace('{{version}}', function() { return d.version; });
+  docPage = docPage.replace('{{updated}}', function() { return ruDate(d.updated); });
+  docPage = docPage.replace(/{{license}}/g, function() { return d.license; });
+  docPage = docPage.replace('{{downloads}}', function() { return docDownloadsHtml(d); });
+  docPage = docPage.replace('{{toc}}', function() { return docToc.toc; });
+  docPage = docPage.replace('{{content_body}}', function() { return docToc.html; });
+  docPage = docPage.replace('{{interlinks}}', function() { return docInterlinksHtml(d); });
+
+  var docUrl = SITE_URL + '/genome/documents/' + d.slug + '/';
+  write('genome/documents/' + d.slug + '/index.html', renderPage(
+    d.title + ' — типовой документ | AntiManager',
+    d.summary || d.subtitle,
+    docPage,
+    { canonicalUrl: docUrl, ogType: 'article', ogArticleSection: 'Документы', publishedTime: d.updated, structuredData: makeStructuredData('document', { title: d.title, subtitle: d.subtitle, canonicalUrl: docUrl, datePublished: d.updated }) }));
+  console.log('  ✓ documents ' + d.slug);
+});
+console.log('  ✓ genome/documents + ' + documents.length + ' document pages');
+
 // Weapon pages
 for (var wi = 0; wi < weapons.length; wi++) {
   var w = weapons[wi];
@@ -1154,8 +1315,12 @@ var sitemapUrls = [
   { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/audit/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/genome/systems/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + '/genome/documents/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + '/articles/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
+documents.forEach(function(d) {
+  sitemapUrls.push({ loc: SITE_URL + '/genome/documents/' + d.slug + '/', priority: '0.7', changefreq: 'monthly', lastmod: d.updated || BUILD_DATE });
+});
 publishedTopics.forEach(function(t) {
   sitemapUrls.push({ loc: SITE_URL + '/articles/' + t.slug + '/', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE });
 });

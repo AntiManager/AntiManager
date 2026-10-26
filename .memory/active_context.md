@@ -3,6 +3,7 @@
 
 ## State
 
+- **Methodology suite published (2026-10-26):** vault `Методология ПС/Типовые документы/` (ритм совещаний v2.0, Gemba-обход v1.0, внутренний СНУ-регламент v2.0, публичный СНУ-концепт-бриф) + article 56 `Ритм управления`. New site section `/genome/documents/` + 3 document pages, PDF+DOCX, `documents` contact pack. New scripts `gen_documents_pages.py`, `check_documents.py`; unit 25/25, feedback 26/26, Playwright 231/231. Deployed 2026-10-26 (`?v=20261026a`), IndexNow 83 URLs (HTTP 200), verify-deploy 6/6; feedback container redeployed.
 - **SEO (2026-10-22):** third-party report disproved; real cause — no Webmaster/GSC registration. Tech package deployed: verification meta via env, IndexNow, title/description normalization. Topic `practice` + 5 applied articles. Unit 22/22, Playwright 228/228. Deployed `?v=20261022a`, sitemap 78 URLs, IndexNow 202, verify-deploy 6/6; verification codes empty.
 - **Methodology:** 14 system cards (12 fields) + full checklist 132/7 (v1.1) + express 40 (blocks 1–6) + project model; canonical term **ТПР / точка принятия решения**.
 - **Process library:** 21 groups / 83 processes / 259 subprocesses / 1041 operations; `PRJ` group added; `PRJ` flow links next. Checkers 0/0, cards 0, artifacts OK.

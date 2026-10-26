@@ -217,6 +217,13 @@ class FormatMessageTests(unittest.TestCase):
         data, _ = server.validate(dict(VALID, pack="audit"))
         self.assertIn("Полный чек-лист ПС (120 критериев)", server.format_message(data))
 
+    def test_documents_pack_is_accepted(self):
+        data, error = server.validate(dict(VALID, pack="documents"))
+        self.assertIsNone(error)
+        self.assertEqual(data["pack"], "documents")
+        self.assertIn("Типовые документы производственной системы",
+                      server.format_message(data))
+
 
 class RateLimiterTests(unittest.TestCase):
     def test_blocks_after_max_in_window(self):

@@ -125,6 +125,28 @@ never hand-edited.
   the landing still renders exactly six role documents), a sitemap entry, and
   `unit/build-systems.test.js`. `/genome/systems/` is in the `ux-critical` no-hscroll path list.
 
+## «Типовые документы» (`/genome/documents/`)
+
+A nested Геном section publishing the methodology templates: rhythm of meetings, Gemba walk and the
+continuous-improvement concept brief. Source of truth: `Методология ПС/Типовые документы/*.md`
+in the vault (public notes only; the full СНУ regulation is internal and never a source).
+- `src/data/documents.json` — public metadata (slug, title, subtitle, summary, version, updated,
+  license, order, interlinks). Slugs are ASCII kebab-case and share the flat `materials/<slug>` PDF
+  namespace with articles.
+- `src/content/genome/documents.html` is the authored hub; `src/content/documents/<slug>.html` are
+  generated body partials. The generator also fills `<!--DOCS:LIST:*-->` and writes
+  `materials/<slug>.docx` (pandoc). Run it after vault edits and commit the regenerated files:
+  `python .kilo\scripts\gen_documents_pages.py`; `--check` exits 1 on HTML drift. `build.js` throws on
+  an empty marker region or a missing partial.
+- `check_documents.py` lints the vault sources (frontmatter, separator, publication placeholders in
+  the header only, heading jumps, duplicate H2, wiki resolution by basename/alias, internal leak).
+- Downloads are existence-gated by `docDownloadsHtml()`: PDF (from `render:pdf`) and DOCX are linked
+  only when the file exists. Build → `npm run render:pdf` → build again.
+- Page styles live in the `/* === TYPICAL DOCUMENTS (/genome/documents/) === */` block of
+  `css/brutalist.css`; print CSS strips the download row, interlinks, license note and CTA.
+- Discovery: a `.documents-entry` section on `/genome/` (deliberately not a seventh `.doc-card`),
+  sitemap entries, `unit/build-documents.test.js`, and the route list in `ux-critical`.
+
 ## «Статьи» library (`/articles/`)
 
 Topic-grouped long-reads. Route shape: `/articles/` (hub) → `/articles/<topic>/` (topic hub) →
@@ -224,6 +246,8 @@ Regenerate the genome role documents after vault edits (needs the local Obsidian
 `python ..\.kilo\scripts\genome_doc_build.py`
 Regenerate the article long-read partials after vault edits (same vault):
 `python ..\.kilo\scripts\gen_article_partials.py`
+Regenerate the typical-document partials, hub cards and DOCX after vault edits (same vault):
+`python ..\.kilo\scripts\gen_documents_pages.py`
 
 Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
 writes the shared `dist/`, so parallel test files would race. Keep that flag.
@@ -256,6 +280,9 @@ TLS terminates at **Caddy** (nginx only sees http), so nginx emits relative redi
 `deploy.ps1` copies `dist\.` (not `dist\*`): scp's glob skips dotfiles, and `.well-known/`
 would never ship otherwise. SSH port 2222 is flaky — if the run aborts on the optional
 Caddy-reload step after "Restarting Docker container", verify live (GET 200) before re-running.
+`feedback\deploy.ps1` can also abort on Docker build output written to stderr
+(`NativeCommandError`) before restarting the container: rebuild and restart with explicit `ssh`
+calls under `$ErrorActionPreference="Continue"`, and retry a timed-out SSH hop after ~15 s.
 
 ## Conventions
 - Vanilla HTML/CSS/JS — no frameworks

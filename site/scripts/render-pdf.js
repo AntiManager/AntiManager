@@ -16,6 +16,7 @@ const DIST = path.join(SITE_DIR, 'dist');
 const OUT = path.join(SITE_DIR, 'materials');
 const FULL_DIR = path.join(SITE_DIR, 'src', 'content', 'full');
 const ARTICLES_DATA = path.join(SITE_DIR, 'src', 'data', 'articles.json');
+const DOCUMENTS_DATA = path.join(SITE_DIR, 'src', 'data', 'documents.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -71,12 +72,23 @@ function articleTargets() {
     });
 }
 
+// Typical documents (/genome/documents/<slug>/) also map to materials/<slug>.pdf.
+// They are a flat namespace shared with the article slugs, so keep the slugs unique.
+function documentTargets() {
+  if (!fs.existsSync(DOCUMENTS_DATA)) return [];
+  const raw = JSON.parse(fs.readFileSync(DOCUMENTS_DATA, 'utf-8'));
+  return raw.map(function(d) {
+    return { slug: d.slug, url: '/genome/documents/' + d.slug + '/' };
+  });
+}
+
 function targets() {
   const list = [];
   dirSlugs(FULL_DIR).forEach(function(slug) {
     list.push({ slug: slug, url: '/weapons/' + slug + '/full/' });
   });
   articleTargets().forEach(function(t) { list.push(t); });
+  documentTargets().forEach(function(t) { list.push(t); });
   return list;
 }
 

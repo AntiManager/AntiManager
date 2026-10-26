@@ -42,14 +42,23 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
 - vault-auditor — vault structure audit
 
-## Scripts (6)
+## Scripts (8)
 
 - `genome_doc_build.py` — regenerate `/genome/role/` documents from the vault
 - `gen_article_partials.py` — regenerate `/articles/` long-read partials from the vault
+- `gen_documents_pages.py` — regenerate `/genome/documents/` body partials, the hub card region and `materials/<slug>.docx` from the vault; `--check` exits 1 on drift (missing vault → 2)
+- `check_documents.py` — `Методология ПС/Типовые документы/` + article 56 linter: frontmatter, separator, publication placeholders (header block only), heading jumps, duplicate H2, wiki resolution by basename/alias, public→internal leak guard; writes `.kilo/reports/documents-lint.md`
 - `gen_ps_audit_page.py` — regenerate the `/genome/audit/` page regions and the fillable `express-audit-ps.xlsx` from the vault; `--check` exits 1 on drift
 - `gen_systems_page.py` — regenerate the `/genome/systems/` regions, the owner document (`Заказчики/КАБЭКС/Карта-систем-собственнику.md/.docx`) and the blank card template from `Методология ПС/Карточки-систем.md`; `--check` exits 1 on drift
 - `check_ps_audit.py` — `Аудит ПС/` linter: base structure, express-row identity with the base, banned tokens and system-card references
 - `check_system_cards.py` — `Методология ПС/Карточки-систем.md` linter: 14 cards, 12-field count, base-id criterion refs, process-code resolution, artifact ids, project-interface lines, orphan marking, no project-type appendices, S14 model reference
+
+## Publication rules (learned 2026-10-26)
+
+- **Publication placeholders vs template fields.** `[дата]`, `{дата}`, `[организация-публикатор]`, `[указать лицензию…]` are banned in the title/metadata block only. Fill-in fields inside forms (`[роль]`, `[N]`, `[X]%`, `[порог]`, `[дата]` in a table row) are legitimate and must not be "filled" with invented values.
+- **`md_to_partial.convert()` leaves Markdown links literal** (it only rewrites `[[wiki]]`). Any generator that publishes vault text must promote `[text](url)` to `<a>`; see `gen_documents_pages.py` and `gen_article_partials.py`.
+- **Binary artifact churn.** `npm run render:pdf` rewrites every tracked PDF (metadata differs each run). Render only after content changes, and before commit restore untouched tracked artifacts with `git checkout -- site/materials`, keeping only the new ones.
+- **`documents.json` is public metadata; the vault path map lives in the generator** (`SOURCES`), and the generator refuses a source whose frontmatter is not `public: true` — the internal СНУ regulation is never a source.
 
 ## MCP (1 project + 1 global)
 
