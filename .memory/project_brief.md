@@ -16,7 +16,7 @@
 
 ## Structure
 - `site/` — website (css/, deploy/, fonts/, js/, src/, unit/, tests/, feedback/, build.js, package.json)
-- `.kilo/` — agents (book-editor, vault-auditor), commands, plans, reports, scripts (generators + linters), skills
+- `.kilo/` — commands, plans, reports, scripts (generators + linters), skills (no dedicated agents — `book-writing` skill covers editing)
 - `manifesto-ru.md`, `manifesto-en.md` — manifestos
 
 ## Constraints

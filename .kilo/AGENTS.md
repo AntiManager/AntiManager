@@ -38,10 +38,13 @@ Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the re
 - `/article-readiness` — score vault articles for publish-readiness
 - `/full-article` — migrate one article's full text to its `/full/` page (TOC, materials, PDF) and deploy
 
-## Agents (2)
+## Agents (0)
 
-- book-editor — book/article writing and editing (encoding, frontmatter, backlinks)
-- vault-auditor — vault structure audit
+No dedicated agents. Book/article writing and editing (encoding, frontmatter, backlinks) is the
+`book-writing` skill — the former `book-editor` agent (retired 2026-10-28) added only two things
+beyond it (grep-for-duplicates before writing, concept→mechanism→case style), both now merged
+into `book-writing`. Vault structure audit is `/vault-audit` (health mode of the `vault-indexer`
+skill) — no dedicated agent; the former `vault-auditor` agent added nothing beyond that command.
 
 ## Scripts (8)
 

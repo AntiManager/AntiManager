@@ -87,6 +87,6 @@ without the fixes.
 ## Integration
 
 - `book-writing` — run this before the `review → published` transition and on
-  `book/draft` removal.
-- `book-editor` agent — use the Layer 2 checklist as the editing procedure.
+  `book/draft` removal; also use the Layer 2 checklist as the editing procedure
+  (no dedicated agent — `book-writing` covers editing).
 - Reports are generated local artifacts under `.kilo/reports/` (not committed).

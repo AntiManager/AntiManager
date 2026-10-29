@@ -5,6 +5,12 @@ description: Writing and editing the book — structure, tags, encoding, links b
 
 ## Rules
 
+### Before writing a new topic (merged from the retired `book-editor` agent)
+- `grep` the vault first — check whether this topic has already been started elsewhere before
+  creating a new note/chapter.
+- Style: **concept → mechanism → case** (explain the idea, then the mechanism behind it, then a
+  concrete production case).
+
 ### Frontmatter
 - Required fields: `tags`, `status` (draft/review/published), `created`, `updated`
 - On transition `draft→review→published`:

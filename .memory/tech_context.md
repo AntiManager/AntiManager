@@ -20,7 +20,7 @@ python -m unittest discover -s site/feedback/tests   # feedback microservice
 ## Git
 - Branch: `main`
 - Remote: origin (GitHub fetch + GitHub+GitVerse push), gitverse (explicit push)
-- Kilo agents (2): book-editor, vault-auditor
+- Kilo agents (0): none — `book-writing` skill covers editing (the `book-editor` agent was retired 2026-10-28, no live command depended on it)
 - Kilo skills (8): book-writing, content-publisher, article-readiness, diagram-architect, management-research, site-designer, vault-indexer, web-developer
 - Kilo commands (10): fix-encoding, link-ideas, new-article, new-chapter, new-tool, vault-audit, vault-index, check-site, article-readiness, full-article
 
