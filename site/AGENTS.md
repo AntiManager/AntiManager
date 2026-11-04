@@ -128,9 +128,10 @@ never hand-edited.
 
 ## «Типовые документы» (`/genome/documents/`)
 
-A nested Геном section publishing the methodology templates: rhythm of meetings, Gemba walk and the
-continuous-improvement concept brief. Source of truth: `Методология ПС/Типовые документы/*.md`
-in the vault (public notes only; the full СНУ regulation is internal and never a source).
+A nested Геном section publishing the methodology templates: rhythm of meetings, Gemba walk, the
+continuous-improvement concept brief and the A3 problem-solving regulation. Source of truth:
+`Методология ПС/Типовые документы/*.md` in the vault (public notes only; the full СНУ regulation is
+internal and never a source).
 - `src/data/documents.json` — public metadata (slug, title, subtitle, summary, version, updated,
   license, order, interlinks). Slugs are ASCII kebab-case and share the flat `materials/<slug>` PDF
   namespace with articles.
@@ -147,6 +148,27 @@ in the vault (public notes only; the full СНУ regulation is internal and neve
   `css/brutalist.css`; print CSS strips the download row, interlinks, license note and CTA.
 - Discovery: a `.documents-entry` section on `/genome/` (deliberately not a seventh `.doc-card`),
   sitemap entries, `unit/build-documents.test.js`, and the route list in `ux-critical`.
+
+### A3 regulation source (`Форма-А3.md`)
+
+`a3-reshenie-problem` is the only document assembled from **two** vault drafts rather than moved
+verbatim: the unified note `Методология ПС/Типовые документы/Форма-А3.md` is generated from the
+edition-3 regulation `Archive/Исходники А3/Регламент работа с формой А3 (финальная версия).md`.
+(The two drafts sat in the vault root until 2026-11-04; they were moved into the sources folder
+when the document was published.) Do not hand-edit the unified note — re-run `.run\a3_build.py`
+(ASCII-only source, Cyrillic built from `\u` escapes per the encoding protocol) after the source
+changes, then regenerate the partials.
+The script owns four publication transforms:
+- empty `П1–П16` parameter cells become «задаёт предприятие» (the document ships as a framework with
+  **no invented figures**; a product decision, 2026-11-04 — do not "helpfully" fill the numbers);
+- `\[П<n>\]` code references are unwrapped to a bare `П<n>` so prepositions keep reading naturally;
+- CommonMark backslash escapes (`\_`, `\[`, `\]`) from the drafting tool are dropped — the site
+  converter would otherwise leak them;
+- the blank-А3 table in Приложение Б gets a real header row, because GFM needs one.
+The edition-1 note `Archive/Исходники А3/Форма_А3.md` is superseded history: it keeps the 27
+`[устанавливается предприятием]` placeholders, has no frontmatter and no `---` separator, and must
+never become a `SOURCES` entry.
+
 
 ## «Статьи» library (`/articles/`)
 

@@ -43,6 +43,7 @@ SOURCES = {
     "ritm-soveshchaniy": DOC_DIR / "Ритм-совещаний.md",
     "gemba-obhod": DOC_DIR / "Gemba-обход.md",
     "snu-kontur-uluchsheniy": DOC_DIR / "СНУ-концепт-бриф.md",
+    "a3-reshenie-problem": DOC_DIR / "Форма-А3.md",
 }
 
 sys.path.insert(0, str(HERE / "pipelines" / "obsidian-to-site"))
