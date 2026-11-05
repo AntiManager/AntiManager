@@ -26,3 +26,6 @@ site/tests/snapshots/**/*.png
 # Python bytecode (feedback microservice)
 __pycache__/
 *.pyc
+
+# Zed editor
+.zed/

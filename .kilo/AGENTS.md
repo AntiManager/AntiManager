@@ -74,11 +74,14 @@ skill) — no dedicated agent; the former `vault-auditor` agent added nothing be
 
 ## New machine setup
 
-1. Install Node.js, Python, Obsidian + remotely-save
-2. Clone the repo: `git clone https://github.com/AntiManager/AntiManager`
-3. Copy `.kilo/kilo.json.example` → `.kilo/kilo.json` and fill in the paths
-4. Sync the vault (remotely-save pulls content only)
-5. Done — the vault is clean, the config template lives in the repo
+1. Install Node.js (26+), Python 3.14, git + git-lfs, Pandoc 3.13 (DOCX generation), Obsidian + remotely-save.
+2. Clone: `git clone https://github.com/AntiManager/AntiManager`.
+3. `python -m pip install ftfy python-docx openpyxl pytest`; `cd site; npm ci; npx playwright install chromium`.
+4. Copy `.env.example` → `.env` and fill `REMOTE_*` (VPS), `VAULT_DIR`/`ARTICLES_DIR` (local vault), `TELEGRAM_*`; copy `.kilo/kilo.json.example` → `.kilo/kilo.json` and fill the paths.
+5. Restore the SSH deploy key to `~/.ssh/id_ed25519` (VPS: `chemule@5.129.221.85:2222`), mode user-only.
+6. Sync the vault (remotely-save pulls content only); it stays outside the repo.
+7. Verify: `cd site; npm test`; `python .kilo/scripts/check_documents.py --vault "<vault>"`; each generator with `--check`; `.\site\scripts\verify-deploy.ps1`.
+8. Generators default to `C:\Users\Евгений\Documents\Personal Vault`; pass `--vault <path>` on another host. `check_system_cards.py` takes the vault as a positional argument.
 
 ---
 

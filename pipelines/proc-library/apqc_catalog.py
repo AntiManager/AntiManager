@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import sys
 
-XLSX = (r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Archive\K014749_"
+XLSX = (r"C:\Users\Евгений\Documents\Personal Vault\Archive\K014749_"
         r"APQC Process Classification Framework (PCF) - Cross-Industry - "
         r"Excel Version 7.4_ru.xlsx")
 

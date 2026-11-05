@@ -103,7 +103,7 @@ def expand_ranges(text: str) -> list[str]:
 
 def main() -> int:
     vault = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
-        r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault"
+        r"C:\Users\Евгений\Documents\Personal Vault"
     )
     cards_path = vault / CARDS_REL
     if not cards_path.exists():

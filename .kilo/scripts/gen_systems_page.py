@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
-DEFAULT_VAULT = Path(r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault")
+DEFAULT_VAULT = Path(r"C:\Users\Евгений\Documents\Personal Vault")
 NOTE_REL = Path("Методология ПС") / "Карточки-систем.md"
 PARTIAL = HERE / "site" / "src" / "content" / "genome" / "systems.html"
 OWNER_DIR_REL = Path("Заказчики") / "КАБЭКС"

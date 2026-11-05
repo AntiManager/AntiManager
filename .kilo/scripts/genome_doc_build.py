@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
-VAULT = Path(r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов\library\org")
+VAULT = Path(r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов\library\org")
 KU = VAULT / "КУ_руководителей" / "РП_оценка_КУ.md"
 KU_APP = VAULT / "КУ_руководителей" / "РП_оценка_КУ_прил.md"
 PROFILE = VAULT / "profiles" / "РП_profile.md"

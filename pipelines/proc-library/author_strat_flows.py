@@ -20,7 +20,7 @@ import io
 import re
 import sys
 
-FILE = (r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
         r"\library\STRAT.md")
 
 # code -> (subprocess host, op dict). A boundary op is inserted at the end of

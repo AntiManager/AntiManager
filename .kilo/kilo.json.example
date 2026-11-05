@@ -4,7 +4,7 @@
     "bash": "allow",
     "skill": "allow",
     "external_directory": {
-      "D:\\Users\\{{USERNAME}}\\Python\\AntiManager\\*": "allow",
+      "C:\\Users\\{{USERNAME}}\\Python\\AntiManager\\*": "allow",
       "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}\\*": "allow",
       "{{TEMP_DIR}}\\*": "allow"
     }

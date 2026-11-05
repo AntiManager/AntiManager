@@ -29,7 +29,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engine  # noqa: E402
 
-VAULT = r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов"
+VAULT = r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
 FILE = os.path.join(VAULT, "library", "QUAL.md")
 
 # --------------------------------------------------------------------------

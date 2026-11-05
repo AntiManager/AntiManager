@@ -31,7 +31,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
-DEFAULT_VAULT = Path(r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault")
+DEFAULT_VAULT = Path(r"C:\Users\Евгений\Documents\Personal Vault")
 DOCS_JSON = HERE / "site" / "src" / "data" / "documents.json"
 HUB = HERE / "site" / "src" / "content" / "genome" / "documents.html"
 OUT = HERE / "site" / "src" / "content" / "documents"

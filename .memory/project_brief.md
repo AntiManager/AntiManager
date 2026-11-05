@@ -1,5 +1,5 @@
 # AntiManager — Project Brief
-> Updated: 2026-10-21
+> Updated: 2026-11-05
 
 ## Overview
 Интерактивная книга-сайт для руководителей производства. Бруталистский редизайн (v2): Black+Red+White, карта звёзд (статичный data-driven SVG), каталог `/weapons/` и библиотека лонгридов `/articles/`.
@@ -12,6 +12,8 @@
 - **Deploy**: nginx behind Caddy, cache-busting `?v=`, deploy.ps1
 - **Analytics**: Yandex Metrika (id: 111010335)
 - **Feedback**: Python stdlib microservice (`site/feedback/`) behind a same-origin nginx proxy
+- **Tooling**: Python 3.14 + `ftfy`, `python-docx`, `openpyxl`, `pytest`; Pandoc 3.13 for DOCX
+- **Hosts**: workspace `C:\Users\Евгений\Python`; vault `C:\Users\Евгений\Documents\Personal Vault`
 - **Tests**: unit (Node) + Playwright in `site/unit/` + `site/tests/`; run `cd site; npm test` (counts grow per feature — read them from the run output)
 
 ## Structure

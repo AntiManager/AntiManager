@@ -22,7 +22,7 @@ import io
 import re
 import sys
 
-FILE = (r"C:\Users\evgeniy.bogdanov\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
         r"\library\MNT.md")
 
 # --- (1) token normalisation per operation code ---------------------------------
