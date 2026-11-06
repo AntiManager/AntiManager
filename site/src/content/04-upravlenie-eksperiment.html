@@ -39,19 +39,19 @@
     <div class="widget-title">Соберите свою гипотезу PDCA</div>
     <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Заполните поля — получите готовую формулировку для вашего эксперимента.</p>
     <div class="form-group">
-      <label>Что вы сделаете? (воздействие)</label>
+      <label for="hbAction">Что вы сделаете? (воздействие)</label>
       <input type="text" id="hbAction" placeholder="например: разместить эталонные образцы на верстаке" style="width:100%;">
     </div>
     <div class="form-group">
-      <label>Какое поведение ожидаете? (что люди начнут делать)</label>
+      <label for="hbBehavior">Какое поведение ожидаете? (что люди начнут делать)</label>
       <input type="text" id="hbBehavior" placeholder="например: сварщик будет сверяться с эталоном перед каждым швом" style="width:100%;">
     </div>
     <div class="form-group">
-      <label>Почему это сработает? (мотив / устранение барьера)</label>
+      <label for="hbWhy">Почему это сработает? (мотив / устранение барьера)</label>
       <input type="text" id="hbWhy" placeholder="например: не надо лезть в телефон или звать мастера" style="width:100%;">
     </div>
     <div class="form-group">
-      <label>Какая метрика изменится и на сколько?</label>
+      <label for="hbMetric">Какая метрика изменится и на сколько?</label>
       <input type="text" id="hbMetric" placeholder="например: брак снизится с 7% до 2% за две недели" style="width:100%;">
     </div>
     <button class="btn btn-primary" onclick="buildHypothesis()">Собрать гипотезу</button>

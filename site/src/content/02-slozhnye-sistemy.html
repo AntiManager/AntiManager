@@ -37,15 +37,15 @@
     <div class="progress-bar"><div class="progress-fill" id="lvProgress" style="width:0%"></div></div>
     <p class="text-sm text-muted" id="lvStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
     <div id="lvQuestion">
-      <p style="font-weight:600;margin-bottom:var(--space-3)" id="lvText">Как часто у вас возникают авралы и срывы сроков?</p>
+      <p style="font-weight:600;margin-bottom:var(--space-3)">Как часто у вас возникают авралы и срывы сроков?</p>
       <div style="display:flex;flex-direction:column;gap:var(--space-2);">
         <button class="btn btn-outline" onclick="answerLv(3)">Постоянно, всё горит — это норма жизни</button>
         <button class="btn btn-outline" onclick="answerLv(2)">Бывает, но мы привыкли тушить</button>
         <button class="btn btn-outline" onclick="answerLv(1)">Редко, есть система планирования</button>
         <button class="btn btn-outline" onclick="answerLv(0)">Практически нет, работаем ритмично</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="lvBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackLv()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="lvBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackLv()">← Назад</button>
     <div id="lvResult" style="display:none;">
       <div class="block-principle" id="lvResultText"></div>
       <button class="btn btn-ghost" onclick="resetLv()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -97,16 +97,16 @@
   function showLvQuestion(q) {
     var container = document.getElementById('lvQuestion');
     if (!container) return;
-    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="lvText">' + q.text + '</p>' +
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
       '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
       '<button class="btn btn-outline" onclick="answerLv(' + q.options[0] + ')">Да, сильно проявляется</button>' +
       '<button class="btn btn-outline" onclick="answerLv(' + q.options[1] + ')">Время от времени</button>' +
       '<button class="btn btn-outline" onclick="answerLv(' + q.options[2] + ')">Редко, почти нет</button>' +
-      '<button class="btn btn-outline" onclick="answerLv(' + q.options[3] + ')">Не проявляется вообще</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="lvBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackLv()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerLv(' + q.options[3] + ')">Не проявляется вообще</button></div>';
   }
 
   function showLvResult(score) {
+    document.getElementById('lvBackBtn').style.display = 'none';
     var container = document.getElementById('lvQuestion');
     var result = document.getElementById('lvResult');
     var resultText = document.getElementById('lvResultText');

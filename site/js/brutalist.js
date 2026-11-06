@@ -2,10 +2,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   initFlash();
   initScrollReveal();
+  initStickyOffset();
   initReadingProgress();
   initAccordions();
   initMenuToggle();
   initScrollTop();
+  initMethodSample();
 });
 
 function initFlash() {
@@ -31,9 +33,19 @@ function initScrollReveal() {
   for (var j = 0; j < els.length; j++) obs.observe(els[j]);
 }
 
+function initStickyOffset() {
+  var header = document.querySelector('.site-header');
+  if (!header) return;
+  function set() {
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  }
+  set();
+  window.addEventListener('resize', set);
+}
+
 function initReadingProgress() {
   var bar = document.querySelector('.reading-progress-fill');
-  var article = document.querySelector('.full-article');
+  var article = document.querySelector('.full-article') || document.querySelector('[data-reading]');
   if (!bar || !article) return;
 
   function update() {
@@ -64,9 +76,19 @@ function initMenuToggle() {
   var nav = document.querySelector('.header-nav');
   if (!toggle || !nav) return;
 
+  function closeMenu(returnFocus) {
+    if (!nav.classList.contains('open')) return;
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Меню');
+    toggle.textContent = '☰';
+    if (returnFocus) toggle.focus();
+  }
+
   toggle.addEventListener('click', function() {
     var isOpen = nav.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', isOpen);
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Закрыть меню' : 'Меню');
     toggle.textContent = isOpen ? '✕' : '☰';
   });
 
@@ -74,11 +96,14 @@ function initMenuToggle() {
   var links = nav.querySelectorAll('a');
   for (var i = 0; i < links.length; i++) {
     links[i].addEventListener('click', function() {
-      nav.classList.remove('open');
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.textContent = '☰';
+      closeMenu(false);
     });
   }
+
+  // Escape closes the menu and returns focus to the toggle (a11y).
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') closeMenu(true);
+  });
 }
 
 function initScrollTop() {
@@ -96,4 +121,13 @@ function initScrollTop() {
   btn.addEventListener('click', function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+
+// The PLAN sample ships its first process expanded to prove the level of
+// detail. At phone widths that one block is ~6,000px tall — collapse it so the
+// offer stays reachable; desktop keeps the open preview.
+function initMethodSample() {
+  if (!window.matchMedia || !window.matchMedia('(max-width: 640px)').matches) return;
+  var open = document.querySelector('#sample details[open]');
+  if (open) open.removeAttribute('open');
 }

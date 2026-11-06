@@ -43,8 +43,8 @@
         <button class="btn btn-outline" onclick="answerCas(1)">Руководители знают, исполнители — не очень</button>
         <button class="btn btn-outline" onclick="answerCas(0)">Стратегия живёт в презентациях, а не в цехах</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="casBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackCas()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="casBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackCas()">← Назад</button>
     <div id="casResult" style="display:none;">
       <div class="block-principle" id="casResultText"></div>
       <button class="btn btn-ghost" onclick="resetCas()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -96,11 +96,12 @@
     for (var i = 0; i < q.options.length; i++) {
       html += '<button class="btn btn-outline" onclick="answerCas(' + q.options[i] + ')">' + q.labels[i] + '</button>';
     }
-    html += '</div><button class="btn btn-ghost btn-sm" id="casBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackCas()">← Назад</button>';
+    html += '</div>';
     c.innerHTML = html;
   }
 
   function showCasResult() {
+    document.getElementById('casBackBtn').style.display = 'none';
     var score = window._casDiag.score;
     document.getElementById('casQuestion').style.display = 'none';
     document.getElementById('casResult').style.display = 'block';

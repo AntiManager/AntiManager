@@ -26,12 +26,29 @@
 </head>
 <body>
   <a href="#main-content" class="skip-link">Перейти к содержимому</a>
-  <div class="red-corner" aria-hidden="true"></div>
   {{header}}
-  <main id="main-content">
+  <main id="main-content"{{main_attrs}}>
     {{content}}
   </main>
   {{footer}}
+  <dialog id="site-search" class="search-dialog" aria-labelledby="site-search-title">
+    <form class="search-form" role="search" method="get" action="/search/" data-search-form>
+      <h2 id="site-search-title" class="search-title">Поиск по сайту</h2>
+      <label class="visually-hidden" for="site-search-input">Что искать</label>
+      <div class="search-row">
+        <input id="site-search-input" class="search-input" type="search" name="q"
+               placeholder="OEE, антикризис, A3…" autocomplete="off" spellcheck="false"
+               aria-describedby="site-search-hint" data-search-input>
+        <button type="submit" class="btn btn-primary">Найти</button>
+        <button type="button" class="search-close" data-search-close aria-label="Закрыть поиск">✕</button>
+      </div>
+    </form>
+    <p class="search-hint" id="site-search-hint">Например: «OEE», «антикризис», «A3». <kbd>↑</kbd><kbd>↓</kbd> — выбор, <kbd>Enter</kbd> — открыть, <kbd>Esc</kbd> — закрыть.</p>
+    <p class="search-status" role="status" aria-live="polite" data-search-status></p>
+    <ul class="search-results" data-search-results></ul>
+    <p class="search-empty" data-search-empty hidden>Ничего не найдено. Попробуйте «антикризис», «OEE» или «A3».</p>
+    <noscript><p class="search-hint">Поиск работает с JavaScript. Откройте <a href="/playbook/">плейбук</a>, <a href="/articles/">статьи</a> или <a href="/method/">методологию</a>.</p></noscript>
+  </dialog>
   {{scripts}}
 </body>
 </html>

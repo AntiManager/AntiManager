@@ -36,14 +36,14 @@
     <div class="progress-bar"><div class="progress-fill" id="penProgress" style="width:0%"></div></div>
     <p class="text-sm text-muted" id="penStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 4</p>
     <div id="penQuestion">
-      <p style="font-weight:600;margin-bottom:var(--space-3)" id="penText">Знают ли люди, ПОЧЕМУ они делают эту практику, или просто «так положено»?</p>
+      <p style="font-weight:600;margin-bottom:var(--space-3)">Знают ли люди, ПОЧЕМУ они делают эту практику, или просто «так положено»?</p>
       <div style="display:flex;flex-direction:column;gap:var(--space-2);">
         <button class="btn btn-outline" onclick="answerPen(2)">Да — каждый понимает смысл и цель</button>
         <button class="btn btn-outline" onclick="answerPen(1)">Скорее да — но уже «на автомате»</button>
         <button class="btn btn-outline" onclick="answerPen(0)">Нет — «потому что начальник сказал»</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="penBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPen()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="penBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPen()">← Назад</button>
     <div id="penResult" style="display:none;">
       <div class="block-principle" id="penResultText"></div>
       <button class="btn btn-ghost" onclick="resetPen()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -82,11 +82,12 @@
     var c = document.getElementById('penQuestion');
     var h = '<p style="font-weight:600;margin-bottom:var(--space-3)">'+q.text+'</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
     for(var i=0;i<q.labels.length;i++) h+='<button class="btn btn-outline" onclick="answerPen('+q.options[i]+')">'+q.labels[i]+'</button>';
-    h+='</div><button class="btn btn-ghost btn-sm" id="penBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackPen()">← Назад</button>';
+    h+='</div>';
     c.innerHTML=h;
   }
 
   function showPenResult() {
+    document.getElementById('penBackBtn').style.display = 'none';
     var s=window._penDiag.score; document.getElementById('penQuestion').style.display='none'; document.getElementById('penResult').style.display='block';
     var t=document.getElementById('penResultText');
     if(s>=7) t.innerHTML='<strong>Живое управление: признаков формализации почти нет.</strong><br>Люди понимают «зачем», правила обновляются, метрики отражают реальность, разумное отступление возможно. Это редкое состояние. Главный враг сейчас — формализация через успех: не позволяйте практике превратиться в ритуал.';

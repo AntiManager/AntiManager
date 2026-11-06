@@ -2,7 +2,7 @@
 'use strict';
 
 // Render every full-text page to a downloadable PDF artifact.
-// Serves dist/ locally, prints /weapons/<slug>/full/ in print media, and writes
+// Serves dist/ locally, prints /playbook/<slug>/full/ in print media, and writes
 // site/materials/<slug>.pdf. Run after the build: `npm run render:pdf`.
 // No new dependency: @playwright/test already ships Chromium for the e2e suite.
 
@@ -58,7 +58,7 @@ function dirSlugs(dir) {
     .sort();
 }
 
-// Every PDF target: arsenal full-text pages (/weapons/<slug>/full/) and the
+// Every PDF target: chapter full-text pages (/playbook/<slug>/full/) and the
 // /articles/<topic>/<slug>/ long-reads. Both map to materials/<slug>.pdf. The
 // article URL needs the topic segment, so it is read from articles.json rather
 // than derived from a directory scan.
@@ -72,20 +72,20 @@ function articleTargets() {
     });
 }
 
-// Typical documents (/genome/documents/<slug>/) also map to materials/<slug>.pdf.
+// Typical documents (/method/documents/<slug>/) also map to materials/<slug>.pdf.
 // They are a flat namespace shared with the article slugs, so keep the slugs unique.
 function documentTargets() {
   if (!fs.existsSync(DOCUMENTS_DATA)) return [];
   const raw = JSON.parse(fs.readFileSync(DOCUMENTS_DATA, 'utf-8'));
   return raw.map(function(d) {
-    return { slug: d.slug, url: '/genome/documents/' + d.slug + '/' };
+    return { slug: d.slug, url: '/method/documents/' + d.slug + '/' };
   });
 }
 
 function targets() {
   const list = [];
   dirSlugs(FULL_DIR).forEach(function(slug) {
-    list.push({ slug: slug, url: '/weapons/' + slug + '/full/' });
+    list.push({ slug: slug, url: '/playbook/' + slug + '/full/' });
   });
   articleTargets().forEach(function(t) { list.push(t); });
   documentTargets().forEach(function(t) { list.push(t); });

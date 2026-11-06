@@ -32,7 +32,7 @@
     <div class="widget-title">Конструктор: карта связей цеха</div>
     <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Заполните поля — увидите, как знания из головы Петра становятся системой.</p>
     <div class="form-group">
-      <label>Выберите тип объекта (класс)</label>
+      <label for="oopClass">Выберите тип объекта (класс)</label>
       <select id="oopClass" style="width:100%;">
         <option value="">— выберите —</option>
         <option value="ТПА">Термопластавтомат (ТПА)</option>
@@ -42,15 +42,15 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Название конкретного объекта (например, «ТПА №5»)</label>
+      <label for="oopName">Название конкретного объекта (например, «ТПА №5»)</label>
       <input type="text" id="oopName" placeholder="ТПА №5" style="width:100%;">
     </div>
     <div class="form-group">
-      <label>Три ключевых параметра этого объекта</label>
+      <label for="oopAttrs">Три ключевых параметра этого объекта</label>
       <input type="text" id="oopAttrs" placeholder="Усилие 250т, объём 400см³, зона 1: 200°C" style="width:100%;">
     </div>
     <div class="form-group">
-      <label>С какими другими объектами он связан? (например, «использует Форму №12», «перерабатывает Полимер АБС»)</label>
+      <label for="oopLinks">С какими другими объектами он связан? (например, «использует Форму №12», «перерабатывает Полимер АБС»)</label>
       <input type="text" id="oopLinks" placeholder="Форма №12, Полимер АБС" style="width:100%;">
     </div>
     <button class="btn btn-primary" onclick="buildOop()">Построить карту</button>

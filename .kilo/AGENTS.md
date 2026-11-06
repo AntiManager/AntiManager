@@ -1,10 +1,23 @@
 # AntiManager — Harness Map
 
 Vault map: `Roadmap/Дорожная карта доработок.md`.
-Typical documents: `Методология ПС/Типовые документы/` (public templates + internal СНУ regulation) → site `/genome/documents/`.
+Typical documents: `Методология ПС/Типовые документы/` (public templates + internal СНУ regulation) → site `/method/documents/`.
 Site plan: `.kilo/plans/site-development-plan.md`.
 Repository plan: `.kilo/plans/antimanager-repo-restructure.md`.
+Active local plan: none — `1793969494727` (site IA refactor) closed and archived 2026-11-06; new plans go to `.kilo/plans/`.
 Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the repository only deliberately; tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch. Completed local plans move to `.kilo/plans/archive/`; only the active plan stays at the root. Do not modify `.gitignore`.
+
+## Site IA (since 2026-11-06)
+
+- Canonical routes live in `site/src/routes.js`: `/playbook/` (chapters + `/full/`), `/start/`,
+  `/articles/`, `/method/` (`/audit/`, `/systems/`, `/documents/`, `/role/`), `/about/`
+  (`/manifesto/`, `/origins/`), `/contact/`, `/privacy/`, `/search/`, `/404/`.
+- Legacy URLs (`/weapons/`, `/genome/`, `/arsenal/`, `/book/`, `/scenarios/`, `/manifesto/`,
+  `/archive/`, `/about/headquarters/`, `/headquarters/`, `/cases/`) 301 to the new routes; the map
+  is generated into `site/deploy/redirects.conf` by `npm run gen:redirects` (from `site/`). Run
+  `npm run check:redirects` after touching routes. `/cases/` is retired (data preserved).
+- Site checks: `build.js`, `unit/build-routes.test.js`, `unit/build-cases-retired.test.js`,
+  `tests/nav-mobile.spec.js`. Playwright uses port 3100 (`PLAYWRIGHT_PORT`), never 3000.
 
 ## Language policy
 
@@ -48,12 +61,12 @@ skill) — no dedicated agent; the former `vault-auditor` agent added nothing be
 
 ## Scripts (8)
 
-- `genome_doc_build.py` — regenerate `/genome/role/` documents from the vault
+- `genome_doc_build.py` — regenerate `/method/role/` documents from the vault
 - `gen_article_partials.py` — regenerate `/articles/` long-read partials from the vault
-- `gen_documents_pages.py` — regenerate `/genome/documents/` body partials, the hub card region and `materials/<slug>.docx` from the vault; `--check` exits 1 on drift (missing vault → 2)
+- `gen_documents_pages.py` — regenerate `/method/documents/` body partials, the hub card region and `materials/<slug>.docx` from the vault; `--check` exits 1 on drift (missing vault → 2)
 - `check_documents.py` — `Методология ПС/Типовые документы/` + article 56 linter: frontmatter, separator, publication placeholders (header block only), heading jumps, duplicate H2, wiki resolution by basename/alias, public→internal leak guard; writes `.kilo/reports/documents-lint.md`
-- `gen_ps_audit_page.py` — regenerate the `/genome/audit/` page regions and the fillable `express-audit-ps.xlsx` from the vault; `--check` exits 1 on drift
-- `gen_systems_page.py` — regenerate the `/genome/systems/` regions, the owner document (`Заказчики/КАБЭКС/Карта-систем-собственнику.md/.docx`) and the blank card template from `Методология ПС/Карточки-систем.md`; `--check` exits 1 on drift
+- `gen_ps_audit_page.py` — regenerate the `/method/audit/` page regions and the fillable `express-audit-ps.xlsx` from the vault; `--check` exits 1 on drift
+- `gen_systems_page.py` — regenerate the `/method/systems/` regions, the owner document (`Заказчики/КАБЭКС/Карта-систем-собственнику.md/.docx`) and the blank card template from `Методология ПС/Карточки-систем.md`; `--check` exits 1 on drift
 - `check_ps_audit.py` — `Аудит ПС/` linter: base structure, express-row identity with the base, banned tokens and system-card references
 - `check_system_cards.py` — `Методология ПС/Карточки-систем.md` linter: 14 cards, 12-field count, base-id criterion refs, process-code resolution, artifact ids, project-interface lines, orphan marking, no project-type appendices, S14 model reference
 
@@ -80,7 +93,7 @@ skill) — no dedicated agent; the former `vault-auditor` agent added nothing be
 4. Copy `.env.example` → `.env` and fill `REMOTE_*` (VPS), `VAULT_DIR`/`ARTICLES_DIR` (local vault), `TELEGRAM_*`; copy `.kilo/kilo.json.example` → `.kilo/kilo.json` and fill the paths.
 5. Restore the SSH deploy key to `~/.ssh/id_ed25519` (VPS: `chemule@5.129.221.85:2222`), mode user-only.
 6. Sync the vault (remotely-save pulls content only); it stays outside the repo.
-7. Verify: `cd site; npm test`; `python .kilo/scripts/check_documents.py --vault "<vault>"`; each generator with `--check`; `.\site\scripts\verify-deploy.ps1`.
+7. Verify: `cd site; npm run build; npm run test:unit; npx playwright test; npm run check:redirects`; `python .kilo/scripts/check_documents.py --vault "<vault>"`; each generator with `--check`; `.\site\scripts\verify-deploy.ps1`.
 8. Generators default to `C:\Work\Personal Vault`; pass `--vault <path>` on another host. `check_system_cards.py` takes the vault as a positional argument.
 
 ---

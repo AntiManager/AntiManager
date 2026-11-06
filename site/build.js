@@ -4,11 +4,13 @@
 const fs = require('fs');
 const path = require('path');
 const { escapeHtml, sanitize, assertSlug } = require('./src/lib/escape');
-const SITE_URL = 'https://antimanager.pro';
+const { SITE_URL, routes: siteRoutes, outFile, assertNotReservedSlug } = require('./src/routes');
+const { rewriteLegacyHrefs, assertNoLegacyHrefs } = require('./src/lib/legacy-routes');
+const { buildCatalog, situationLabels, roleLabels, typeLabels } = require('./src/lib/catalog');
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261026a';
+const VERSION = '20261106d';
 // Search-engine verification codes are build-time secrets: a missing code ships
 // nothing, so a placeholder can never reach production. The Yandex code is also
 // used for the HTML-file verification method further down.
@@ -32,6 +34,8 @@ const OG_IMAGE_URL = fs.existsSync(OG_IMAGE_PNG) ? SITE_URL + '/og-image.png' : 
 
 function read(name) { return fs.readFileSync(path.isAbsolute(name) ? name : path.join(__dirname, name), 'utf-8'); }
 function write(filepath, content) {
+  content = rewriteLegacyHrefs(content);
+  assertNoLegacyHrefs(content, filepath);
   const dir = path.dirname(path.join(__dirname, 'dist', filepath));
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'dist', filepath), content, 'utf-8');
@@ -60,13 +64,14 @@ const footerHtml = read('src/components/footer.html');
 // markup (defense in depth for a public repo). id/slug/zone/thinker stay raw:
 // they are used for lookups and filesystem paths and must not be encoded.
 const weapons = sanitize(JSON.parse(read(process.env.WEAPONS_FILE || 'src/data/weapons.json')), ['title', 'subtitle']);
-const scenarios = sanitize(JSON.parse(read('src/data/scenarios.json')), ['title', 'subtitle', 'icon']);
+const chapters = sanitize(JSON.parse(read(process.env.CHAPTERS_FILE || 'src/data/chapters.json')), ['title', 'subtitle']);
+const scenarios = sanitize(JSON.parse(read(process.env.SCENARIOS_FILE || 'src/data/scenarios.json')), ['title', 'subtitle', 'icon']);
 const thinkers = sanitize(JSON.parse(read('src/data/thinkers.json')), ['name', 'years', 'idea', 'weapon', 'photo']);
-const cases = sanitize(JSON.parse(read('src/data/cases.json')), ['title', 'desc', 'readtime']);
 
 // slug/id become output paths and URL segments — fail the build on anything
 // that could traverse directories or break out of markup.
-weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlug(w.id, 'weapons.json id'); });
+weapons.forEach(function(w) { assertSlug(w.slug, 'weapons.json slug'); assertSlug(w.id, 'weapons.json id'); assertNotReservedSlug(w.slug, 'weapons.json slug'); });
+chapters.forEach(function(c) { assertSlug(c.slug, 'chapters.json slug'); assertSlug(c.id, 'chapters.json id'); assertNotReservedSlug(c.slug, 'chapters.json slug'); });
 
 // `date` flows into an HTML attribute, the sitemap XML and JSON-LD; keep it a
 // strict ISO date, otherwise drop it so every consumer falls back to BUILD_DATE.
@@ -114,8 +119,8 @@ documents.forEach(function(d) {
   if (d.updated && !/^\d{4}-\d{2}-\d{2}$/.test(d.updated)) delete d.updated;
   if (!Array.isArray(d.links)) throw new Error('documents.json links must be an array: ' + d.slug);
   d.links.forEach(function(l) {
-    if (!Array.isArray(l) || typeof l[0] !== 'string' || l[0][0] !== '/') {
-      throw new Error('documents.json link href must start with /: ' + d.slug);
+    if (!Array.isArray(l) || typeof l[0] !== 'string' || l[0][0] !== '/' || l[0].indexOf('//') === 0) {
+      throw new Error('documents.json link href must be a site-relative path: ' + d.slug);
     }
   });
 });
@@ -130,6 +135,196 @@ publishedArticles.sort(function(a, b) {
   var tb = sortedTopics.findIndex(function(t) { return t.slug === b.topic; });
   return ta !== tb ? ta - tb : (a.order || 0) - (b.order || 0);
 });
+
+// One catalog joins chapters, long-reads and documents for filters, related
+// blocks and prev/next. It also fails the build on weapons/chapters drift.
+const catalog = buildCatalog({ weapons: weapons, chapters: chapters, articles: publishedArticles, documents: documents });
+
+var scenarioIds = scenarios.map(function(s) { return s.id; });
+weapons.forEach(function(w) {
+  if (!w.zone || scenarioIds.indexOf(w.zone) === -1) {
+    throw new Error('weapons.json: ' + w.slug + ' has no situation');
+  }
+});
+scenarios.forEach(function(s) {
+  s.weapons.forEach(function(id) {
+    var w = weapons.find(function(x) { return x.id === id; });
+    if (!w) throw new Error('scenarios.json: unknown weapon id ' + id);
+    if (w.zone !== s.id) throw new Error('scenarios.json: weapon ' + id + ' belongs to ' + w.zone + ', not ' + s.id);
+  });
+  // Curated /start/ copy: symptoms are the situation's pain points, steps are
+  // exactly three chapters of the same situation, and the document/article are
+  // real published slugs (never placeholders — a missing block is omitted).
+  s.symptoms = (s.symptoms || []).map(function(t) { return escapeHtml(String(t)); });
+  if (s.symptoms.length === 0) throw new Error('scenarios.json: ' + s.id + ' has no symptoms');
+  s.steps = (s.steps || []).map(function(step) {
+    if (!step || typeof step.chapter !== 'string') throw new Error('scenarios.json: step has no chapter in ' + s.id);
+    var sw = weapons.find(function(x) { return x.slug === step.chapter; });
+    if (!sw) throw new Error('scenarios.json: unknown step chapter ' + step.chapter + ' in ' + s.id);
+    if (sw.zone !== s.id) throw new Error('scenarios.json: step chapter ' + step.chapter + ' belongs to ' + sw.zone + ', not ' + s.id);
+    if (s.weapons.indexOf(sw.id) === -1) throw new Error('scenarios.json: step chapter ' + step.chapter + ' is not listed in ' + s.id);
+    return { text: escapeHtml(String(step.text || '')), chapter: sw.slug, title: sw.title, subtitle: sw.subtitle || '' };
+  });
+  if (s.steps.length !== 3) throw new Error('scenarios.json: ' + s.id + ' needs exactly 3 steps');
+  if (s.document != null && !catalog.documents.some(function(d) { return d.slug === s.document; })) {
+    throw new Error('scenarios.json: unknown document ' + s.document + ' in ' + s.id);
+  }
+  if (s.article != null && !catalog.articles.some(function(a) { return a.slug === s.article; })) {
+    throw new Error('scenarios.json: unknown article ' + s.article + ' in ' + s.id);
+  }
+});
+// === CONTENT CONTEXT (Release B) ===
+// One lookup for prev/next chapters, cross-type related blocks and the
+// origins cards. Everything is derived from the catalog and the curated
+// scenario map, so a related link can never point at a missing page.
+var chapterIndex = {};
+catalog.chapters.forEach(function(c) { chapterIndex[String(c.id)] = c; });
+var scenarioByChapter = {};
+scenarios.forEach(function(s) {
+  s.weapons.forEach(function(id) {
+    var sw = weaponById(id);
+    if (sw) scenarioByChapter[sw.slug] = s;
+  });
+});
+
+// Explicit document interlinks (documents.json `links`) become bidirectional
+// relations, so an article linked from a template also lists that template.
+var explicitLinks = {};
+catalog.documents.forEach(function(doc) {
+  var meta = documents.find(function(d) { return d.slug === doc.slug; });
+  (meta && meta.links ? meta.links : []).forEach(function(link) {
+    if (!catalog.byUrl.has(link[0])) return;
+    var target = catalog.byUrl.get(link[0]);
+    explicitLinks[doc.url + '|' + target.url] = true;
+    explicitLinks[target.url + '|' + doc.url] = true;
+  });
+});
+
+// Scenario membership is the curated chapter/article/document bridge: a chapter
+// and its situation's long-read and template belong together.
+var scenarioLinks = {};
+scenarios.forEach(function(s) {
+  var art = catalog.articles.find(function(a) { return a.slug === s.article; });
+  var doc = catalog.documents.find(function(d) { return d.slug === s.document; });
+  s.weapons.forEach(function(id) {
+    var sw = weaponById(id);
+    var chapter = sw ? chapterIndex[String(sw.id)] : null;
+    if (!chapter) return;
+    [art, doc].forEach(function(target) {
+      if (!target) return;
+      scenarioLinks[chapter.url + '|' + target.url] = true;
+      scenarioLinks[target.url + '|' + chapter.url] = true;
+    });
+  });
+});
+
+function normalizedTags(entry) {
+  return (entry.tags || []).map(function(t) { return String(t).toLowerCase(); });
+}
+
+function relatedScore(base, candidate) {
+  if (!base || !candidate || base.url === candidate.url) return -1;
+  var pair = base.url + '|' + candidate.url;
+  var score = 0;
+  if (scenarioLinks[pair]) score += 6;
+  if (explicitLinks[pair]) score += 6;
+  var baseTags = normalizedTags(base);
+  candidate.tags = candidate.tags || [];
+  score += candidate.tags.filter(function(t) {
+    return baseTags.indexOf(String(t).toLowerCase()) !== -1;
+  }).length * 2;
+  if (base.type === 'chapter' && candidate.type === 'chapter' && base.situation && base.situation === candidate.situation) score += 1;
+  if (base.type === 'article' && candidate.type === 'article' && base.topic && base.topic === candidate.topic) score += 2;
+  return score;
+}
+
+// `types` lists the entry types the block may show; one best candidate per type
+// is picked first (so the block stays cross-type), then the rest by score.
+function relatedEntries(base, types, limit) {
+  var scored = catalog.entries.map(function(entry) {
+    return { entry: entry, score: relatedScore(base, entry) };
+  }).filter(function(item) {
+    return item.score > 0 && types.indexOf(item.entry.type) !== -1;
+  }).sort(function(a, b) {
+    return b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'ru');
+  });
+  var picked = [];
+  types.forEach(function(type) {
+    var best = scored.find(function(item) { return item.entry.type === type; });
+    if (best && picked.length < limit) picked.push(best);
+  });
+  scored.forEach(function(item) {
+    if (picked.length < limit && picked.indexOf(item) === -1) picked.push(item);
+  });
+  return picked.map(function(item) { return item.entry; });
+}
+
+function relatedBlockHtml(entries, title) {
+  if (!entries.length) return '';
+  return '<section class="related-block" data-toc="skip">'
+    + '<h2>' + escapeHtml(title) + '</h2>'
+    + '<div class="related-grid">'
+    + entries.map(function(e) {
+        return '<a class="related-card" href="' + e.url + '">'
+          + '<span class="related-type">' + (typeLabels[e.type] || 'Материал') + '</span>'
+          + '<span class="related-title">' + e.title + '</span>'
+          + (e.subtitle ? '<span class="related-sub">' + e.subtitle + '</span>' : '')
+          + '</a>';
+      }).join('')
+    + '</div></section>';
+}
+
+function chapterNavHtml(slug) {
+  var idx = catalog.chapters.findIndex(function(c) { return c.slug === slug; });
+  if (idx === -1) return '';
+  var prev = idx > 0 ? catalog.chapters[idx - 1] : null;
+  var next = idx < catalog.chapters.length - 1 ? catalog.chapters[idx + 1] : null;
+  if (!prev && !next) return '';
+  function link(entry, direction) {
+    if (!entry) return '';
+    var isNext = direction === 'next';
+    return '<a class="chapter-nav-link' + (isNext ? ' is-next' : '') + '" href="' + entry.url + '" rel="' + direction + '">'
+      + '<span class="chapter-nav-label">' + (isNext ? 'Следующая глава →' : '← Предыдущая глава') + '</span>'
+      + '<span class="chapter-nav-title">' + entry.title + '</span>'
+      + '</a>';
+  }
+  return '<nav class="chapter-nav" aria-label="Соседние главы">' + link(prev, 'prev') + link(next, 'next') + '</nav>';
+}
+
+function nextStepBand(opts) {
+  var href = opts.href || siteRoutes.start();
+  var label = opts.label || 'Подобрать первый шаг';
+  return '<section class="cta-band next-step" data-toc="skip">'
+    + '<h2>' + escapeHtml(opts.title || 'Что дальше') + '</h2>'
+    + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">' + opts.text + '</p>'
+    + '<a href="' + href + '" class="btn btn-primary" data-cta="next_step">' + escapeHtml(label) + '</a>'
+    + '<a href="' + siteRoutes.contact() + '" class="btn btn-outline" data-cta="next_step_consult">Обсудить задачу</a>'
+    + '</section>';
+}
+
+function thinkerLinksHtml(t) {
+  var links = [];
+  function push(entry) {
+    if (entry && !links.some(function(l) { return l.url === entry.url; })) links.push(entry);
+  }
+  (t.chapters || []).forEach(function(id) { push(chapterIndex[String(id)]); });
+  (t.chapters || []).forEach(function(id) {
+    var chapter = chapterIndex[String(id)];
+    var scenario = chapter ? scenarioByChapter[chapter.slug] : null;
+    if (!scenario) return;
+    push(catalog.articles.find(function(a) { return a.slug === scenario.article; }));
+  });
+  if (!links.length) {
+    push({ url: siteRoutes.book(), title: 'Плейбук', type: 'chapter' });
+  }
+  links = links.slice(0, 3);
+  return '<div class="thinker-links">' + links.map(function(l) {
+    return '<a href="' + l.url + '">'
+      + '<span class="thinker-link-type">' + (typeLabels[l.type] || 'Раздел') + '</span> '
+      + l.title + '</a>';
+  }).join('') + '</div>';
+}
+
 // Topic hubs render only for topics with at least one published article.
 const publishedTopics = sortedTopics.filter(function(t) {
   return publishedArticles.some(function(a) { return a.topic === t.slug; });
@@ -186,6 +381,31 @@ function plural(n, one, few, many) {
 
 function weaponById(id) { return weapons.find(w => w.id === id); }
 
+// Chapter reading time and full-text availability for the /playbook/ cards. The
+// full text wins; a landing-only chapter still reports its own length.
+const chapterReadInfoCache = new Map();
+function chapterReadInfo(slug) {
+  if (chapterReadInfoCache.has(slug)) return chapterReadInfoCache.get(slug);
+  var ch = catalog.chapters.find(function(c) { return c.slug === slug; });
+  var id = ch ? ch.id : '';
+  var fullPath = path.join(__dirname, 'src', 'content', 'full', id + '-' + slug + '.html');
+  var landPath = path.join(__dirname, 'src', 'content', id + '-' + slug + '.html');
+  var info;
+  if (fs.existsSync(fullPath)) {
+    info = { hasFull: true, minutes: readMinutes(fs.readFileSync(fullPath, 'utf-8')) };
+  } else if (fs.existsSync(landPath)) {
+    info = { hasFull: false, minutes: readMinutes(fs.readFileSync(landPath, 'utf-8')) };
+  } else {
+    info = { hasFull: false, minutes: null };
+  }
+  chapterReadInfoCache.set(slug, info);
+  return info;
+}
+
+function situationChapters(s) {
+  return s.weapons.map(weaponById).filter(Boolean).sort(function(a, b) { return Number(a.id) - Number(b.id); });
+}
+
 function zoneBadgeHtml(zone) {
   if (!zone) return '';
   return `<span class="badge badge-zone badge-zone-${escapeHtml(zone)}">${escapeHtml(zoneLabels[zone] || zone)}</span>`;
@@ -224,6 +444,16 @@ function summaryText(html, max) {
   let text = m[1].replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
   if (text.length > max) text = text.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';
   return text;
+}
+
+// Chapter landings used to inherit the short subtitle as their meta
+// description (37–68 chars), which left the SERP snippet half-empty.
+function chapterMetaDescription(subtitle) {
+  const base = String(subtitle || '').trim();
+  const tail = ' Глава плейбука AntiManager: интерактивная модель, тест и полный текст.';
+  const out = base + tail;
+  if (out.length <= 160) return out;
+  return base.slice(0, 160 - tail.length - 1).replace(/[\s,;:.—–-]+$/, '') + '…';
 }
 
 // Inject anchor ids into H2/H3 and return { html, toc } so the full-text page
@@ -279,7 +509,7 @@ function materialsBlockHtml(w) {
       + '<a class="btn btn-ghost btn-sm" href="' + it.href + '" download>Скачать</a></li>';
   });
   const empty = (!hasPdf && !extras.length)
-    ? '<p class="materials-empty">Печатные материалы к статье готовятся. Пока — сохраните страницу в PDF или придите за разбором в Штаб.</p>'
+    ? '<p class="materials-empty">Печатные материалы к статье готовятся. Пока — сохраните страницу в PDF или напишите нам.</p>'
     : '';
   const printBtn = hasPdf
     ? ''
@@ -372,10 +602,10 @@ function makeStructuredData(pageType, data) {
     if (data.articleSection) article.articleSection = data.articleSection;
     var crumbs = [
       { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-      { '@type': 'ListItem', 'position': 2, 'name': 'Арсенал', 'item': SITE_URL + '/arsenal/' }
+      { '@type': 'ListItem', 'position': 2, 'name': 'Плейбук', 'item': SITE_URL + siteRoutes.book() }
     ];
     if (isFull) {
-      crumbs.push({ '@type': 'ListItem', 'position': 3, 'name': data.title, 'item': SITE_URL + '/weapons/' + data.slug + '/' });
+      crumbs.push({ '@type': 'ListItem', 'position': 3, 'name': data.title, 'item': SITE_URL + siteRoutes.chapter(data.slug) });
       crumbs.push({ '@type': 'ListItem', 'position': 4, 'name': 'Полный текст' });
     } else {
       crumbs.push({ '@type': 'ListItem', 'position': 3, 'name': data.title });
@@ -430,8 +660,8 @@ function makeStructuredData(pageType, data) {
     };
     var docCrumbs = [
       { '@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': SITE_URL + '/' },
-      { '@type': 'ListItem', 'position': 2, 'name': 'Геном завода', 'item': SITE_URL + '/genome/' },
-      { '@type': 'ListItem', 'position': 3, 'name': 'Документы', 'item': SITE_URL + '/genome/documents/' },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Методология', 'item': SITE_URL + siteRoutes.method() },
+      { '@type': 'ListItem', 'position': 3, 'name': 'Документы', 'item': SITE_URL + siteRoutes.documents() },
       { '@type': 'ListItem', 'position': 4, 'name': data.title }
     ];
     return json({
@@ -500,6 +730,100 @@ function makeStructuredData(pageType, data) {
 
 // === RENDER ===
 
+// Pagefind reads one `data-pagefind-meta` / `data-pagefind-filter` attribute per
+// element, so a page with type + section + filters needs one empty span each.
+// These markers are removed from the indexed body text by Pagefind.
+function searchMetaHtml(search) {
+  if (!search) return '';
+  var out = '';
+  if (search.type) out += '<span data-pagefind-meta="type:' + escapeHtml(search.type) + '"></span>';
+  if (search.section) out += '<span data-pagefind-meta="section:' + escapeHtml(search.section) + '"></span>';
+  if (search.subtitle) out += '<span data-pagefind-meta="subtitle:' + escapeHtml(search.subtitle) + '"></span>';
+  (search.filters || []).forEach(function(f) {
+    if (f && f.key && f.value) {
+      out += '<span data-pagefind-filter="' + escapeHtml(f.key) + ':' + escapeHtml(f.value) + '"></span>';
+    }
+  });
+  return out ? '<div class="search-meta">' + out + '</div>' : '';
+}
+
+// Derive result badges and filters from the route so every render call gets
+// consistent metadata without repeating it at ~30 call sites.
+var searchStaticTypes = {
+  '/': 'Главная',
+  '/playbook/': 'Плейбук',
+  '/start/': 'С чего начать',
+  '/articles/': 'Статьи',
+  '/method/': 'Методология',
+  '/method/audit/': 'Аудит',
+  '/method/systems/': 'Карта систем',
+  '/method/documents/': 'Документы',
+  '/method/role/': 'Документы роли',
+  '/about/': 'О проекте',
+  '/about/manifesto/': 'Манифест',
+  '/about/origins/': 'Архив идей',
+  '/contact/': 'Связаться'
+};
+
+function searchMetaFromUrl(url) {
+  var pathname = String(url || '').indexOf(SITE_URL) === 0 ? String(url).slice(SITE_URL.length) : String(url || '');
+  if (!pathname) pathname = '/';
+  var entry = catalog.byUrl.get(pathname);
+
+  if (entry) {
+    if (entry.type === 'chapter') {
+      var filters = [];
+      if (entry.situation) filters.push({ key: 'situation', value: entry.situation });
+      entry.roles.forEach(function(role) { filters.push({ key: 'role', value: role }); });
+      return {
+        type: 'Глава',
+        section: entry.situation ? situationLabels[entry.situation] : 'Плейбук',
+        subtitle: entry.subtitle,
+        filters: filters
+      };
+    }
+    if (entry.type === 'article') {
+      var topic = topicBySlug(entry.topic);
+      return {
+        type: 'Статья',
+        section: topic ? topic.title : 'Статьи',
+        subtitle: entry.subtitle,
+        filters: entry.topic ? [{ key: 'topic', value: entry.topic }] : []
+      };
+    }
+    return { type: 'Документ', section: 'Методология', subtitle: entry.subtitle };
+  }
+
+  var full = pathname.match(/^\/playbook\/([a-z0-9][a-z0-9-]*)\/full\/$/);
+  if (full) {
+    var weapon = weapons.find(function(w) { return w.slug === full[1]; });
+    if (weapon) {
+      return {
+        type: 'Глава · полный текст',
+        section: weapon.zone ? situationLabels[weapon.zone] : 'Плейбук',
+        subtitle: weapon.subtitle,
+        filters: weapon.zone ? [{ key: 'situation', value: weapon.zone }] : []
+      };
+    }
+  }
+
+  var topicMatch = pathname.match(/^\/articles\/([a-z0-9][a-z0-9-]*)\/$/);
+  if (topicMatch) {
+    var t = topicBySlug(topicMatch[1]);
+    if (t) return { type: 'Статьи', section: t.title, filters: [{ key: 'topic', value: t.slug }] };
+  }
+
+  return { type: searchStaticTypes[pathname] || 'Страница' };
+}
+
+// Keep the brand suffix only when the resulting <title> stays inside the
+// ~65-character SERP budget; four long article titles otherwise truncate.
+function titleWithBrand(title) {
+  var base = String(title || '');
+  var full = base + ' | AntiManager';
+  return full.length <= 65 ? full : base;
+}
+
 function renderPage(title, description, content, opts) {
   opts = opts || {};
 
@@ -558,18 +882,32 @@ function renderPage(title, description, content, opts) {
   if (opts.headExtra) headTags += '\n' + opts.headExtra;
 
   const scripts = '<script src="/js/brutalist.js?v=' + VERSION + '" defer></script>'
+    + '\n<script src="/js/analytics.js?v=' + VERSION + '" defer></script>'
+    + '\n<script type="module" src="/js/search.js?v=' + VERSION + '"></script>'
     + (opts.scripts ? '\n' + opts.scripts : '');
+
+  // Pagefind only indexes pages that opt in with data-pagefind-body on <main>.
+  // noindex pages (404, privacy, search) and explicit opt-outs never ship it.
+  const indexable = opts.indexable !== undefined ? opts.indexable : !opts.noindex;
+  if (indexable) content = searchMetaHtml(opts.search || searchMetaFromUrl(canonicalUrl)) + content;
 
   let html = base;
   html = html.replace(/\{\{version\}\}/g, VERSION);
   html = html.replace('{{title}}', title);
   html = html.replace('{{description}}', description);
-  html = html.replace('{{header}}', headerHtml);
+  html = html.replace('{{main_attrs}}', indexable ? ' data-pagefind-body' : '');
+  let header = headerHtml;
+  if (opts.navSection) {
+    header = header.replace('data-nav="' + opts.navSection + '"', 'data-nav="' + opts.navSection + '" aria-current="page"');
+  }
+  html = html.replace('{{header}}', header);
   html = html.replace('{{content}}', content);
   html = html.replace('{{footer}}', footerHtml.replace('{{year}}', '2026'));
   html = html.replace('{{head_extra}}', headTags);
   html = html.replace('{{scripts}}', scripts);
   if (opts.noindex) html = html.replace('</head>', '<meta name="robots" content="noindex"></head>');
+  html = rewriteLegacyHrefs(html);
+  assertNoLegacyHrefs(html, canonicalUrl);
   return html;
 }
 
@@ -612,20 +950,35 @@ function starSvg() {
 
 // === CONTENT GENERATORS ===
 
-// Feature published weapons first, then top up with review ones so the landing
-// block always shows four cards.
-const featuredWeapons = weapons
-  .filter(function(w) { return w.status === 'published'; })
-  .concat(weapons.filter(function(w) { return w.status === 'review'; }))
-  .slice(0, 4);
+// Home: six curated chapter entry points across the four situations. Selection
+// is by id, but titles, subtitles and URLs stay data-driven (plan 5.2). The
+// fixtures in build-escape.test.js replace weapons.json, so a missing curated
+// id only fails the real data set, not that seam.
+const featuredChapterIds = ['18', '16', '09', '06', '02', '15'];
+const featuredWeapons = featuredChapterIds.map(function(id) {
+  var w = weapons.find(function(item) { return item.id === id; });
+  if (!w || w.status !== 'published') {
+    if (process.env.WEAPONS_FILE) return null;
+    throw new Error('home: featured chapter is missing or unpublished: ' + id);
+  }
+  return w;
+}).filter(Boolean);
 
 const featuredWeaponsHtml = featuredWeapons.map(function(w) {
-  return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card">'
+        return '<a href="' + siteRoutes.chapter(w.slug) + '" class="weapon-card">'
     + '<div class="weapon-title">' + w.title + '</div>'
     + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
     + (w.zone ? '<span class="weapon-status">' + zoneLabels[w.zone] + '</span>' : '')
     + '</a>';
 }).join('');
+
+// Home: three published long-reads across strategy, economics and practice.
+const featuredArticleIds = ['40', '51', '61'];
+const featuredArticles = featuredArticleIds.map(function(id) {
+  var a = publishedArticles.find(function(item) { return item.id === id; });
+  if (!a) throw new Error('home: featured article not found: ' + id);
+  return a;
+});
 
 // Full manifesto. Content source of truth: vault article 01 (mirror: manifesto-ru.md).
 // Kept as structured data so the landing teaser and the /manifesto page cannot drift apart.
@@ -674,6 +1027,7 @@ const manifestoValueHtml = function(v, i) {
 };
 
 const manifestoContent = '<section class="content-page">'
+  + '<nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="/">Главная</a> <span class="sep">→</span> <a href="' + siteRoutes.about() + '">О проекте</a> <span class="sep">→</span> <span>Манифест</span></nav>'
   + '<h1>Манифест</h1>'
   + '<p class="weapon-subtitle">Manifestum Imperii Rationalis — Манифест рационального управления</p>'
   + '<p class="manifesto-preamble">' + manifestoPreamble + '</p>'
@@ -683,9 +1037,16 @@ const manifestoContent = '<section class="content-page">'
   + '<ol class="manifesto-principles">' + manifestoPrinciples.map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ol>'
   + '<h2>Заключение</h2>'
   + manifestoClosing.map(function(p) { return '<p>' + p + '</p>'; }).join('')
+  + nextStepBand({
+      title: 'Что дальше',
+      text: 'Принципы работают, когда превращаются в главу, документ или первый шаг на своём участке.',
+      href: siteRoutes.book(),
+      label: 'Открыть плейбук'
+    })
   + '</section>';
 
 const archiveContent = '<section class="content-page">'
+  + '<nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="/">Главная</a> <span class="sep">→</span> <a href="' + siteRoutes.about() + '">О проекте</a> <span class="sep">→</span> <span>Архив идей</span></nav>'
   + '<h1>Архив великих идей</h1>'
   + '<p class="weapon-subtitle">Великие мыслители уже говорили это. Мы просто снимаем консалтинговую пыль.</p>'
   + '<div class="thinker-grid">'
@@ -696,183 +1057,354 @@ const archiveContent = '<section class="content-page">'
       + '<div class="thinker-years">' + t.years + '</div>'
       + '<div class="thinker-idea">' + t.idea + '</div>'
       + '<div class="thinker-arrow">→ ' + t.weapon + '</div>'
+      + thinkerLinksHtml(t)
       + '</div>';
   }).join('')
-  + '</div></section>';
-
-const arsenalContent = '<section class="content-page">'
-  + '<h1>Арсенал</h1>'
-  + '<p class="weapon-subtitle">' + weapons.filter(function(w) { return w.status === 'published'; }).length + ' опубликовано, ' + weapons.length + ' всего. Выбери оружие.</p>'
-  + '<div class="filters">'
-  + '<button class="filter-btn active" data-filter="all">ВСЕ</button>'
-  + scenarios.map(function(s) { return '<button class="filter-btn" data-filter="' + escapeHtml(s.id) + '">' + s.title + '</button>'; }).join('')
   + '</div>'
-  + '<div class="weapon-grid" id="arsenalGrid">'
-  + weapons.map(function(w) {
-    return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card" data-zone="' + escapeHtml(w.zone || '') + '">'
-      + '<div class="weapon-title">' + w.title + '</div>'
-      + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
-      + (w.zone ? zoneBadgeHtml(w.zone) : '')
-      + ((w.status === 'published') ? '' : statusBadgeHtml(w.status))
+  + nextStepBand({
+      title: 'Что дальше',
+      text: 'Возьмите одну идею и проверьте её на своём участке: в плейбуке есть глава, а в разделе «С чего начать» — три шага под вашу ситуацию.',
+      href: siteRoutes.book(),
+      label: 'Открыть плейбук'
+    })
+  + '</section>';
+
+// /playbook/ — the complete chapter catalog with two facet groups. Filters are
+// progressive: markup ships every card visible, JS applies ?situation=&role=
+// and keeps the URL shareable. Cards carry read time, situation and roles.
+const arsenalContent = (function() {
+  var total = weapons.length;
+  var fullCount = catalog.chapters.filter(function(c) { return chapterReadInfo(c.slug).hasFull; }).length;
+  var fullNote = fullCount === total
+    ? 'Все ' + plural(total, 'глава', 'главы', 'глав') + ' с полным текстом.'
+    : fullCount + ' из ' + total + ' глав с полным текстом.';
+
+  function chip(type, value, label, count, active) {
+    return '<button type="button" class="filter-btn' + (active ? ' active' : '') + '"'
+      + ' data-filter-type="' + type + '" data-filter="' + escapeHtml(value) + '"'
+      + ' aria-pressed="' + (active ? 'true' : 'false') + '">'
+      + escapeHtml(label) + ' <span class="filter-count">' + count + '</span></button>';
+  }
+
+  var situationChips = chip('situation', 'all', 'ВСЕ СИТУАЦИИ', total, true)
+    + Object.keys(situationLabels).map(function(key) {
+        return chip('situation', key, situationLabels[key].toUpperCase(), catalog.situationCounts[key], false);
+      }).join('');
+
+  var roleCounts = {};
+  Object.keys(roleLabels).forEach(function(key) { roleCounts[key] = 0; });
+  catalog.chapters.forEach(function(c) {
+    c.roles.forEach(function(role) { if (roleCounts[role] != null) roleCounts[role] += 1; });
+  });
+  var roleChips = chip('role', 'all', 'ВСЕ РОЛИ', total, true)
+    + Object.keys(roleLabels).map(function(key) {
+        return chip('role', key, roleLabels[key].toUpperCase(), roleCounts[key], false);
+      }).join('');
+
+  var cards = catalog.chapters.map(function(c) {
+    var read = chapterReadInfo(c.slug);
+    var roles = c.roles.map(function(r) { return roleLabels[r] || r; }).join(' · ');
+    return '<a href="' + c.url + '" class="weapon-card"'
+      + ' data-zone="' + escapeHtml(c.situation || '') + '"'
+      + ' data-situation="' + escapeHtml(c.situation || '') + '"'
+      + ' data-roles="' + escapeHtml(c.roles.join(' ')) + '">'
+      + '<div class="weapon-card-top">'
+      + (c.situation ? zoneBadgeHtml(c.situation) : '')
+      + (read.minutes ? '<span class="weapon-readtime">⏱ ' + read.minutes + ' мин</span>' : '')
+      + '</div>'
+      + '<div class="weapon-title">' + c.title + '</div>'
+      + '<div class="weapon-subtitle">' + c.subtitle + '</div>'
+      + '<div class="weapon-card-foot">'
+      + (roles ? '<span class="weapon-roles">' + roles + '</span>' : '')
+      + '</div>'
       + '</a>';
-  }).join('')
-  + '</div></section>'
-  + '<script>document.addEventListener(\'DOMContentLoaded\',function(){'
-  + 'var btns=document.querySelectorAll(\'.filters .filter-btn\');'
-  + 'var cards=document.querySelectorAll(\'#arsenalGrid .weapon-card\');'
-  + 'btns.forEach(function(b){b.addEventListener(\'click\',function(){'
-  + 'btns.forEach(function(x){x.classList.remove(\'active\');});'
-  + 'this.classList.add(\'active\');var f=this.dataset.filter;'
-  + 'cards.forEach(function(c){c.style.display=(f===\'all\'||c.dataset.zone===f)?\'\':\'none\';});});});});</script>';
+  }).join('');
 
-const scenariosContent = '<section class="content-page">'
-  + '<h1>Сценарии</h1>'
-  + '<p class="weapon-subtitle">Выбери свой участок фронта — получи набор оружия.</p>'
+  return '<section class="content-page">'
+    + '<h1>Плейбук</h1>'
+    + '<p class="weapon-subtitle">' + fullNote + ' Фильтруй по ситуации и роли или <a href="' + siteRoutes.start() + '">начни с трёх шагов</a>.</p>'
+    + '<div class="book-facets">'
+    + '<div class="filters" role="group" aria-label="Фильтр по ситуации">' + situationChips + '</div>'
+    + '<div class="filters" role="group" aria-label="Фильтр по роли">' + roleChips + '</div>'
+    + '</div>'
+    + '<p class="book-filter-status" id="bookFilterStatus" aria-live="polite">Показано ' + total + ' из ' + total + ' глав</p>'
+    + '<div class="weapon-grid" id="arsenalGrid">' + cards + '</div>'
+    + nextStepBand({
+        title: 'Не знаете, с чего начать',
+        text: 'Выберите ситуацию — кризис, команда, изменения или система. Для каждой есть симптомы, первые три шага, главы, документ и статья.',
+        href: siteRoutes.start(),
+        label: 'С чего начать'
+      })
+    + '</section>'
+    + '<script>(function(){'
+    + 'var grid=document.getElementById("arsenalGrid");if(!grid)return;'
+    + 'var cards=Array.prototype.slice.call(grid.querySelectorAll(".weapon-card"));'
+    + 'var btns=Array.prototype.slice.call(document.querySelectorAll(".filters .filter-btn"));'
+    + 'var status=document.getElementById("bookFilterStatus");'
+    + 'var valid={situation:["all","crisis","team","changes","system"],role:["all","director","shop-floor","hr"]};'
+    + 'var params=new URLSearchParams(window.location.search);'
+    + 'var state={situation:params.get("situation")||"all",role:params.get("role")||"all"};'
+    + 'if(valid.situation.indexOf(state.situation)===-1)state.situation="all";'
+    + 'if(valid.role.indexOf(state.role)===-1)state.role="all";'
+    + 'function apply(){'
+    + 'var shown=0;'
+    + 'cards.forEach(function(c){'
+    + 'var okS=state.situation==="all"||c.dataset.situation===state.situation;'
+    + 'var okR=state.role==="all"||(c.dataset.roles||"").split(" ").indexOf(state.role)!==-1;'
+    + 'c.hidden=!(okS&&okR);if(!c.hidden)shown++;'
+    + '});'
+    + 'btns.forEach(function(b){'
+    + 'var on=(b.dataset.filterType==="situation"&&b.dataset.filter===state.situation)||(b.dataset.filterType==="role"&&b.dataset.filter===state.role);'
+    + 'b.classList.toggle("active",on);b.setAttribute("aria-pressed",on?"true":"false");'
+    + '});'
+    + 'if(status)status.textContent="Показано "+shown+" из "+cards.length+" глав";'
+    + '}'
+    + 'function syncUrl(){'
+    + 'var p=new URLSearchParams();'
+    + 'if(state.situation!=="all")p.set("situation",state.situation);'
+    + 'if(state.role!=="all")p.set("role",state.role);'
+    + 'var q=p.toString();'
+    + 'history.replaceState(null,"",window.location.pathname+(q?"?"+q:"")+window.location.hash);'
+    + '}'
+    + 'btns.forEach(function(b){b.addEventListener("click",function(){'
+    + 'state[b.dataset.filterType]=b.dataset.filter;apply();syncUrl();'
+    + '});});'
+    + 'apply();'
+    + '})();</script>';
+})();
+
+// /start/ — curated entry by situation. Each block carries symptoms, three
+// steps, up to five chapters, one document and one article; a block with no
+// real link is omitted rather than placeheld.
+const scenariosContent = '<section class="content-page start-page">'
+  + '<h1>С чего начать</h1>'
+  + '<p class="weapon-subtitle">Выбери свою ситуацию: симптомы, первые три шага, главы, один документ и одна статья.</p>'
+  + '<nav class="start-nav" aria-label="Ситуации">'
   + scenarios.map(function(s) {
-    var zoneWeapons = s.weapons.map(function(id) { return weaponById(id); }).filter(Boolean);
-    return '<div class="zone-card zone-' + escapeHtml(s.id) + '" style="margin-bottom:var(--space-6);">'
-      + '<div class="zone-icon">' + s.icon + '</div>'
-      + '<div class="zone-title">' + s.title + '</div>'
-      + '<p style="margin-top:var(--space-2);">' + s.subtitle + '</p>'
-      + '<div class="weapon-grid" style="margin-top:var(--space-4);">'
-      + zoneWeapons.map(function(w) {
-        return '<a href="/weapons/' + escapeHtml(w.slug) + '/" class="weapon-card">'
-          + '<div class="weapon-title">' + w.title + '</div>'
-          + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
-          + '</a>';
-      }).join('')
-      + '</div></div>';
+      return '<a class="start-nav-link start-nav-' + escapeHtml(s.id) + '" href="#' + escapeHtml(s.id) + '">'
+        + '<span class="start-nav-icon" aria-hidden="true">' + s.icon + '</span>'
+        + '<span>' + s.title + '</span>'
+        + '<span class="start-nav-count">' + s.weapons.length + '</span></a>';
+    }).join('')
+  + '</nav>'
+  + scenarios.map(function(s) {
+    var chapters = situationChapters(s);
+    var shown = chapters.slice(0, 5);
+    var doc = s.document ? catalog.documents.find(function(d) { return d.slug === s.document; }) : null;
+    var art = s.article ? catalog.articles.find(function(a) { return a.slug === s.article; }) : null;
+    var materialCards = '';
+    if (doc) {
+      materialCards += '<a class="start-material" href="' + siteRoutes.document(doc.slug) + '">'
+        + '<span class="start-material-kind">Документ</span>'
+        + '<span class="start-material-title">' + doc.title + '</span>'
+        + '<span class="start-material-desc">' + doc.subtitle + '</span></a>';
+    }
+    if (art) {
+      materialCards += '<a class="start-material" href="' + art.url + '">'
+        + '<span class="start-material-kind">Статья</span>'
+        + '<span class="start-material-title">' + art.title + '</span>'
+        + '<span class="start-material-desc">' + art.subtitle + '</span></a>';
+    }
+    return '<section class="start-situation zone-' + escapeHtml(s.id) + '" id="' + escapeHtml(s.id) + '">'
+      + '<header class="start-head">'
+      + '<span class="zone-icon" aria-hidden="true">' + s.icon + '</span>'
+      + '<h2>' + s.title + '</h2>'
+      + '<p class="zone-subtitle">' + s.subtitle + '</p>'
+      + '</header>'
+      + '<div class="start-symptoms"><h3>Симптомы</h3><ul>'
+      + s.symptoms.map(function(t) { return '<li>' + t + '</li>'; }).join('')
+      + '</ul></div>'
+      + '<div class="start-steps"><h3>Первые 3 шага</h3><ol>'
+      + s.steps.map(function(step, i) {
+          return '<li><span class="start-step-num">' + (i + 1) + '</span>'
+            + '<span class="start-step-body"><span class="start-step-text">' + step.text + '</span>'
+            + '<a class="start-step-link" href="' + siteRoutes.chapter(step.chapter) + '">Глава «' + step.title + '» →</a></span></li>';
+        }).join('')
+      + '</ol></div>'
+      + '<div class="start-chapters"><h3>Главы ситуации</h3><div class="weapon-grid">'
+      + shown.map(function(w) {
+          return '<a href="' + siteRoutes.chapter(w.slug) + '" class="weapon-card">'
+            + '<div class="weapon-title">' + w.title + '</div>'
+            + '<div class="weapon-subtitle">' + (w.subtitle || '') + '</div>'
+            + '</a>';
+        }).join('')
+      + '</div></div>'
+      + (materialCards ? '<div class="start-materials">' + materialCards + '</div>' : '')
+      + '<a class="btn btn-primary start-cta" href="' + siteRoutes.book() + '?situation=' + escapeHtml(s.id) + '">Показать ' + plural(chapters.length, 'главу', 'главы', 'глав') + ' ситуации →</a>'
+      + '</section>';
   }).join('')
+  + nextStepBand({
+      title: 'Что дальше',
+      text: 'Откройте главы своей ситуации целиком или опишите задачу — подберём первый шаг под ваш контур.',
+      href: siteRoutes.book(),
+      label: 'Все главы плейбука'
+    })
   + '</section>';
 
-const casesContent = '<section class="content-page">'
-  + '<h1>Полевые дневники</h1>'
-  + '<p class="weapon-subtitle">Реальные истории с заводов.</p>'
-  + '<div class="case-grid">'
-  + cases.map(function(c) {
-    return '<div class="case-card">'
-      + '<div class="case-headline"><span>⚔️</span>' + c.title + '</div>'
-      + '<p class="weapon-subtitle" style="margin-top:var(--space-2);">' + c.desc + '</p>'
-      + '<div class="case-readtime">⏱ ' + (c.readtime || '5 минут') + '</div>'
-      + '</div>';
-  }).join('')
-  + '</div></section>';
-
-const hqContent = '<section class="content-page" style="text-align:center;padding-top:var(--space-16);">'
-  + '<h1>Штаб</h1>'
-  + '<p class="weapon-subtitle">Закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
-  + '<p style="color:var(--color-steel);margin:var(--space-4) 0;">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
-  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-crisis" style="margin-top:var(--space-6);">💬 НАПИСАТЬ В TELEGRAM</a>'
-  + '</section>';
-
-const aboutContent = '<section class="content-page">'
+const aboutContent = '<section class="content-page about-page">'
+  + '<nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="/">Главная</a> <span class="sep">→</span> <span>О проекте</span></nav>'
   + '<h1>О проекте</h1>'
-  + '<p class="weapon-subtitle">Антименеджер — это не метод. Это присяга.</p>'
-  + '<div class="weapon-block" style="margin:var(--space-6) 0;">'
-  + '<p>Мы не изобретаем велосипед. Мы просто снимаем консалтинговую упаковку с идей Деминга, Тейлора, Богданова, Оно, Медоуз, Хапрова, Клаузевица... И адаптируем их к твоему конвейеру.</p>'
-  + '</div>'
-  + '<p style="color:var(--color-steel);">Единственный способ изменить систему — начать думать и делать осознанно.</p>'
+  + '<p class="weapon-subtitle">AntiManager — интерактивный плейбук и методология о том, как на самом деле работает завод.</p>'
+  + '<p class="about-lead">Проект собран вокруг одной мысли: производством управляют не лозунги и не мотивационные слайды, а среда, стандарт, обратная связь и измеримые факты. Это не курс и не витрина консалтинга. Сайт устроен как рабочий инструмент: плейбук можно читать подряд, а можно открыть нужный раздел в момент, когда появилась задача.</p>'
+
+  + '<h2>Что здесь есть</h2>'
+  + '<ul>'
+  + '<li><strong>Плейбук</strong> — 23 главы о системе, процессах, людях, изменениях и цифровизации. У каждой главы есть интерактивная модель и полная версия с материалами.</li>'
+  + '<li><strong>Статьи</strong> — 14 long-reads по стратегии, экономике, управлению, цифровизации и производственной практике. Полные тексты публикуются без гейтинга.</li>'
+  + '<li><strong>Методология</strong> — четыре рабочих инструмента: экспресс-аудит производственной системы на 40 критериев со шкалой 0–5, карта из 14 систем по 12 полям, типовые документы с PDF и DOCX и полный пакет документов роли руководителя производства.</li>'
+  + '</ul>'
+
+  + '<h2>Кто пишет</h2>'
+  + '<p>Главы с личным опытом написаны от первого лица — это личный опыт авторов на конкретных заводах. Методология, типовые документы и часть разборов — командный опыт: мы собирали и проверяли их вместе. Эти голоса не смешиваются: личная история не выдаётся за опыт команды, а командная работа — за историю одного человека.</p>'
+
+  + '<h2>Как мы работаем</h2>'
+  + '<ol class="about-process">'
+  + '<li><strong>Диагностика.</strong> Смотрим процессы «как есть»: где теряется управляемость, какие документы противоречат друг другу и какие выходы действительно критические.</li>'
+  + '<li><strong>Пилот на одном контуре.</strong> Собираем один участок — например, ТОиР или сменно-суточное планирование — и проверяем метод на ваших данных.</li>'
+  + '<li><strong>Проработка по модели.</strong> Описываем процессы вашего завода и выводим из одного источника СОП, контрольные точки, приоритеты, сетку событий, пакет КУ и профили должностей.</li>'
+  + '<li><strong>Передача.</strong> Отдаём документы и правила вывода, обучаем команду поддерживать библиотеку без нас.</li>'
+  + '</ol>'
+  + '<p>Состав и формат каждого этапа фиксируем после диагностики: цифры «на глаз» и обещания внедрить за неделю не выдаём. Подробнее — <a href="/method/#offer">как это получить</a>.</p>'
+
+  + '<h2>Для кого</h2>'
+  + '<p>Для собственников и директоров производств, которым нужен не отчёт консультанта, а понятный способ принимать решения. Для начальников цехов и участков, которые каждый день сталкиваются с потерями, срывами плана и конфликтом инструкций. Для HR-специалистов и рекрутеров, которые подбирают и оценивают руководителей производства. И для тех, кто только переходит на такую роль и хочет увидеть её целиком, а не по фрагментам.</p>'
+
+  + '<h2>С чего начать</h2>'
+  + '<ol>'
+  + '<li><a href="/start/">С чего начать</a> — четыре ситуации: кризис, команда, изменения и система. По каждой — симптомы, первые три шага, главы, документ и статья.</li>'
+  + '<li><a href="/playbook/">Плейбук</a> — полный каталог глав с фильтрами по ситуации и роли, временем чтения и полным текстом.</li>'
+  + '<li><a href="/method/audit/">Экспресс-аудит</a> — быстрая самопроверка: 40 критериев, якоря уровней и Excel с автоматическим расчётом покрытия и топ-5 разрывов.</li>'
+  + '<li><a href="/articles/">Статьи</a> — длинные разборы для тех, кто хочет сначала понять механику, а потом действовать.</li>'
+  + '</ol>'
+
+  + '<h2>На чём это стоит</h2>'
+  + '<p>Идеи не придуманы заново. Проект пересказывает и адаптирует то, что уже сформулировали Шухарт, Деминг, Оно, Богданов, Гастев, Керженцев, Медоуз, Сенге и Клаузевиц — от статистического управления и производственной системы до системной динамики и стратегии. В <a href="/about/origins/">архиве великих идей</a> для каждого из девяти мыслителей указано, что именно он дал заводу.</p>'
+  + '<p>В основе методологии — типизированная библиотека процессов: у операции есть входы, выходы и владелец, а целостность модели проверяется машинно. Из одного источника выводятся СОП, контрольные точки, приоритеты, события, требования к квалификации и профили должностей. Поэтому документы не расходятся между собой при изменениях.</p>'
+
+  + '<h2>Чего здесь нет</h2>'
+  + '<ul>'
+  + '<li>таблетки от хаоса и обещаний «внедрить за неделю»;</li>'
+  + '<li>гарантий результата, который зависит от конкретного завода и людей;</li>'
+  + '<li>скрытых материалов, к которым нельзя пройти без подписки.</li>'
+  + '</ul>'
+
+  + '<h2>Манифест и архив</h2>'
+  + '<p><a href="/about/manifesto/">Манифест</a> — десять ценностей и пятнадцать принципов рационального управления. <a href="/about/origins/">Архив идей</a> — девять мыслителей и их вклад в практику.</p>'
+  + '<p>Если у вас есть задача, которую нужно разобрать на вашем реальном процессе, — <a href="/contact/">напишите</a>.</p>'
+  + nextStepBand({
+      title: 'Что дальше',
+      text: 'Выберите ситуацию и первые три шага или откройте методологию: аудит, карта систем и типовые документы.',
+      href: siteRoutes.start(),
+      label: 'С чего начать'
+    })
   + '</section>';
 
 // === LANDING PAGE ===
 
-const landingContent = '<section class="hero">'
+// Home method and project cards reuse the /method/ .method-tool component so the
+// redesign does not fork a second card style.
+function homeToolCard(card) {
+  return '<a href="' + card.url + '" class="method-tool">'
+    + '<span class="method-tool-k">' + card.key + '</span>'
+    + '<span class="method-tool-t">' + card.title + '</span>'
+    + '<span class="method-tool-d">' + card.desc + '</span>'
+    + '<span class="method-tool-go">' + card.go + '</span>'
+    + '</a>';
+}
+
+const homeMethodTools = [
+  { url: siteRoutes.audit(), key: '01 · САМОПРОВЕРКА', title: 'Экспресс-аудит', desc: '40 критериев и якоря уровней 0–5: за вечер увидеть покрытие и топ-5 разрывов.', go: 'Пройти аудит' },
+  { url: siteRoutes.systems(), key: '02 · КАРТА', title: 'Карта систем', desc: '14 систем завода: назначение, владелец, артефакты, KPI и типовой разрыв.', go: 'Открыть карту' },
+  { url: siteRoutes.documents(), key: '03 · ДОКУМЕНТЫ', title: 'Типовые документы', desc: 'Ритм совещаний, Gemba-обход, А3 и регламент улучшений — без консалтинговой пыли.', go: 'Смотреть документы' }
+];
+
+const homeProjectLinks = [
+  { url: siteRoutes.about(), key: 'ПРОЕКТ', title: 'О проекте', desc: 'Зачем существует сайт, для кого он и как им пользоваться без подписки.', go: 'Что это' },
+  { url: siteRoutes.manifesto(), key: 'КОНСТИТУЦИЯ', title: 'Манифест', desc: 'Десять ценностей и пятнадцать принципов рационального управления.', go: 'Читать манифест' },
+  { url: siteRoutes.origins(), key: 'АРХИВ', title: 'Архив идей', desc: 'Девять мыслителей и их вклад в практику: от Шухарта и Деминга до Гастева.', go: 'Открыть архив' }
+];
+
+const homeZoneCards = scenarios.map(function(s) {
+  var count = s.weapons.filter(function(id) { return weaponById(id); }).length;
+  return '<a href="' + siteRoutes.start() + '#' + escapeHtml(s.id) + '" class="zone-card zone-' + escapeHtml(s.id) + '">'
+    + '<span class="zone-icon" aria-hidden="true">' + s.icon + '</span>'
+    + '<h3 class="zone-title">' + s.title + '</h3>'
+    + '<p class="zone-subtitle">' + s.subtitle + '</p>'
+    + '<span class="zone-count">' + count + '</span>'
+    + '</a>';
+}).join('');
+
+const landingContent = '<section class="hero home-hero">'
   + '<div class="hero-challenge">'
-  + '<h1 class="hero-heading">ТЫ ПРИШЁЛ ЗА ТАБЛЕТКОЙ?</h1>'
-  + '<h2 class="hero-answer">ЕЁ НЕТ.</h2>'
+  + '<h1 class="hero-heading">ПЛЕЙБУК: КАК НА САМОМ ДЕЛЕ РАБОТАЕТ ЗАВОД</h1>'
   + '</div>'
-  + '<div class="hero-mckinsey">'
-  + '<p>Хочешь красивый совет? Иди к McKinsey. Они нарисуют тебе 100 слайдов. Ты заплатишь 10 миллионов. Через год всё вернётся.</p>'
-  + '<p class="hero-stay">Хочешь понять, как на самом деле работают великие идеи управления? <strong>Оставайся.</strong></p>'
-  + '</div>'
-  + '<div class="hero-thinkers">'
-  + '<p>Мы просто снимаем слой консалтинговой пыли с идей Деминга, Тейлора, Богданова, Оно, Медоуз, Хапрова, Клаузевица...</p>'
-  + '<p class="hero-quote">«Сначала среда, потом требования». «Сложность управляется сложностью». «Любая система лжёт». Просто консультанты забыли это сказать.</p>'
-  + '</div>'
+  + '<p class="hero-lead">' + plural(weapons.length, 'глава', 'главы', 'глав') + ', ' + publishedArticles.length + ' long-reads и методология для собственников и директоров производств. Без таблеток — с инструментами.</p>'
   + '<div class="hero-cta">'
-  + '<a href="/weapons/antikrizis/" class="btn btn-crisis">🔥 У МЕНЯ КРИЗИС</a>'
-  + '<a href="#system-map" class="btn btn-primary">🗺️ ХОЧУ ПОНЯТЬ СИСТЕМУ</a>'
+  + '<a href="' + siteRoutes.start() + '" class="btn btn-primary" data-cta="hero_start">С чего начать</a>'
+  + '<a href="' + siteRoutes.book() + '" class="btn btn-outline" data-cta="hero_playbook">Открыть плейбук</a>'
+  + '<a href="' + siteRoutes.audit() + '" class="btn btn-outline" data-cta="hero_audit">Экспресс-аудит</a>'
+  + '</div>'
+  + '<div class="home-manifesto">'
+  + '<p class="home-manifesto-title">Ты пришёл за таблеткой? Её нет.</p>'
+  + '<p>Есть среда, стандарт и обратная связь — и плейбук, который объясняет, почему заводы ломаются. <a href="' + siteRoutes.manifesto() + '">Манифест</a> · <a href="' + siteRoutes.about() + '">О проекте</a></p>'
   + '</div>'
   + '</section>'
 
-  + '<section class="section archaeology">'
-  + '<h2 class="section-title">МЫ — АРХЕОЛОГИ УПРАВЛЕНИЯ</h2>'
-  + '<p class="section-desc">Каждый инструмент Антименеджера — это раскопка. Мы находим изначальную идею великого мыслителя. Очищаем её от консалтинговой упаковки. И адаптируем к твоему конвейеру.</p>'
-  + '<div class="thinker-chain">'
-  + thinkers.slice(0, 5).map(function(t) { return '<span>' + t.name.split(' ').pop() + ' → ' + t.weapon + '</span>'; }).join('')
+  + '<section class="section home-situations">'
+  + '<h2 class="section-title">ВЫБЕРИ СВОЮ СИТУАЦИЮ</h2>'
+  + '<p class="section-desc">Кризис, команда, изменения или система. Каждый вход ведёт к симптомам, первым трём шагам, главам, документу и статье по теме.</p>'
+  + '<div class="home-situations-grid">'
+  + '<div class="zone-grid">' + homeZoneCards + '</div>'
+  + '<div class="map-container home-map" id="system-map">' + starSvg() + '</div>'
   + '</div>'
-  + '<a href="/archive/" class="btn" style="margin-top:var(--space-4);">🏛️ ВЕСЬ АРХИВ</a>'
+  + '<div class="home-situation-cta"><a href="' + siteRoutes.chapter('antikrizis') + '" class="btn btn-crisis">У меня кризис</a></div>'
   + '</section>'
 
   + '<section class="section" id="weapons-section">'
-  + '<h2 class="section-title">ЭТО — ОРУЖИЕ. А НЕ ЕЩЁ ОДНА КНИГА</h2>'
-  + '<p class="section-desc">Антименеджер — это не метод. Это способ думать. Метод можно скопировать. Способ думать — нельзя.</p>'
-  + '<p class="section-desc">Разница простая: метод даёт тебе инструкцию. Способ думать даёт тебе критерий: «Как понять, что инструкция врёт».</p>'
+  + '<h2 class="section-title">ШЕСТЬ ГЛАВ, С КОТОРЫХ СТОИТ НАЧАТЬ</h2>'
+  + '<p class="section-desc">В плейбуке — ' + plural(weapons.length, 'глава', 'главы', 'глав') + '. Эти шесть дают каркас: понять систему, перестать тушить пожары и увидеть, где теряется управляемость.</p>'
   + '<div class="weapon-grid">' + featuredWeaponsHtml + '</div>'
-  + '<a href="/arsenal/" class="btn btn-primary">🔫 ВЕСЬ АРСЕНАЛ</a>'
+  + '<a href="' + siteRoutes.book() + '" class="btn">Все главы плейбука</a>'
   + '</section>'
 
-  + '<section class="section" id="system-map">'
-  + '<h2 class="section-title">КАРТА СИСТЕМЫ</h2>'
-  + '<div class="map-container">' + starSvg() + '</div>'
+  + '<section class="section home-articles">'
+  + '<h2 class="section-title">ЧИТАТЬ, ЧТОБЫ ПОНЯТЬ МЕХАНИКУ</h2>'
+  + '<p class="section-desc">Long-reads о стратегии, экономике, управлении и цифровизации. Полные тексты без гейтинга и без «оставьте email».</p>'
+  + '<div class="article-grid">' + featuredArticles.map(articleCardHtml).join('') + '</div>'
+  + '<a href="' + siteRoutes.articles() + '" class="btn">Все статьи</a>'
   + '</section>'
 
-  + '<section class="section">'
-  + '<h2 class="section-title">ВЫБЕРИ СВОЙ УЧАСТОК ФРОНТА</h2>'
-  + '<div class="zone-grid">'
-  + scenarios.map(function(s) {
-    var count = s.weapons.filter(function(id) { return weaponById(id); }).length;
-    return '<a href="/scenarios/" class="zone-card zone-' + escapeHtml(s.id) + '">'
-      + '<div class="zone-icon">' + s.icon + '</div>'
-      + '<div class="zone-title">' + s.title + '</div>'
-      + '<div class="zone-subtitle">' + s.subtitle + '</div>'
-      + '<span class="zone-count">' + count + '</span>'
-      + '</a>';
-  }).join('')
+  + '<section class="section home-methods">'
+  + '<h2 class="section-title">ИНСТРУМЕНТЫ, А НЕ ПРЕЗЕНТАЦИИ</h2>'
+  + '<p class="section-desc">Методология «Генома завода»: самопроверка, карта систем и типовые документы. Всё можно открыть и применить без консультанта.</p>'
+  + '<div class="method-tools home-method-tools">' + homeMethodTools.map(homeToolCard).join('') + '</div>'
+  + '<div class="lead-magnet">'
+  + '<div class="lead-magnet-copy">'
+  + '<p class="lead-magnet-kicker">Бесплатно · без подписки</p>'
+  + '<h3>Начните с инструмента, а не с обещаний</h3>'
+  + '<p>Экспресс-чек-лист на 40 критериев в Excel и образец группы PLAN — те же материалы, что внутри методологии. Без регистрации и «оставьте email».</p>'
+  + '</div>'
+  + '<div class="lead-magnet-actions">'
+  + '<a class="btn btn-primary" href="/materials/ps-express-audit/express-audit-ps.xlsx?v=3.0" download="Экспресс-чек-лист-аудита-ПС-v3.0.xlsx" data-cta="lead_magnet_xlsx">Скачать чек-лист (XLSX)</a>'
+  + '<a class="btn btn-outline" href="' + siteRoutes.method() + '#sample" data-cta="lead_magnet_plan">Смотреть образец PLAN</a>'
+  + '</div>'
   + '</div>'
   + '</section>'
 
-  + '<section class="section manifesto-teaser">'
-  + '<h2 class="section-title">МАНИФЕСТ ИМПЕРИИ РАЦИОНАЛЬНОГО</h2>'
-  + '<p class="section-desc">Это не просто слова. Это конституция Антименеджера.</p>'
-  + '<div class="manifesto-values">'
-  + manifestoValues.map(function(v, i) {
-      return '<div class="manifesto-value"><span>' + (i + 1) + '.</span> <strong>' + v.lead + '</strong> ' + v.tail + '</div>';
-    }).join('')
+  + '<section class="section home-project">'
+  + '<h2 class="section-title">ПРОЕКТ, МАНИФЕСТ И ШТАБ</h2>'
+  + '<p class="section-desc">Кто это делает, зачем и где разбирают реальные ситуации. Без воронок и обещаний.</p>'
+  + '<div class="method-tools home-project-links">' + homeProjectLinks.map(homeToolCard).join('') + '</div>'
+  + '<div class="home-project-cta">'
+  + '<a href="' + siteRoutes.contact() + '" class="btn btn-primary" data-cta="home_consult">Обсудить задачу</a>'
+  + '<a href="' + siteRoutes.origins() + '" class="btn btn-outline" data-cta="home_origins">Архив идей</a>'
   + '</div>'
-  + '<a href="/manifesto/" class="btn">📜 ЧИТАТЬ ПОЛНОСТЬЮ</a>'
-  + '</section>'
-
-  + '<section class="section">'
-  + '<h2 class="section-title">ПОЛЕВЫЕ ДНЕВНИКИ</h2>'
-  + '<p class="section-desc">Реальные истории с заводов.</p>'
-  + '<div class="case-grid">'
-  + cases.slice(0, 3).map(function(c) {
-    return '<a href="/cases/" class="case-card">'
-      + '<div class="case-headline"><span>⚔️</span>' + c.title + '</div>'
-      + '<div class="weapon-subtitle">' + c.desc + '</div>'
-      + '<div class="case-readtime">⏱ ' + (c.readtime || '5 минут') + '</div>'
-      + '</a>';
-  }).join('')
-  + '</div>'
-  + '<a href="/cases/" class="btn" style="margin-top:var(--space-4);">📖 ВСЕ ИСТОРИИ</a>'
-  + '</section>'
-
-  + '<section class="section hq-section">'
-  + '<h2 class="section-title">ВСТУПАЙ В ШТАБ</h2>'
-  + '<p class="section-desc">Это закрытый клуб партизан. Здесь не обсуждают теорию. Здесь разбирают боевые ситуации.</p>'
-  + '<p class="section-desc">⚡ Еженедельный разбор полётов · ⚡ Анонимные вопросы · ⚡ Реальные кейсы</p>'
-  + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">💬 НАПИСАТЬ В TELEGRAM</a>'
-  + '</section>'
-
-  + '<section style="text-align:center;padding-bottom:var(--space-8);">'
-  + '<p style="color:var(--color-steel);">Ты либо берёшь ответственность за хаос, либо продолжаешь заполнять таблички.</p>'
   + '</section>';
 
 // === WEAPON TEMPLATE ===
 
 const weaponTemplate = '<div class="content-page">'
-  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/arsenal/">Арсенал</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="' + siteRoutes.book() + '">Плейбук</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
   + '<section class="weapon-hero">'
   + '{{zone_badge}}'
   + '<h1>{{title}}</h1>'
@@ -881,24 +1413,30 @@ const weaponTemplate = '<div class="content-page">'
   + '</section>'
   + '{{content_body}}'
   + '{{thinker_block}}'
+  + '{{chapter_nav}}'
   + '{{related_weapons}}'
+  + '{{related_block}}'
+  + '{{next_step}}'
   + '</div>';
 
 const fullTemplate = '<div class="content-page full-article-page">'
-  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/arsenal/">Арсенал</a> <span class="sep">→</span> <a href="/weapons/{{slug}}/">{{title}}</a> <span class="sep">→</span> <span>Полный текст</span></nav>'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="' + siteRoutes.book() + '">Плейбук</a> <span class="sep">→</span> <a href="' + siteRoutes.book() + '{{slug}}/">{{title}}</a> <span class="sep">→</span> <span>Полный текст</span></nav>'
   + '<div class="reading-progress" aria-hidden="true"><div class="reading-progress-fill"></div></div>'
   + '<header class="full-hero">'
   + '{{zone_badge}}'
   + '<h1>{{title}}</h1>'
   + '<p class="weapon-subtitle">{{subtitle}}</p>'
   + '<p class="full-meta">⏱ {{read_minutes}} мин чтения · Полный текст</p>'
-  + '<a class="btn btn-ghost btn-sm" href="/weapons/{{slug}}/">← К интерактивной модели</a>'
+  + '<a class="btn btn-ghost btn-sm" href="' + siteRoutes.book() + '{{slug}}/">← К интерактивной модели</a>'
   + '</header>'
   + '{{toc}}'
   + '<article class="full-article">{{content_body}}</article>'
   + '{{materials_section}}'
   + '{{thinker_block}}'
+  + '{{chapter_nav}}'
   + '{{related_weapons}}'
+  + '{{related_block}}'
+  + '{{next_step}}'
   + '</div>';
 
 // === BUILD: MAIN ===
@@ -906,18 +1444,30 @@ const fullTemplate = '<div class="content-page full-article-page">'
 console.log('\n🚀 AntiManager Brutalist Build\n');
 
 // Landing
-write('index.html', renderPage('AntiManager — Система управления производством', 'Интерактивная карта: ' + plural(scenarios.length, 'контур', 'контура', 'контуров') + ', ' + plural(weapons.length, 'глава', 'главы', 'глав') + ' — инструменты и кейсы для руководителя производства', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
+write(outFile(siteRoutes.home()), renderPage('AntiManager — плейбук о том, как работает завод', 'Плейбук о том, как на самом деле работает завод: ' + plural(weapons.length, 'глава', 'главы', 'глав') + ', ' + publishedArticles.length + ' long-reads и методология для собственников и директоров производств. Без таблеток — с инструментами.', landingContent, { canonicalUrl: SITE_URL + '/', structuredData: makeStructuredData('landing') }));
 
 // Static pages
-write('manifesto/index.html', renderPage('Манифест | AntiManager', 'Манифест рационального управления: десять ценностей и принципов Антименеджера — среда, стандарт и обратная связь вместо мотивационных лозунгов.', manifestoContent, { canonicalUrl: SITE_URL + '/manifesto/', structuredData: makeStructuredData('static', { name: 'Манифест', url: SITE_URL + '/manifesto/' }) }));
-write('archive/index.html', renderPage('Архив великих идей | AntiManager', 'Архив великих идей управления: Шухарт, Деминг, Оно, Богданов, Гастев, Тейлор и Клаузевиц — что каждый из них на самом деле дал заводу.', archiveContent, { canonicalUrl: SITE_URL + '/archive/', structuredData: makeStructuredData('static', { name: 'Архив великих идей', url: SITE_URL + '/archive/' }) }));
-write('arsenal/index.html', renderPage('Арсенал | AntiManager', 'Арсенал Антименеджера: ' + plural(weapons.length, 'инструмент-орудие', 'инструмента-орудия', 'инструментов-орудий') + ' для руководителя производства — от системной динамики и процессов до антикризиса и цифрового двойника.', arsenalContent, { canonicalUrl: SITE_URL + '/arsenal/', structuredData: makeStructuredData('static', { name: 'Арсенал', url: SITE_URL + '/arsenal/' }) }));
-write('scenarios/index.html', renderPage('Сценарии | AntiManager', 'Четыре сценария для руководителя производства — кризис, команда, изменения и система: с чего начать, какие инструменты применить и чего не делать.', scenariosContent, { canonicalUrl: SITE_URL + '/scenarios/', structuredData: makeStructuredData('static', { name: 'Сценарии', url: SITE_URL + '/scenarios/' }) }));
-write('cases/index.html', renderPage('Полевые дневники | AntiManager', 'Полевые дневники: реальные истории с заводов — что сработало, что провалилось и какие управленческие решения стояли за результатом.', casesContent, { canonicalUrl: SITE_URL + '/cases/', structuredData: makeStructuredData('static', { name: 'Полевые дневники', url: SITE_URL + '/cases/' }) }));
-write('headquarters/index.html', renderPage('Штаб | AntiManager', 'Штаб Антименеджера — закрытый клуб руководителей производства в Telegram: разборы, документы и честные ответы на вопросы, которые не задают на совещаниях.', hqContent, { canonicalUrl: SITE_URL + '/headquarters/', structuredData: makeStructuredData('static', { name: 'Штаб', url: SITE_URL + '/headquarters/' }) }));
-write('about/index.html', renderPage('О проекте | AntiManager', 'О проекте AntiManager: зачем он существует, во что верит и как устроен — интерактивная книга об управлении производством без консалтинговой пыли.', aboutContent, { canonicalUrl: SITE_URL + '/about/', structuredData: makeStructuredData('static', { name: 'О проекте', url: SITE_URL + '/about/' }) }));
-write('404/index.html', renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в арсенал AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. <a href="/" class="btn btn-primary" style="display:inline-flex;">На главную</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + '/404/' }));
-const privacyContent = '<section class="content-page">'
+write(outFile(siteRoutes.manifesto()), renderPage('Манифест | AntiManager', 'Манифест рационального управления: десять ценностей и принципов Антименеджера — среда, стандарт и обратная связь вместо мотивационных лозунгов.', manifestoContent, { canonicalUrl: SITE_URL + siteRoutes.manifesto(), navSection: 'about', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'О проекте', url: SITE_URL + siteRoutes.about() }, { name: 'Манифест', url: SITE_URL + siteRoutes.manifesto() }] }) }));
+write(outFile(siteRoutes.origins()), renderPage('Архив великих идей | AntiManager', 'Архив великих идей управления: Шухарт, Деминг, Оно, Богданов, Гастев, Тейлор и Клаузевиц — что каждый из них на самом деле дал заводу.', archiveContent, { canonicalUrl: SITE_URL + siteRoutes.origins(), navSection: 'about', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'О проекте', url: SITE_URL + siteRoutes.about() }, { name: 'Архив идей', url: SITE_URL + siteRoutes.origins() }] }) }));
+write(outFile(siteRoutes.book()), renderPage('Плейбук — все главы | AntiManager', 'Все ' + plural(weapons.length, 'глава', 'главы', 'глав') + ' плейбука Антименеджера: от системной динамики и процессов до антикризиса и цифрового двойника. Фильтр по ситуации и роли, время чтения и полный текст.', arsenalContent, { canonicalUrl: SITE_URL + siteRoutes.book(), navSection: 'book', structuredData: makeStructuredData('static', { name: 'Плейбук', url: SITE_URL + siteRoutes.book() }) }));
+write(outFile(siteRoutes.start()), renderPage('С чего начать | AntiManager', 'Четыре ситуации для руководителя производства — кризис, команда, изменения и система: симптомы, первые три шага, главы, документ и статья по каждой.', scenariosContent, { canonicalUrl: SITE_URL + siteRoutes.start(), navSection: 'book', structuredData: makeStructuredData('static', { name: 'С чего начать', url: SITE_URL + siteRoutes.start() }) }));
+write(outFile(siteRoutes.about()), renderPage('О проекте | AntiManager', 'О проекте AntiManager: зачем он существует, для кого сделан и как им пользоваться — плейбук, статьи и методология без консалтинговой пыли.', aboutContent, { canonicalUrl: SITE_URL + siteRoutes.about(), navSection: 'about', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'О проекте', url: SITE_URL + siteRoutes.about() }] }) }));
+
+// /search/ is the no-JS fallback and the canonical entry point for ?q= links.
+// It is noindex, absent from the sitemap and never carries data-pagefind-body.
+var searchPageContent = '<section class="content-page search-page" data-search-page>'
+  + '<h1>Поиск</h1>'
+  + '<p class="search-page-desc">Ищите по плейбуку, статьям и методологии: главы, long-reads, документы и разделы.</p>'
+  + '<form class="search-page-form" role="search" method="get" action="/search/">'
+  + '<label class="visually-hidden" for="search-page-input">Что искать</label>'
+  + '<input id="search-page-input" class="search-input" type="search" name="q" placeholder="OEE, антикризис, A3…" autocomplete="off" spellcheck="false">'
+  + '<button type="submit" class="btn btn-primary">Найти</button>'
+  + '</form>'
+  + '<noscript><p class="search-page-hint">Поиск работает с JavaScript. Откройте <a href="/playbook/">плейбук</a>, <a href="/articles/">статьи</a> или <a href="/method/">методологию</a>.</p></noscript>'
+  + '</section>';
+write(outFile(siteRoutes.search()), renderPage('Поиск | AntiManager', 'Поиск по плейбуку, статьям и методологии AntiManager: главы, long-reads, документы и разделы.', searchPageContent, { noindex: true, indexable: false, canonicalUrl: SITE_URL + siteRoutes.search() }));
+write(outFile(siteRoutes.notFound()), renderPage('404 — Страница не найдена | AntiManager', 'Страница не найдена. Вернитесь на главную или в плейбук AntiManager.', '<div class="empty-state"><h1>404</h1><p>Страница не найдена. Возможно, адрес устарел.</p><p class="empty-state-links"><a href="/" class="btn btn-primary">На главную</a><a href="/playbook/" class="btn">Плейбук</a><a href="/articles/" class="btn">Статьи</a><a href="/search/" class="btn">Поиск</a></p></div>', { noindex: true, canonicalUrl: SITE_URL + siteRoutes.notFound() }));
+const privacyContent = '<section class="content-page privacy-page">'
   + '<h1>Политика конфиденциальности</h1>'
   + '<p>Сайт antimanager.pro не собирает персональные данные автоматически. Единственный случай, когда вы передаёте данные добровольно, — заполнение формы обратной связи на странице «Связаться».</p>'
   + '<h2>Какие данные собираются</h2>'
@@ -944,8 +1494,8 @@ console.log('  ✓ contact + privacy');
 // generated block is refreshed offline by .kilo/scripts/genome_doc_build.py.
 const genomeLandingBody = read('src/content/genome/landing.html');
 const genomeRoleBody = read('src/content/genome/role.html');
-write('genome/index.html', renderPage('Геном завода — библиотека процессов | AntiManager', 'Геном завода — типизированная библиотека процессов и цепочка управленческих документов: модель, бесплатный образец группы PLAN и полные документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + '/genome/', structuredData: makeStructuredData('static', { name: 'Геном завода', url: SITE_URL + '/genome/' }) }));
-write('genome/role/index.html', renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + '/genome/role/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Документы роли', url: SITE_URL + '/genome/role/' }] }) }));
+write(outFile(siteRoutes.method()), renderPage('Методология производственной системы | AntiManager', 'Методология производственной системы: геном завода — типизированная библиотека процессов, бесплатный образец PLAN и документы роли.', genomeLandingBody, { canonicalUrl: SITE_URL + siteRoutes.method(), navSection: 'method', structuredData: makeStructuredData('static', { name: 'Методология производственной системы', url: SITE_URL + siteRoutes.method() }) }));
+write(outFile(siteRoutes.role()), renderPage('Геном завода — документы роли | AntiManager', 'Полные документы роли «Руководитель производства»: пакет оценки КУ с дескрипторами уровней 1–5, банк вопросов, кейсы и профиль должности для рекрутера.', genomeRoleBody, { canonicalUrl: SITE_URL + siteRoutes.role(), navSection: 'method', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Методология', url: SITE_URL + siteRoutes.method() }, { name: 'Документы роли', url: SITE_URL + siteRoutes.role() }] }) }));
 
 // PS express audit (/genome/audit/): a static tool page plus a fillable XLSX.
 // The page body is generated offline from the vault by
@@ -955,7 +1505,7 @@ const auditBody = read('src/content/genome/audit.html');
 if (/<!--AUDIT:[A-Z]+:START-->\s*<!--AUDIT:[A-Z]+:END-->/.test(auditBody)) {
   throw new Error('genome/audit.html has an empty marker region — run gen_ps_audit_page.py');
 }
-write('genome/audit/index.html', renderPage('Экспресс-аудит производственной системы | AntiManager', '40 критериев для экспресс-оценки производственной системы: якоря уровней 0–5, правила оценки, покрытие и топ-5 разрывов, Excel с автоматическим расчётом.', auditBody, { canonicalUrl: SITE_URL + '/genome/audit/', scripts: '<script src="/js/audit.js?v=' + VERSION + '" defer></script>', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Экспресс-аудит', url: SITE_URL + '/genome/audit/' }] }) }));
+write(outFile(siteRoutes.audit()), renderPage('Экспресс-аудит производственной системы | AntiManager', '40 критериев для экспресс-оценки производственной системы: якоря уровней 0–5, правила оценки, покрытие и топ-5 разрывов, Excel с автоматическим расчётом.', auditBody, { canonicalUrl: SITE_URL + siteRoutes.audit(), navSection: 'method', scripts: '<script src="/js/audit.js?v=' + VERSION + '" defer></script>', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Методология', url: SITE_URL + siteRoutes.method() }, { name: 'Экспресс-аудит', url: SITE_URL + siteRoutes.audit() }] }) }));
 // Systems map (/genome/systems/): a templated 14-system map. The authored partial's
 // <!--SYSTEMS:*--> regions are filled offline by .kilo/scripts/gen_systems_page.py;
 // an un-generated partial must fail the build instead of shipping empty sections.
@@ -963,7 +1513,7 @@ const systemsBody = read('src/content/genome/systems.html');
 if (/<!--SYSTEMS:[A-Z]+:START-->\s*<!--SYSTEMS:[A-Z]+:END-->/.test(systemsBody)) {
   throw new Error('genome/systems.html has an empty marker region — run gen_systems_page.py');
 }
-write('genome/systems/index.html', renderPage('Карта систем производственной системы | AntiManager', 'Четырнадцать систем производственной системы: назначение, владелец, минимальные артефакты, KPI, типовой разрыв и шаблон карточки из двенадцати полей.', systemsBody, { canonicalUrl: SITE_URL + '/genome/systems/', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Геном завода', url: SITE_URL + '/genome/' }, { name: 'Карта систем', url: SITE_URL + '/genome/systems/' }] }) }));
+write(outFile(siteRoutes.systems()), renderPage('Карта систем производственной системы | AntiManager', 'Четырнадцать систем производственной системы: назначение, владелец, минимальные артефакты, KPI, типовой разрыв и шаблон карточки из двенадцати полей.', systemsBody, { canonicalUrl: SITE_URL + siteRoutes.systems(), navSection: 'method', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Методология', url: SITE_URL + siteRoutes.method() }, { name: 'Карта систем', url: SITE_URL + siteRoutes.systems() }] }) }));
 console.log('  ✓ genome + genome/role + genome/audit + genome/systems');
 
 // === TYPICAL DOCUMENTS (/genome/documents/) ===
@@ -988,7 +1538,7 @@ function docInterlinksHtml(doc) {
 }
 
 var documentTemplate = '<div class="content-page full-article-page document-page">'
-  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="/genome/">Геном завода</a> <span class="sep">→</span> <a href="/genome/documents/">Документы</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
+  + '<nav class="breadcrumbs"><a href="/">Главная</a> <span class="sep">→</span> <a href="' + siteRoutes.method() + '">Методология</a> <span class="sep">→</span> <a href="' + siteRoutes.documents() + '">Документы</a> <span class="sep">→</span> <span>{{title}}</span></nav>'
   + '<header class="full-hero doc-hero">'
   + '<div class="doc-kicker">Типовой документ</div>'
   + '<h1>{{title}}</h1>'
@@ -1010,18 +1560,18 @@ var documentsHubBody = read('src/content/genome/documents.html');
 if (/<!--DOCS:LIST:START-->\s*<!--DOCS:LIST:END-->/.test(documentsHubBody)) {
   throw new Error('genome/documents.html has an empty DOCS:LIST region — run gen_documents_pages.py');
 }
-write('genome/documents/index.html', renderPage(
+write(outFile(siteRoutes.documents()), renderPage(
   'Типовые документы производственной системы | AntiManager',
   'Типовые документы производственной системы: ритм совещаний, Gemba-обход и система непрерывных улучшений. PDF и DOCX, лицензия CC BY-SA 4.0.',
   documentsHubBody,
-  { canonicalUrl: SITE_URL + '/genome/documents/', structuredData: makeStructuredData('collection', {
+  { canonicalUrl: SITE_URL + siteRoutes.documents(), navSection: 'method', structuredData: makeStructuredData('collection', {
       name: 'Типовые документы производственной системы',
       description: 'Шаблоны ритма совещаний, Gemba-обхода и системы непрерывных улучшений.',
-      url: SITE_URL + '/genome/documents/',
+      url: SITE_URL + siteRoutes.documents(),
       breadcrumbs: [
         { name: 'Главная', url: SITE_URL + '/' },
-        { name: 'Геном завода', url: SITE_URL + '/genome/' },
-        { name: 'Документы', url: SITE_URL + '/genome/documents/' }
+        { name: 'Методология', url: SITE_URL + siteRoutes.method() },
+        { name: 'Документы', url: SITE_URL + siteRoutes.documents() }
       ]
     }) }));
 
@@ -1043,12 +1593,12 @@ documents.forEach(function(d) {
   docPage = docPage.replace('{{content_body}}', function() { return docToc.html; });
   docPage = docPage.replace('{{interlinks}}', function() { return docInterlinksHtml(d); });
 
-  var docUrl = SITE_URL + '/genome/documents/' + d.slug + '/';
-  write('genome/documents/' + d.slug + '/index.html', renderPage(
-    d.title + ' — типовой документ | AntiManager',
+  var docUrl = SITE_URL + siteRoutes.document(d.slug);
+  write(outFile(siteRoutes.document(d.slug)), renderPage(
+    d.title + ' | AntiManager',
     d.summary || d.subtitle,
     docPage,
-    { canonicalUrl: docUrl, ogType: 'article', ogArticleSection: 'Документы', publishedTime: d.updated, structuredData: makeStructuredData('document', { title: d.title, subtitle: d.subtitle, canonicalUrl: docUrl, datePublished: d.updated }) }));
+    { canonicalUrl: docUrl, navSection: 'method', ogType: 'article', ogArticleSection: 'Документы', publishedTime: d.updated, structuredData: makeStructuredData('document', { title: d.title, subtitle: d.subtitle, canonicalUrl: docUrl, datePublished: d.updated }) }));
   console.log('  ✓ documents ' + d.slug);
 });
 console.log('  ✓ genome/documents + ' + documents.length + ' document pages');
@@ -1058,7 +1608,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
   var w = weapons[wi];
   var contentPath = path.join(__dirname, 'src', 'content', w.id + '-' + w.slug + '.html');
   var hasContent = fs.existsSync(contentPath);
-  var contentBody = hasContent ? fs.readFileSync(contentPath, 'utf-8') : '<div class="empty-state"><h3>Статья в разработке</h3><p>Эта статья ещё не готова. Скоро здесь появится текст.</p><p style="margin-top:var(--space-4);"><a href="/arsenal/" class="btn" style="display:inline-flex;">← Вернуться в арсенал</a></p></div>';
+  var contentBody = hasContent ? fs.readFileSync(contentPath, 'utf-8') : '<div class="empty-state"><h3>Статья в разработке</h3><p>Эта статья ещё не готова. Скоро здесь появится текст.</p><p style="margin-top:var(--space-4);"><a href="' + siteRoutes.book() + '" class="btn" style="display:inline-flex;">← Вернуться в арсенал</a></p></div>';
 
   var zoneBadge = zoneBadgeHtml(w.zone);
   var statusSpan = (w.status === 'published') ? '' : statusBadgeHtml(w.status);
@@ -1078,7 +1628,10 @@ for (var wi = 0; wi < weapons.length; wi++) {
   // raw prose, so escape it once for the meta attribute; the fallback subtitle is
   // already escaped at load time.
   var fullSummary = hasFull ? summaryText(fullBody, 155) : '';
-  var fullDescription = hasFull ? (fullSummary ? escapeHtml(fullSummary) : (w.subtitle || '')) : '';
+  var fullDescription = hasFull ? (fullSummary ? escapeHtml(fullSummary) : escapeHtml(w.subtitle || '')) : '';
+  if (hasFull && fullDescription.length < 90) {
+    fullDescription = escapeHtml((w.subtitle || '') + ' Полный текст главы плейбука AntiManager.');
+  }
 
   // Read-more card replaces the old lite "Тезисный отрывок": a short lede from
   // the full text plus an explicit path to it. Rendered only when the full text
@@ -1087,13 +1640,16 @@ for (var wi = 0; wi < weapons.length; wi++) {
   if (hasFull) {
     var ledeMatch = fullBody.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
     var lede = ledeMatch ? ledeMatch[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
-    if (lede.length > 220) lede = lede.slice(0, 217).replace(/\s+\S*$/, '') + '…';
+    if (lede.length > 220) {
+      lede = lede.slice(0, 217).replace(/\s+\S*$/, '').replace(/[\s,;:.—–-]+$/, '') + '…';
+    }
     if (!lede) lede = w.subtitle || '';
+    var personalVoice = /^Я[\s,]/i.test(lede);
     readMoreHtml = '<aside class="read-more-card">'
-      + '<div class="read-more-label">Полный текст статьи</div>'
+      + '<div class="read-more-label">' + (personalVoice ? 'Личный опыт · полный текст главы' : 'Полный текст главы') + '</div>'
       + (lede ? '<p class="read-more-hook">' + lede + '</p>' : '')
       + '<div class="read-more-meta">⏱ ' + readMinutes(fullBody) + ' мин чтения</div>'
-      + '<a class="btn btn-primary" href="/weapons/' + escapeHtml(w.slug) + '/full/">Читать статью полностью →</a>'
+      + '<a class="btn btn-primary" href="' + siteRoutes.chapterFull(w.slug) + '">Читать главу полностью →</a>'
       + '</aside>';
   }
 
@@ -1117,13 +1673,30 @@ for (var wi = 0; wi < weapons.length; wi++) {
   if (related.length > 0) {
     relatedHtml = '<h2 class="section-title" style="margin-top:var(--space-10);">В том же окопе</h2><div class="weapon-grid">'
       + related.map(function(r) {
-        return '<a href="/weapons/' + escapeHtml(r.slug) + '/" class="weapon-card">'
+        return '<a href="' + siteRoutes.chapter(r.slug) + '" class="weapon-card">'
           + '<div class="weapon-title">' + r.title + '</div>'
           + '<div class="weapon-subtitle">' + (r.subtitle || '') + '</div>'
           + '</a>';
       }).join('')
       + '</div>';
   }
+
+  // Cross-type block: the chapter's situation supplies one long-read and one
+  // template, then the catalog adds tag-matched material. Chapters themselves
+  // stay in the "В том же окопе" block above, so nothing is listed twice.
+  var chapterEntry = chapterIndex[String(w.id)];
+  var crossRelatedHtml = relatedBlockHtml(
+    relatedEntries(chapterEntry, ['article', 'document'], 3),
+    'Связанные материалы'
+  );
+  var chapterNav = chapterNavHtml(w.slug);
+  var chapterScenario = scenarioByChapter[w.slug];
+  var chapterCta = nextStepBand({
+    title: 'Что дальше',
+    text: 'Одна глава — один шаг. Соберите последовательность под свою ситуацию или обсудите контур с автором плейбука.',
+    href: chapterScenario ? siteRoutes.start() + '#' + chapterScenario.id : siteRoutes.start(),
+    label: chapterScenario ? 'Открыть сценарий «' + chapterScenario.title + '»' : 'С чего начать'
+  });
 
   // Resolve the read-more placeholder inside the authored partial. Function
   // replacers everywhere: authored text may contain "$" patterns.
@@ -1136,11 +1709,14 @@ for (var wi = 0; wi < weapons.length; wi++) {
   html = html.replace('{{status_badge}}', function() { return statusSpan; });
   html = html.replace('{{content_body}}', function() { return contentBody; });
   html = html.replace('{{thinker_block}}', function() { return thinkerBlock; });
+  html = html.replace('{{chapter_nav}}', function() { return chapterNav; });
   html = html.replace('{{related_weapons}}', function() { return relatedHtml; });
+  html = html.replace('{{related_block}}', function() { return crossRelatedHtml; });
+  html = html.replace('{{next_step}}', function() { return chapterCta; });
 
-  var canonicalUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/';
+  var canonicalUrl = SITE_URL + siteRoutes.chapter(w.slug);
   var zoneLabel = w.zone ? zoneLabels[w.zone] : null;
-  write('weapons/' + w.slug + '/index.html', renderPage(w.title + ' | AntiManager', w.subtitle || '', html, { canonicalUrl: canonicalUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel, datePublished: w.date }) }));
+  write(outFile(siteRoutes.chapter(w.slug)), renderPage(w.title + ' | AntiManager', chapterMetaDescription(w.subtitle), html, { canonicalUrl: canonicalUrl, navSection: 'book', ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('weapon', { title: w.title, subtitle: w.subtitle, canonicalUrl: canonicalUrl, articleSection: zoneLabel, datePublished: w.date }) }));
   console.log('  ✓ ' + w.id + ' ' + w.slug);
 
   // Full-text page ships only when its source partial exists.
@@ -1156,10 +1732,13 @@ for (var wi = 0; wi < weapons.length; wi++) {
     fullHtml = fullHtml.replace('{{content_body}}', function() { return toc.html; });
     fullHtml = fullHtml.replace('{{materials_section}}', function() { return materialsBlockHtml(w); });
     fullHtml = fullHtml.replace('{{thinker_block}}', function() { return thinkerBlock; });
+    fullHtml = fullHtml.replace('{{chapter_nav}}', function() { return chapterNav; });
     fullHtml = fullHtml.replace('{{related_weapons}}', function() { return relatedHtml; });
+    fullHtml = fullHtml.replace('{{related_block}}', function() { return crossRelatedHtml; });
+    fullHtml = fullHtml.replace('{{next_step}}', function() { return chapterCta; });
 
-    var fullUrl = SITE_URL + '/weapons/' + escapeHtml(w.slug) + '/full/';
-    write('weapons/' + w.slug + '/full/index.html', renderPage(w.title + ' — полный текст', fullDescription, fullHtml, { canonicalUrl: fullUrl, ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('articleFull', { title: w.title, subtitle: fullDescription, canonicalUrl: fullUrl, articleSection: zoneLabel, slug: escapeHtml(w.slug), datePublished: w.date }) }));
+    var fullUrl = SITE_URL + siteRoutes.chapterFull(w.slug);
+    write(outFile(siteRoutes.chapterFull(w.slug)), renderPage(w.title + ' — полный текст', fullDescription, fullHtml, { canonicalUrl: fullUrl, navSection: 'book', ogType: 'article', ogArticleSection: zoneLabel, ogTags: w.tags, publishedTime: w.date, structuredData: makeStructuredData('articleFull', { title: w.title, subtitle: fullDescription, canonicalUrl: fullUrl, articleSection: zoneLabel, slug: escapeHtml(w.slug), datePublished: w.date }) }));
     console.log('  ✓ ' + w.id + ' ' + w.slug + ' (full)');
   }
 }
@@ -1185,7 +1764,7 @@ var articleCtaBand = '<section class="cta-band">'
   + '<h2>Разобрать вашу ситуацию</h2>'
   + '<p style="color:var(--color-muted);max-width:640px;margin:0 auto var(--space-6);">Опишите свой контур и ограничения — обсудим, где узкое место и что делать с экономикой, развитием и цифровым контуром.</p>'
   + '<a href="https://t.me/antimanagerpro_bot" class="btn btn-primary">Написать в Telegram</a>'
-  + '<a href="/headquarters/" class="btn">Заглянуть в Штаб</a>'
+  + '<a href="' + siteRoutes.contact() + '" class="btn">Обсудить задачу</a>'
   + '</section>';
 
 function articleCardHtml(a) {
@@ -1205,14 +1784,23 @@ function articleCardHtml(a) {
 function seriesBlockHtml(seriesSlug, excludeId) {
   var series = seriesBySlug(seriesSlug);
   if (!series) return '';
-  var members = publishedArticles.filter(function(a) {
-    return a.series === seriesSlug && a.id !== excludeId;
-  });
+  var ordered = publishedArticles.filter(function(a) { return a.series === seriesSlug; });
+  var members = ordered.filter(function(a) { return a.id !== excludeId; });
   if (!members.length) return '';
+  var items = members.map(function(a) {
+    var body = articleBody(a);
+    var mins = body ? readMinutes(body) : '';
+    var pos = ordered.indexOf(a) + 1;
+    return '<li><a href="/articles/' + escapeHtml(a.topic) + '/' + escapeHtml(a.slug) + '/">'
+      + '<span class="series-index">' + (pos < 10 ? '0' + pos : pos) + '</span>'
+      + '<span class="series-title">' + a.title + '</span>'
+      + (mins ? '<span class="series-meta">' + mins + ' мин</span>' : '')
+      + '</a></li>';
+  }).join('');
   return '<section class="article-series-block">'
     + '<h2>' + series.title + '</h2>'
     + '<p class="article-series-desc">' + (series.description || '') + '</p>'
-    + '<div class="article-grid">' + members.map(articleCardHtml).join('') + '</div>'
+    + '<ol class="series-list">' + items + '</ol>'
     + '</section>';
 }
 
@@ -1229,6 +1817,7 @@ var articleTemplate = '<div class="content-page full-article-page article-page">
   + '{{series_section}}'
   + '{{faq_section}}'
   + '{{materials_section}}'
+  + '{{related_block}}'
   + '{{cta_band}}'
   + '</div>';
 
@@ -1253,9 +1842,15 @@ var articlesIndexContent = '<section class="content-page articles-hub">'
   + '<nav class="article-topic-chips" aria-label="Темы">' + topicChips + '</nav>'
   + seriesBlockHtml('capability', null)
   + hubTopicSections
+  + nextStepBand({
+      title: 'Что дальше',
+      text: 'Начните с темы или серии, а если нужен первый шаг под вашу ситуацию — откройте сценарии плейбука.',
+      href: siteRoutes.start(),
+      label: 'С чего начать'
+    })
   + '</section>';
 
-write('articles/index.html', renderPage('Статьи | AntiManager', 'Long-reads о стратегии, экономике, управлении и цифровизации производства: полные тексты без гейтинга.', articlesIndexContent, { canonicalUrl: SITE_URL + '/articles/', structuredData: makeStructuredData('collection', { name: 'Статьи', description: 'Long-reads о стратегии, экономике, управлении и цифровизации производства.', url: SITE_URL + '/articles/', breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + '/articles/' }] }) }));
+write(outFile(siteRoutes.articles()), renderPage('Статьи | AntiManager', 'Long-reads о стратегии, экономике, управлении и цифровизации производства: полные тексты без гейтинга.', articlesIndexContent, { canonicalUrl: SITE_URL + siteRoutes.articles(), navSection: 'articles', structuredData: makeStructuredData('collection', { name: 'Статьи', description: 'Long-reads о стратегии, экономике, управлении и цифровизации производства.', url: SITE_URL + siteRoutes.articles(), breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + siteRoutes.articles() }] }) }));
 console.log('  ✓ articles hub');
 
 // Topic hubs: only topics that actually have published articles.
@@ -1267,9 +1862,15 @@ publishedTopics.forEach(function(t) {
     + '<p class="weapon-subtitle">' + (t.description || '') + '</p>'
     + '<div class="article-grid">' + inTopic.map(articleCardHtml).join('') + '</div>'
     + '<p style="margin-top:var(--space-8);"><a href="/articles/">← Все статьи</a></p>'
+    + nextStepBand({
+        title: 'Что дальше',
+        text: 'Соберите последовательность из глав плейбука или начните с трёх шагов под свою ситуацию.',
+        href: siteRoutes.start(),
+        label: 'С чего начать'
+      })
     + '</section>';
-  var topicUrl = SITE_URL + '/articles/' + escapeHtml(t.slug) + '/';
-  write('articles/' + t.slug + '/index.html', renderPage(t.title + ' — статьи | AntiManager', t.description || t.title, content, { canonicalUrl: topicUrl, structuredData: makeStructuredData('collection', { name: t.title, description: t.description, url: topicUrl, breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + '/articles/' }, { name: t.title, url: topicUrl }] }) }));
+  var topicUrl = SITE_URL + siteRoutes.articleTopic(t.slug);
+  write(outFile(siteRoutes.articleTopic(t.slug)), renderPage(t.title + ' — статьи | AntiManager', t.description || t.title, content, { canonicalUrl: topicUrl, navSection: 'articles', structuredData: makeStructuredData('collection', { name: t.title, description: t.description, url: topicUrl, breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Статьи', url: SITE_URL + siteRoutes.articles() }, { name: t.title, url: topicUrl }] }) }));
   console.log('  ✓ articles topic ' + t.slug);
 });
 
@@ -1292,48 +1893,50 @@ publishedArticles.forEach(function(a) {
   html = html.replace('{{series_section}}', function() { return a.series ? seriesBlockHtml(a.series, a.id) : ''; });
   html = html.replace('{{faq_section}}', function() { return faqSectionHtml(a.faq); });
   html = html.replace('{{materials_section}}', function() { return materialsBlockHtml(a); });
+  var articleEntry = catalog.byUrl.get(siteRoutes.article(a.topic, a.slug));
+  html = html.replace('{{related_block}}', function() {
+    return relatedBlockHtml(relatedEntries(articleEntry, ['chapter', 'document'], 3), 'Из плейбука и методологии');
+  });
   html = html.replace('{{cta_band}}', function() { return articleCtaBand; });
 
-  var aUrl = SITE_URL + '/articles/' + escapeHtml(a.topic) + '/' + escapeHtml(a.slug) + '/';
+  var aUrl = SITE_URL + siteRoutes.article(a.topic, a.slug);
   var aSection = a.articleSection || topic.title;
-  write('articles/' + a.topic + '/' + a.slug + '/index.html', renderPage(a.seoTitle + ' | AntiManager', a.seoDescription || a.subtitle || '', html, { canonicalUrl: aUrl, ogType: 'article', ogArticleSection: aSection, ogTags: a.tags, publishedTime: a.date, structuredData: makeStructuredData('article', { title: a.title, subtitle: a.subtitle, canonicalUrl: aUrl, articleSection: aSection, topic: a.topic, topicTitle: topic.title, datePublished: a.date, faq: a.faq }) }));
+  write(outFile(siteRoutes.article(a.topic, a.slug)), renderPage(titleWithBrand(a.seoTitle), a.seoDescription || a.subtitle || '', html, { canonicalUrl: aUrl, navSection: 'articles', ogType: 'article', ogArticleSection: aSection, ogTags: a.tags, publishedTime: a.date, structuredData: makeStructuredData('article', { title: a.title, subtitle: a.subtitle, canonicalUrl: aUrl, articleSection: aSection, topic: a.topic, topicTitle: topic.title, datePublished: a.date, faq: a.faq }) }));
   console.log('  ✓ articles ' + a.id + ' ' + a.topic + '/' + a.slug);
 });
 
 // Sitemap
 var sitemapUrls = [
   { loc: SITE_URL + '/', priority: '1.0', changefreq: 'daily', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/arsenal/', priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/manifesto/', priority: '0.8', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/archive/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/scenarios/', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/cases/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/headquarters/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/about/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/contact/', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/genome/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/genome/role/', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/genome/audit/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/genome/systems/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/genome/documents/', priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
-  { loc: SITE_URL + '/articles/', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.start(), priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.book(), priority: '0.9', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.manifesto(), priority: '0.8', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.origins(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.about(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.contact(), priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.method(), priority: '0.8', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.role(), priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.audit(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.systems(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.documents(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.articles(), priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 documents.forEach(function(d) {
-  sitemapUrls.push({ loc: SITE_URL + '/genome/documents/' + d.slug + '/', priority: '0.7', changefreq: 'monthly', lastmod: d.updated || BUILD_DATE });
+  sitemapUrls.push({ loc: SITE_URL + siteRoutes.document(d.slug), priority: '0.7', changefreq: 'monthly', lastmod: d.updated || BUILD_DATE });
 });
 publishedTopics.forEach(function(t) {
-  sitemapUrls.push({ loc: SITE_URL + '/articles/' + t.slug + '/', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE });
+  sitemapUrls.push({ loc: SITE_URL + siteRoutes.articleTopic(t.slug), priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE });
 });
 publishedArticles.forEach(function(a) {
-  sitemapUrls.push({ loc: SITE_URL + '/articles/' + a.topic + '/' + a.slug + '/', priority: '0.8', changefreq: 'monthly', lastmod: a.date || BUILD_DATE });
+  sitemapUrls.push({ loc: SITE_URL + siteRoutes.article(a.topic, a.slug), priority: '0.8', changefreq: 'monthly', lastmod: a.date || BUILD_DATE });
 });
 for (var si = 0; si < weapons.length; si++) {
   var weaponDate = weapons[si].date || BUILD_DATE;
   if (fs.existsSync(path.join(__dirname, 'src', 'content', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
-    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/', priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
+    sitemapUrls.push({ loc: SITE_URL + siteRoutes.chapter(weapons[si].slug), priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
   }
   if (fs.existsSync(path.join(__dirname, 'src', 'content', 'full', weapons[si].id + '-' + weapons[si].slug + '.html'))) {
-    sitemapUrls.push({ loc: SITE_URL + '/weapons/' + weapons[si].slug + '/full/', priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
+    sitemapUrls.push({ loc: SITE_URL + siteRoutes.chapterFull(weapons[si].slug), priority: '0.9', changefreq: 'weekly', lastmod: weaponDate });
   }
 }
 var sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -1342,7 +1945,7 @@ for (var si2 = 0; si2 < sitemapUrls.length; si2++) {
 }
 sitemap += '</urlset>';
 write('sitemap.xml', sitemap);
-write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
+write('robots.txt', 'User-agent: *\nAllow: /\nDisallow: /pagefind/\n\nSitemap: ' + SITE_URL + '/sitemap.xml\n');
 
 // IndexNow key file: served from the site root at /<key>.txt and checked by the
 // API against the keyLocation sent by scripts/indexnow.js.

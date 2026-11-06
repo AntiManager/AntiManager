@@ -40,8 +40,8 @@
         <button class="btn btn-outline" onclick="answerRdiag(0)">Частично делегируются, но за ошибки наказывают</button>
         <button class="btn btn-outline" onclick="answerRdiag(-1)">Все решения спускаются сверху. Инициатива наказуема</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="rDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRdiag()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="rDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRdiag()">← Назад</button>
     <div id="rDiagResult" style="display:none;">
       <div class="block-principle" id="rDiagResultText"></div>
       <button class="btn btn-ghost" onclick="resetRdiag()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -93,11 +93,11 @@
       '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
       '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[0] + ')">Здоровая культура</button>' +
       '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[1] + ')">Бывает по-разному</button>' +
-      '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[2] + ')">Больная культура</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="rDiagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackRdiag()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerRdiag(' + q.options[2] + ')">Больная культура</button></div>';
   }
 
   function showRdiagResult(score) {
+    document.getElementById('rDiagBackBtn').style.display = 'none';
     var result = document.getElementById('rDiagResult');
     var text = document.getElementById('rDiagResultText');
     document.getElementById('rDiagQuestion').style.display = 'none';

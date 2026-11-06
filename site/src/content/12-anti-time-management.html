@@ -38,8 +38,8 @@
         <button class="btn btn-outline" onclick="answerFoc(1)">Несколько раз в день — иногда отбиваюсь</button>
         <button class="btn btn-outline" onclick="answerFoc(0)">Редко — есть система фильтрации входящих</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="focBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackFoc()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="focBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackFoc()">← Назад</button>
     <div id="focResult" style="display:none;">
       <div class="block-principle" id="focResultText"></div>
       <button class="btn btn-ghost" onclick="resetFoc()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -90,11 +90,12 @@
     var c = document.getElementById('focQuestion');
     var html = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
     for (var i = 0; i < q.labels.length; i++) html += '<button class="btn btn-outline" onclick="answerFoc(' + q.options[i] + ')">' + q.labels[i] + '</button>';
-    html += '</div><button class="btn btn-ghost btn-sm" id="focBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackFoc()">← Назад</button>';
+    html += '</div>';
     c.innerHTML = html;
   }
 
   function showFocResult() {
+    document.getElementById('focBackBtn').style.display = 'none';
     var score = window._focDiag.score;
     document.getElementById('focQuestion').style.display = 'none';
     document.getElementById('focResult').style.display = 'block';

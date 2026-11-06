@@ -66,8 +66,8 @@
         <button class="btn btn-outline" onclick="answerBar(1)">Приводит аргументы, но готов обсуждать и слушать данные</button>
         <button class="btn btn-outline" onclick="answerBar(2)">Защищается эмоционально: «у нас так заведено», «это не сработает»</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="barBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackBar()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="barBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackBar()">← Назад</button>
     <div id="barResult" style="display:none;">
       <div class="block-principle" id="barResultText"></div>
       <button class="btn btn-ghost" onclick="resetBar()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -121,11 +121,12 @@
     for (var i = 0; i < q.options.length; i++) {
       html += '<button class="btn btn-outline" onclick="answerBar(' + q.options[i] + ')">' + q.labels[i] + '</button>';
     }
-    html += '</div><button class="btn btn-ghost btn-sm" id="barBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackBar()">← Назад</button>';
+    html += '</div>';
     c.innerHTML = html;
   }
 
   function showBarResult() {
+    document.getElementById('barBackBtn').style.display = 'none';
     var scores = window._barDiag.scores;
     document.getElementById('barQuestion').style.display = 'none';
     document.getElementById('barResult').style.display = 'block';

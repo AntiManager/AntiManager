@@ -1,5 +1,5 @@
 # AntiManager — System Patterns
-> Updated: 2026-10-19
+> Updated: 2026-11-06
 
 ## Design System
 - **Name**: Brutalist (Black+Red+White)
@@ -7,8 +7,8 @@
 - **Motto**: «Система не врёт, человек — да»
 
 ## Content Architecture
-- Weapons catalog (`weapons.json` → dynamic star map)
-- Zones: each weapon belongs to a zone (production management areas)
+- Book chapters (`weapons.json` + `chapters.json`, joined/asserted by `src/lib/catalog.js`) → `/playbook/`
+- Situations: each chapter belongs to `crisis` / `team` / `changes` / `system` (scenarios.json)
 - Articles: vault Markdown → HTML partials via `.kilo/scripts/gen_article_partials.py` (offline);
   `build.js` only reads the generated partials, so re-run the generator after every vault edit
 - Article archive: `articles.json` drives URLs/order/status, `article-topics.json` the hubs,
@@ -17,13 +17,18 @@
   frontmatter, so every article needs a title block followed by `---`
 - No numbering: articles are standalone, not chapters
 
-## URL Structure
+## URL Structure (source of truth: `site/src/routes.js`)
 - `/` — landing
-- `/weapons/` — weapons catalog with zone filter (`/arsenal/` also resolves)
-- `/weapons/<slug>/` — article (interactive) + `/weapons/<slug>/full/` (full text + materials)
-- `/genome/`, `/genome/role/`, `/articles/`, `/articles/<topic>/`, `/articles/<topic>/<slug>/`, `/contact/`
-- `/strategy/...` → 301 → `/articles/strategy/...` (nginx; legacy route)
-- `/archive/`, `/scenarios/`, `/cases/`, `/headquarters/`, `/about/`, `/manifesto/`, `/privacy/`, `/404`
+- `/playbook/` — chapter catalog with situation filter; `/playbook/<slug>/` interactive, `/playbook/<slug>/full/` full text + materials
+- `/start/` — four situations with anchors (`#crisis`, `#team`, `#changes`, `#system`)
+- `/articles/`, `/articles/<topic>/`, `/articles/<topic>/<slug>/`
+- `/method/`, `/method/audit/`, `/method/systems/`, `/method/documents/`, `/method/documents/<slug>/`, `/method/role/`
+- `/about/`, `/about/manifesto/`, `/about/origins/`, `/contact/`, `/privacy/`, `/search/`, `/404/`
+- Legacy URLs → single 301: `/weapons/` → `/playbook/`, `/genome/` → `/method/`, `/arsenal/` → `/playbook/`,
+  `/book/` → `/playbook/`, `/scenarios/` → `/start/`, `/manifesto/` → `/about/manifesto/`,
+  `/archive/` → `/about/origins/`, `/about/headquarters/` → `/contact/`, `/headquarters/` → `/contact/`,
+  `/cases/` → `/`. Map: `site/deploy/redirects.conf`
+  (generated, `npm run check:redirects`). `/strategy/...` → `/articles/strategy/...` stays nginx-only.
 
 ## Encoding Rules (source of truth: pipelines/common/guard_encoding.py)
 - Все Markdown-файлы (manifesto, статьи, content): UTF-8 без BOM

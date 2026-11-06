@@ -41,8 +41,8 @@
         <button class="btn btn-outline" onclick="answerKpi(1)">Частично — есть конфликты между подразделениями</button>
         <button class="btn btn-outline" onclick="answerKpi(0)">Зоопарк — каждый отдел меряет своё, данные не стыкуются</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="kpiBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackKpi()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="kpiBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackKpi()">← Назад</button>
     <div id="kpiResult" style="display:none;">
       <div class="block-principle" id="kpiResultText"></div>
       <button class="btn btn-ghost" onclick="resetKpi()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -68,11 +68,12 @@
     var c = document.getElementById('kpiQuestion');
     var h = '<p style="font-weight:600;margin-bottom:var(--space-3)">'+q.text+'</p><div style="display:flex;flex-direction:column;gap:var(--space-2);">';
     for(var i=0;i<q.labels.length;i++) h+='<button class="btn btn-outline" onclick="answerKpi('+q.options[i]+')">'+q.labels[i]+'</button>';
-    h+='</div><button class="btn btn-ghost btn-sm" id="kpiBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackKpi()">← Назад</button>';
+    h+='</div>';
     c.innerHTML=h;
   }
 
   function showKpiResult() {
+    document.getElementById('kpiBackBtn').style.display = 'none';
     var s=window._kpiDiag.score; document.getElementById('kpiQuestion').style.display='none'; document.getElementById('kpiResult').style.display='block';
     var t=document.getElementById('kpiResultText');
     if(s>=7) t.innerHTML='<strong>Нервная система работает.</strong><br>KPI согласованы между подразделениями, каждый уровень получает свои показатели, причинно-следственные связи видны. Поддерживайте: раз в квартал проводите аудит KPI на предмет конфликтов и «мёртвых» показателей, которые никто не использует для решений.';

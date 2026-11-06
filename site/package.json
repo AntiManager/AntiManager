@@ -4,18 +4,25 @@
   "version": "0.1.0",
   "description": "AntiManager — production management system site",
   "scripts": {
-    "build": "node build.js",
+    "build": "node build.js && pagefind --site dist",
+    "build:site": "node build.js",
+    "search:index": "pagefind --site dist",
+    "gen:redirects": "node scripts/gen-redirects.js",
+    "check:redirects": "node scripts/gen-redirects.js --check",
     "render:og": "node scripts/render-og.js",
     "render:pdf": "node scripts/render-pdf.js",
     "indexnow": "node scripts/indexnow.js",
     "optimize:thinkers": "node scripts/optimize-thinkers.js",
-    "test": "node --test --test-concurrency=1 \"unit/**/*.test.js\" && playwright test",
+    "test": "node --test --test-concurrency=1 \"unit/**/*.test.js\" && npm run check:redirects && npm run build && npm run check:links && playwright test",
     "test:unit": "node --test --test-concurrency=1 \"unit/**/*.test.js\"",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run build && playwright test",
     "test:ui": "playwright test --ui",
-    "test:update-snapshots": "playwright test --update-snapshots"
+    "test:update-snapshots": "playwright test --update-snapshots",
+    "check:links": "node scripts/check-links.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1"
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.61.1",
+    "pagefind": "^1.6.0"
   }
 }

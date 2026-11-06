@@ -1,4 +1,4 @@
-"""Generate the /genome/systems/ page, the owner document and the blank card template.
+"""Generate the /method/systems/ page, the owner document and the blank card template.
 
 Source of truth: the Obsidian vault note `Методология ПС/Карточки-систем.md`.
 Outputs:
@@ -277,9 +277,9 @@ def owner_markdown(cards: list[dict], updated: str) -> str:
         "## Что дальше",
         "",
         "Полная карта с процессами, критериями чек-листа и полным составом артефактов — "
-        "на сайте: /genome/systems/.",
+        "на сайте: /method/systems/.",
         "",
-        "Разбор под конкретное предприятие — через форму на /contact/ или в Штабе.",
+        "Разбор под конкретное предприятие — через форму на /contact/.",
         "",
     ]
     return "\n".join(lines)

@@ -1,4 +1,4 @@
-"""Generate the /genome/audit/ page regions and the fillable XLSX from the vault.
+"""Generate the /method/audit/ page regions and the fillable XLSX from the vault.
 
 Source of truth: the Obsidian vault note «Аудит ПС/Экспресс-чек-лист-аудита-ПС.md».
 The script fills the <!--AUDIT:*:START-->…<!--AUDIT:*:END--> marker regions in

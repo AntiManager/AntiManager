@@ -38,20 +38,20 @@ test('full-text page ships read-more path, TOC, materials and sitemap entry', fu
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    const landing = readDist('weapons', 'mayatnik-upravleniya', 'index.html');
+    const landing = readDist('playbook', 'mayatnik-upravleniya', 'index.html');
     assert.ok(landing.includes('class="read-more-card"'), 'landing must offer a read-more path');
-    assert.ok(landing.includes('/weapons/mayatnik-upravleniya/full/'), 'read-more must link to the full text');
+    assert.ok(landing.includes('/playbook/mayatnik-upravleniya/full/'), 'read-more must link to the full text');
     assert.ok(!landing.includes('Тезисный отрывок'), 'the lite thesis excerpt must be gone');
     assert.ok(!landing.includes('download-section'), 'the fake download section must be gone');
 
-    const full = readDist('weapons', 'mayatnik-upravleniya', 'full', 'index.html');
+    const full = readDist('playbook', 'mayatnik-upravleniya', 'full', 'index.html');
     assert.ok(full.includes('article-toc'), 'full page needs a table of contents');
     assert.ok(full.includes('materials-section'), 'full page needs a materials block');
     assert.ok(full.includes('"position": 4'), 'full page breadcrumb must be four levels deep');
     assert.ok(full.includes('/materials/mayatnik-upravleniya.pdf'), 'article PDF must be linked');
     assert.ok(!/\{\{[a-z_]+\}\}/.test(full), 'no template tokens may remain in the full page');
 
-    assert.ok(readDist('sitemap.xml').includes('/weapons/mayatnik-upravleniya/full/'), 'sitemap must list the full page');
+    assert.ok(readDist('sitemap.xml').includes('/playbook/mayatnik-upravleniya/full/'), 'sitemap must list the full page');
   } finally {
     runBuild();
   }
@@ -65,12 +65,12 @@ test('rollout: migrated landings link to their full text pages', function() {
       const slug = pair[0];
       const label = pair[1];
 
-      const landing = readDist('weapons', slug, 'index.html');
+      const landing = readDist('playbook', slug, 'index.html');
       assert.ok(landing.includes('class="read-more-card"'), label + ' landing must offer a read-more path');
-      assert.ok(landing.includes('/weapons/' + slug + '/full/'), label + ' read-more must link to the full text');
+      assert.ok(landing.includes('/playbook/' + slug + '/full/'), label + ' read-more must link to the full text');
       assert.ok(!landing.includes('Тезисный отрывок'), label + ' lite thesis excerpt must be gone');
 
-      const full = readDist('weapons', slug, 'full', 'index.html');
+      const full = readDist('playbook', slug, 'full', 'index.html');
       assert.ok(full.includes('article-toc'), label + ' full page needs a table of contents');
       assert.ok(full.includes('materials-section'), label + ' full page needs a materials block');
       assert.ok(full.includes('/materials/' + slug + '.pdf'), label + ' article PDF must be linked');
@@ -85,7 +85,7 @@ test('article 07 ships eight monsters and the inline loss map; ch.06 canonises e
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    const full = readDist('weapons', 'dengi-v-dvizhenii', 'full', 'index.html');
+    const full = readDist('playbook', 'dengi-v-dvizhenii', 'full', 'index.html');
     assert.ok(full.includes('class="loss-map"'), '07 full page must embed the loss map');
     assert.ok(full.includes('role="img"'), 'loss map must expose an accessible role');
     assert.ok(full.includes('aria-labelledby="lossmap-title"'), 'loss map must reference its accessible title');
@@ -95,11 +95,11 @@ test('article 07 ships eight monsters and the inline loss map; ch.06 canonises e
     assert.ok(!full.includes('Семь пожирател'), '07 must no longer say "Семь пожирателей"');
     assert.ok(!full.includes('неиспользованный потенциал сотрудников'), 'old 8th-waste wording must be gone from 07');
 
-    const lite = readDist('weapons', 'dengi-v-dvizhenii', 'index.html');
+    const lite = readDist('playbook', 'dengi-v-dvizhenii', 'index.html');
     assert.ok(lite.includes('Восемь пожирателей прибыли'), '07 landing heading must read "Восемь"');
     assert.ok(lite.includes('Нереализованный потенциал'), '07 landing table must include the eighth monster');
 
-    const p = readDist('weapons', 'processy', 'full', 'index.html');
+    const p = readDist('playbook', 'processy', 'full', 'index.html');
     assert.ok(p.includes('Классические 7 видов «муда» плюс добавленный позже восьмой'), 'ch.06 must frame the eight as 7 classic + 1 later');
     assert.ok(p.includes('<li>Нереализованный потенциал сотрудников</li>'), 'ch.06 must list the 8th waste item');
     assert.ok(!p.includes('А я добавлю девятый'), 'ch.06 must not offer a ninth waste');
@@ -123,7 +123,7 @@ test('materials.json rejects unsafe hrefs and escapes titles', function() {
 
   try {
     runBuild({ MATERIALS_FILE: good });
-    const full = readDist('weapons', 'mayatnik-upravleniya', 'full', 'index.html');
+    const full = readDist('playbook', 'mayatnik-upravleniya', 'full', 'index.html');
     assert.ok(
       full.includes('&lt;img src=x onerror=&quot;window.__xss=1&quot;&gt;'),
       'material title must be HTML-escaped'

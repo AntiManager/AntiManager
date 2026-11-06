@@ -1,6 +1,62 @@
 [
-  { "id": "crisis", "title": "КРИЗИС", "subtitle": "Завод в хаосе. Сроки горят. Собственник даёт 3 месяца.", "icon": "🔥", "weapons": ["16", "18", "20", "22"] },
-  { "id": "team", "title": "КОМАНДА", "subtitle": "Люди заморожены. Инициативы нет. Боятся ошибок.", "icon": "🛡️", "weapons": ["10", "14"] },
-  { "id": "changes", "title": "ИЗМЕНЕНИЯ", "subtitle": "Внедряю новую систему. Сопротивление. Саботаж.", "icon": "⚔️", "weapons": ["13", "11", "06", "04"] },
-  { "id": "system", "title": "СИСТЕМА", "subtitle": "Хочу понять, как всё связано. Видеть паутину.", "icon": "🗺️", "weapons": ["00", "02", "05", "08", "15", "19"] }
+  {
+    "id": "crisis",
+    "title": "КРИЗИС",
+    "subtitle": "Завод в хаосе. Сроки горят. Собственник даёт 3 месяца.",
+    "icon": "🔥",
+    "symptoms": ["Завод в хаосе", "Сроки горят", "Собственник даёт 3 месяца"],
+    "steps": [
+      { "text": "Зафиксировать текущее состояние: цифры, узкие места, авралы.", "chapter": "haos" },
+      { "text": "Стабилизировать по протоколу 90 дней, а не тушить всё сразу.", "chapter": "antikrizis" },
+      { "text": "Действовать по траектории, не дожидаясь идеального момента.", "chapter": "udarit-po-traektorii" }
+    ],
+    "document": "a3-reshenie-problem",
+    "article": "optimizaciya-razvitie-antikrizis",
+    "weapons": ["16", "18", "20", "22"]
+  },
+  {
+    "id": "team",
+    "title": "КОМАНДА",
+    "subtitle": "Люди заморожены. Инициативы нет. Боятся ошибок.",
+    "icon": "🛡️",
+    "symptoms": ["Люди заморожены", "Инициативы нет", "Боятся ошибок"],
+    "steps": [
+      { "text": "Понять базовые реакции людей: бей, беги, замри.", "chapter": "bey-begi-zamri" },
+      { "text": "Развивать на рабочем месте, а не на тренингах.", "chapter": "situacionnoe-razvitie" },
+      { "text": "Собрать систему, в которой люди не ломаются.", "chapter": "zhivaya-sistema" }
+    ],
+    "document": "gemba-obhod",
+    "article": "ne-tolko-proekty",
+    "weapons": ["09", "10", "14"]
+  },
+  {
+    "id": "changes",
+    "title": "ИЗМЕНЕНИЯ",
+    "subtitle": "Внедряю новую систему. Сопротивление. Саботаж.",
+    "icon": "⚔️",
+    "symptoms": ["Внедряю новую систему", "Сопротивление", "Саботаж"],
+    "steps": [
+      { "text": "Определить, где Run, а где Change.", "chapter": "dva-tipa-upravleniya" },
+      { "text": "Внедрять изменения через эксперимент и гипотезы.", "chapter": "upravlenie-eksperiment" },
+      { "text": "Сначала перестроить процесс, потом требовать результат.", "chapter": "processy" }
+    ],
+    "document": "snu-kontur-uluchsheniy",
+    "article": "vnedrenie-berezhlivogo-proizvodstva",
+    "weapons": ["04", "06", "11", "12", "13", "17", "21", "23"]
+  },
+  {
+    "id": "system",
+    "title": "СИСТЕМА",
+    "subtitle": "Хочу понять, как всё связано. Видеть паутину.",
+    "icon": "🗺️",
+    "symptoms": ["Хочу понять, как всё связано", "Видеть паутину"],
+    "steps": [
+      { "text": "Увидеть пять контуров системы целиком.", "chapter": "zhivoy-zavod" },
+      { "text": "Разобраться в уровнях сложности.", "chapter": "slozhnye-sistemy" },
+      { "text": "Наладить информационные потоки и обратную связь.", "chapter": "nervnaya-sistema" }
+    ],
+    "document": "ritm-soveshchaniy",
+    "article": "ritm-upravleniya",
+    "weapons": ["00", "02", "03", "05", "07", "08", "15", "19"]
+  }
 ]

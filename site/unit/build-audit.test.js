@@ -1,6 +1,6 @@
 'use strict';
 
-// PS express audit regression: /genome/audit/ must ship the generated 40
+// PS express audit regression: /method/audit/ must ship the generated 40
 // criteria, the fillable workbook, the request CTA and the discovery links,
 // with no empty generation markers and no vault-only references.
 
@@ -30,7 +30,7 @@ test('audit page ships the generated checklist and the workbook', function() {
   try {
     runBuild({ BUILD_DATE: '2026-01-02' });
 
-    const html = readDist('genome', 'audit', 'index.html');
+    const html = readDist('method', 'audit', 'index.html');
 
     assert.ok(html.includes('<h1>') && html.includes('Экспресс-аудит'), 'page must render its hero');
 
@@ -58,7 +58,7 @@ test('audit page ships the generated checklist and the workbook', function() {
     assert.ok((html.match(/120 критериев/g) || []).length >= 2, 'hero note and CTA must name 120 criteria');
     assert.ok((html.match(/по запросу/g) || []).length >= 2, 'hero note and CTA must say «по запросу»');
     assert.ok(html.includes('href="/contact/?pack=audit"'), 'CTA must open the audit pack');
-    assert.ok(html.includes('href="/headquarters/"'), 'secondary CTA must point to the headquarters');
+    assert.ok(html.includes('href="/method/documents/"'), 'secondary CTA must point to the documents hub');
 
     // Download: real file, versioned href, honest filename.
     assert.ok(html.includes('/materials/ps-express-audit/express-audit-ps.xlsx?v=3.0'), 'download href must carry ?v=');
@@ -67,13 +67,13 @@ test('audit page ships the generated checklist and the workbook', function() {
     assert.ok(xlsx.size > 10240, 'workbook must ship non-empty');
 
     // Routing, SEO and discovery.
-    assert.ok(html.includes('<link rel="canonical" href="https://antimanager.pro/genome/audit/">'), 'canonical must be set');
+    assert.ok(html.includes('<link rel="canonical" href="https://antimanager.pro/method/audit/">'), 'canonical must be set');
     assert.ok(html.includes('"BreadcrumbList"'), 'page needs breadcrumb structured data');
-    assert.ok(html.includes('https://antimanager.pro/genome/audit/'), 'breadcrumb item must point at the page');
+    assert.ok(html.includes('https://antimanager.pro/method/audit/'), 'breadcrumb item must point at the page');
     assert.ok(/<meta name="robots" content="index, follow/.test(html), 'the page must be indexable');
-    assert.ok(readDist('sitemap.xml').includes('https://antimanager.pro/genome/audit/'), 'sitemap must list the page');
-    assert.ok(readDist('genome', 'index.html').includes('href="/genome/audit/"'), 'genome landing must link the page');
-    assert.ok(readDist('index.html').includes('href="/genome/audit/"'), 'footer must link the page');
+    assert.ok(readDist('sitemap.xml').includes('https://antimanager.pro/method/audit/'), 'sitemap must list the page');
+    assert.ok(readDist('method', 'index.html').includes('href="/method/audit/"'), 'genome landing must link the page');
+    assert.ok(readDist('index.html').includes('href="/method/audit/"'), 'footer must link the page');
 
     // Vault-only references must never leak.
     assert.ok(!html.includes('[['), 'no wiki links may leak');

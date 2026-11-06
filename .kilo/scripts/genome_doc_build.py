@@ -1,4 +1,4 @@
-"""Fill the /genome/role/ partial from the vault role documents.
+"""Fill the /method/role/ partial from the vault role documents.
 
 Reads the unified РП documents from the process-library vault and renders them as
 HTML into site/src/content/genome/role.html, replacing everything between the

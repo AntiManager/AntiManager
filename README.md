@@ -10,17 +10,17 @@
 
 ## О проекте
 
-Главы, инструменты и кейсы — единая связанная система управления производством в пяти контурах:
+Главы, инструменты и методология — единая связанная система управления производством в пяти контурах:
 
 | Контур | Главы | Фокус |
 |--------|-------|-------|
 | **Стратегия** | 00, 05, 11, 15 | Маятник управления, каскадирование целей, культурный код, живой завод |
 | **Процессы** | 02, 03, 06, 07, 13 | Сложные системы, системная динамика, процессы, OEE, 12 рычагов |
 | **Информация** | 08, 19 | Нервная система компании, цифровой двойник |
-| **Люди** | 09, 10, 12, 14, 20, 21 | Бей-беги-замри, ситуационное развитие, анти-тайм-менеджмент, живая система, выученная беспомощность, Run/Change |
+| **Люди** | 09, 10, 12, 14, 20, 21, 23 | Бей-беги-замри, ситуационное развитие, анти-тайм-менеджмент, живая система, выученная беспомощность, Run/Change, коммуникационный конструктор |
 | **Адаптация** | 04, 16, 17, 18, 22 | PDCA, хаос, лестница ошибок, антикризис, траектория |
 
-Книгу дополняет библиотека лонгридов [`/articles/`](https://antimanager.pro/articles/) — стратегия, экономика, управление, цифровизация. Типовые документы производственной системы — [`/genome/documents/`](https://antimanager.pro/genome/documents/) — выходят с PDF и редактируемым DOCX.
+Книгу дополняет библиотека лонгридов [`/articles/`](https://antimanager.pro/articles/) — стратегия, экономика, управление, цифровизация. Типовые документы производственной системы — [`/method/documents/`](https://antimanager.pro/method/documents/) — выходят с PDF и редактируемым DOCX. Старые адреса (`/weapons/`, `/genome/`, `/arsenal/`, `/manifesto/`, `/headquarters/`, `/cases/`) отдают одиночный 301 на новую структуру.
 
 ## Технологии
 
@@ -46,18 +46,18 @@ site/                # Код и деплой сайта
     content/         # лендинги «оружия» + contact.html
     content/full/    # полные тексты статей (/full/)
     content/articles/# лонгриды библиотеки «Статьи» (/articles/)
-    content/documents/# тексты типовых документов (/genome/documents/<slug>/)
-    content/genome/  # раздел «Геном завода»
-    lib/             # escape.js
+    content/documents/# тексты типовых документов (/method/documents/<slug>/)
+    content/genome/  # partials раздела «Методология» (/method/*)
+    lib/             # escape.js, catalog.js, legacy-routes.js (+ routes.js в src/)
   css/               # brutalist.css, fonts.css
   js/                # brutalist.js, contact.js
   fonts/             # Golos Text, PT Serif, JetBrains Mono (woff2)
   materials/         # PDF статей, PDF/DOCX типовых документов и авторские дополнительные материалы
-  scripts/           # render-og.js, render-pdf.js, verify-deploy.ps1
+  scripts/           # render-og.js, render-pdf.js, gen-redirects.js, verify-deploy.ps1
   tests/             # Playwright e2e-тесты
   unit/              # unit-тесты сборки (node --test)
   feedback/          # микросервис формы обратной связи (Python)
-  deploy/            # nginx.conf
+  deploy/            # nginx.conf + сгенерированный redirects.conf
   deploy.ps1         # деплой на VPS
   dist/              # Build output (gitignored)
 ```
@@ -68,9 +68,9 @@ site/                # Код и деплой сайта
 cd site
 npm install
 node build.js      # Сборка в dist/
-npx serve dist     # Локальный просмотр
-npm test           # unit + Playwright
-npm run test:unit  # только unit
-npm run test:e2e   # только Playwright
+npx serve dist     # Локальный просмотр (порт 3100 в тестах: PLAYWRIGHT_PORT)
+npm run test:unit  # unit-тесты (перед e2e нужен свежий build)
+npm run test:e2e   # Playwright (dist должен существовать)
+npm run check:redirects # сверка deploy/redirects.conf с src/routes.js
 .\deploy.ps1       # Деплой на VPS
 ```

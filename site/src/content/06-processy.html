@@ -37,15 +37,15 @@
     <div class="progress-bar"><div class="progress-fill" id="pDiagProgress" style="width:0%"></div></div>
     <p class="text-sm text-muted" id="pDiagStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 5</p>
     <div id="pDiagQuestion">
-      <p style="font-weight:600;margin-bottom:var(--space-3)" id="pDiagText">Как часто ваши регламенты перечитывают?</p>
+      <p style="font-weight:600;margin-bottom:var(--space-3)">Как часто ваши регламенты перечитывают?</p>
       <div style="display:flex;flex-direction:column;gap:var(--space-2);">
         <button class="btn btn-outline" onclick="answerPdiag(2)">Никто не читает, пылятся на полке</button>
         <button class="btn btn-outline" onclick="answerPdiag(1)">Читают только при аудите или конфликте</button>
         <button class="btn btn-outline" onclick="answerPdiag(0)">Иногда сверяются, но в целом знают работу</button>
         <button class="btn btn-outline" onclick="answerPdiag(-1)">Да, это настольная книга команды</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="pDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPdiag()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="pDiagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackPdiag()">← Назад</button>
     <div id="pDiagResult" style="display:none;">
       <div class="block-principle" id="pDiagResultText"></div>
       <button class="btn btn-ghost" onclick="resetPdiag()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -95,16 +95,16 @@
   function showPdiagQuestion(q) {
     var container = document.getElementById('pDiagQuestion');
     if (!container) return;
-    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="pDiagText">' + q.text + '</p>' +
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
       '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
       '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[0] + ')">Да, регулярно</button>' +
       '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[1] + ')">Иногда</button>' +
       '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[2] + ')">Редко</button>' +
-      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[3] + ')">Нет / Не знаю</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="pDiagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackPdiag()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerPdiag(' + q.options[3] + ')">Нет / Не знаю</button></div>';
   }
 
   function showPdiagResult(score) {
+    document.getElementById('pDiagBackBtn').style.display = 'none';
     document.getElementById('pDiagQuestion').style.display = 'none';
     document.getElementById('pDiagResult').style.display = 'block';
     var text = document.getElementById('pDiagResultText');

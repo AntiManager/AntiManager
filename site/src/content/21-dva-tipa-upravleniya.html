@@ -35,14 +35,14 @@
     <div class="progress-bar"><div class="progress-fill" id="diagProgress" style="width:0%"></div></div>
     <p class="text-sm text-muted" id="diagStepCounter" style="margin-bottom:var(--space-3);">Вопрос 1 из 3</p>
     <div id="diagQuestion">
-      <p style="font-weight:600;margin-bottom:var(--space-3)" id="diagText">Насколько хаотична ситуация на вашем участке?</p>
+      <p style="font-weight:600;margin-bottom:var(--space-3)">Насколько хаотична ситуация на вашем участке?</p>
       <div style="display:flex;flex-direction:column;gap:var(--space-2);">
         <button class="btn btn-outline" data-answer="run" onclick="answerDiag('run')">Всё горит, сроки сорваны, люди в ступоре</button>
         <button class="btn btn-outline" data-answer="change" onclick="answerDiag('change')">Порядок есть, но нет идей, люди боятся высказаться</button>
         <button class="btn btn-outline" data-answer="both" onclick="answerDiag('both')">Всё спокойно и работает — хочу улучшать</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="diagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackDiag()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="diagBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackDiag()">← Назад</button>
     <div id="diagResult" style="display:none;">
       <div class="block-principle" id="diagResultText"></div>
       <button class="btn btn-ghost" onclick="resetDiag()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -175,15 +175,15 @@
   function showQuestion(q) {
     var container = document.getElementById('diagQuestion');
     if (!container) return;
-    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)" id="diagText">' + q.text + '</p>' +
+    container.innerHTML = '<p style="font-weight:600;margin-bottom:var(--space-3)">' + q.text + '</p>' +
       '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
       '<button class="btn btn-outline" onclick="answerDiag(\'run\')">' + q.run + '</button>' +
       '<button class="btn btn-outline" onclick="answerDiag(\'change\')">' + q.change + '</button>' +
-      '<button class="btn btn-outline" onclick="answerDiag(\'both\')">' + q.both + '</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="diagBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackDiag()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerDiag(\'both\')">' + q.both + '</button></div>';
   }
 
   function showResult(answers) {
+    document.getElementById('diagBackBtn').style.display = 'none';
     var container = document.getElementById('diagQuestion');
     var result = document.getElementById('diagResult');
     var resultText = document.getElementById('diagResultText');

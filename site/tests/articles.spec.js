@@ -49,7 +49,8 @@ test.describe('Статьи — статья', () => {
       await expect(page.locator('.article-faq')).toBeVisible();
       await expect(page.locator('.article-faq .faq-item')).toHaveCount(a.faq.length);
       await expect(page.locator('.materials-section')).toBeVisible();
-      await expect(page.locator('.cta-band a[href="https://t.me/antimanagerpro_bot"]')).toBeVisible();
+      // The analytics module appends UTM parameters to Telegram links on load.
+      await expect(page.locator('.cta-band a[href^="https://t.me/antimanagerpro_bot"]')).toBeVisible();
       await expect(page.locator('.article-links a')).not.toHaveCount(0);
     });
   }

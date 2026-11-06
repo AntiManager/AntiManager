@@ -61,7 +61,7 @@ test.describe('AX01 — A11y foundation', () => {
 test.describe('AX02 — Touch targets', () => {
   test('filter buttons are >= 44px on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const btns = page.locator('.filter-btn');
@@ -89,7 +89,7 @@ test.describe('AX02 — Touch targets', () => {
 
 // === AX03 — Crisis shortcut ===
 test.describe('AX03 — Crisis shortcut', () => {
-  test('crisis CTA links to /weapons/antikrizis/', async ({ page }) => {
+  test('crisis CTA links to /playbook/antikrizis/', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -97,11 +97,11 @@ test.describe('AX03 — Crisis shortcut', () => {
     await expect(crisisBtn).toBeVisible();
 
     const href = await crisisBtn.getAttribute('href');
-    expect(href).toBe('/weapons/antikrizis/');
+    expect(href).toBe('/playbook/antikrizis/');
 
     await crisisBtn.click();
     await page.waitForLoadState('networkidle');
-    expect(page.url()).toContain('/weapons/antikrizis/');
+    expect(page.url()).toContain('/playbook/antikrizis/');
 
     const h1 = page.locator('.content-page h1');
     await expect(h1).toBeVisible();
@@ -114,7 +114,7 @@ test.describe('AX03 — Crisis shortcut', () => {
     await expect(crisisBtn).toBeVisible();
     await crisisBtn.click();
     await page.waitForLoadState('networkidle');
-    expect(page.url()).toContain('/weapons/antikrizis/');
+    expect(page.url()).toContain('/playbook/antikrizis/');
   });
 });
 
@@ -122,7 +122,7 @@ test.describe('AX03 — Crisis shortcut', () => {
 test.describe('AX04 — Responsive breakpoints', () => {
   test('weapon-grid is 2 columns at 768px', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const cols = await page.evaluate(() => {
@@ -134,7 +134,7 @@ test.describe('AX04 — Responsive breakpoints', () => {
 
   test('weapon-grid is 1 column at 600px', async ({ page }) => {
     await page.setViewportSize({ width: 600, height: 800 });
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const cols = await page.evaluate(() => {
@@ -144,32 +144,32 @@ test.describe('AX04 — Responsive breakpoints', () => {
     expect(cols).toBe(1);
   });
 
-  test('case-grid is 2 columns at 900px', async ({ page }) => {
+  test('book grid is 2 columns at 900px', async ({ page }) => {
     await page.setViewportSize({ width: 900, height: 800 });
-    await page.goto('/cases/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const cols = await page.evaluate(() => {
-      const el = document.querySelector('.case-grid');
+      const el = document.querySelector('.weapon-grid');
       return el ? getComputedStyle(el).gridTemplateColumns.split(' ').length : 0;
     });
     expect(cols).toBe(2);
   });
 
-  test('case-grid is 3 columns at 1280px', async ({ page }) => {
+  test('book grid stays 2 columns at 1280px', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/cases/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const cols = await page.evaluate(() => {
-      const el = document.querySelector('.case-grid');
+      const el = document.querySelector('.weapon-grid');
       return el ? getComputedStyle(el).gridTemplateColumns.split(' ').length : 0;
     });
-    expect(cols).toBe(3);
+    expect(cols).toBe(2);
   });
 
   test('no horizontal scroll on all pages', async ({ page }) => {
-    const paths = ['/', '/arsenal/', '/cases/', '/archive/', '/weapons/antikrizis/', '/genome/', '/genome/role/', '/genome/audit/', '/genome/systems/', '/genome/documents/', '/genome/documents/ritm-soveshchaniy/', '/genome/documents/gemba-obhod/', '/genome/documents/snu-kontur-uluchsheniy/', '/articles/management/ritm-upravleniya/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
+    const paths = ['/', '/playbook/', '/start/', '/about/origins/', '/playbook/antikrizis/', '/method/', '/method/role/', '/method/audit/', '/method/systems/', '/method/documents/', '/method/documents/ritm-soveshchaniy/', '/method/documents/gemba-obhod/', '/method/documents/snu-kontur-uluchsheniy/', '/articles/management/ritm-upravleniya/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
     for (const p of paths) {
       await page.goto(p);
       await page.waitForLoadState('networkidle');
@@ -180,37 +180,13 @@ test.describe('AX04 — Responsive breakpoints', () => {
   });
 });
 
-// === AX05 — Hover guard for case cards ===
-test.describe('AX05 — Hover guard for case cards', () => {
-  test('case-card hover rule is inside @media (hover: hover)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    const hasHoverGuard = await page.evaluate(() => {
-      for (const sheet of document.styleSheets) {
-        try {
-          for (const rule of sheet.cssRules) {
-            if (rule instanceof CSSMediaRule && rule.conditionText.includes('hover: hover')) {
-              for (const inner of rule.cssRules) {
-                if (inner.selectorText && inner.selectorText.includes('.case-card:hover')) return true;
-              }
-            }
-          }
-        } catch(e) {}
-      }
-      return false;
-    });
-    expect(hasHoverGuard).toBe(true);
-  });
-});
-
 // === AX06 — Read-more path and real materials ===
 // Regression: the landing used to show a dead "Тезисный отрывок" excerpt and a
 // fake "Хочу PDF" section that delivered nothing. The landing now links to a
 // real full-text page that carries a downloadable PDF material.
 test.describe('AX06 — Full-text path and materials', () => {
-  const LANDING = '/weapons/mayatnik-upravleniya/';
-  const FULL = '/weapons/mayatnik-upravleniya/full/';
+  const LANDING = '/playbook/mayatnik-upravleniya/';
+  const FULL = '/playbook/mayatnik-upravleniya/full/';
 
   test('landing offers a read-more path and no fake download', async ({ page }) => {
     await page.goto(LANDING);
@@ -255,7 +231,7 @@ test.describe('AX06 — Full-text path and materials', () => {
 // === AX07 — Thinker photos ===
 test.describe('AX07 — Thinker photos', () => {
   test('archive page shows thinker photos', async ({ page }) => {
-    await page.goto('/archive/');
+    await page.goto('/about/origins/');
     await page.waitForLoadState('networkidle');
 
     const photos = page.locator('.thinker-photo');
@@ -277,7 +253,7 @@ test.describe('AX07 — Thinker photos', () => {
   });
 
   test('weapon page shows thinker photo in thinker-block', async ({ page }) => {
-    await page.goto('/weapons/mayatnik-upravleniya/');
+    await page.goto('/playbook/mayatnik-upravleniya/');
     await page.waitForLoadState('networkidle');
 
     const thumb = page.locator('.thinker-photo-sm');
@@ -290,14 +266,14 @@ test.describe('AX07 — Thinker photos', () => {
 
   test('photos visible on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/archive/');
+    await page.goto('/about/origins/');
     await page.waitForLoadState('networkidle');
     const photo = page.locator('.thinker-photo').first();
     await expect(photo).toBeVisible();
   });
 
   test('all thinker photos have correct alt text', async ({ page }) => {
-    await page.goto('/archive/');
+    await page.goto('/about/origins/');
     await page.waitForLoadState('networkidle');
     const alts = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.thinker-photo')).map(function(img) { return img.getAttribute('alt'); });
@@ -340,9 +316,9 @@ test.describe('AX08 — Mobile navigation', () => {
     await page.locator('.menu-toggle').click();
     await expect(page.locator('.header-nav')).toBeVisible();
 
-    await page.locator('.header-nav a', { hasText: 'Арсенал' }).click();
-    await page.waitForURL('**/arsenal/');
-    expect(page.url()).toContain('/arsenal/');
+    await page.locator('.header-nav a', { hasText: 'Плейбук' }).click();
+    await page.waitForURL('**/playbook/');
+    expect(page.url()).toContain('/playbook/');
     await expect(page.locator('.header-nav')).toBeHidden();
   });
 });
@@ -350,17 +326,17 @@ test.describe('AX08 — Mobile navigation', () => {
 // === AX09 — Arsenal zone filter ===
 test.describe('AX09 — Arsenal zone filter', () => {
   test('zone filter shows only weapons of that zone', async ({ page }) => {
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
-    const zoneBtn = page.locator('.filters .filter-btn:not([data-filter="all"])').first();
+    const zoneBtn = page.locator('.filters .filter-btn[data-filter-type="situation"]:not([data-filter="all"])').first();
     const zone = await zoneBtn.getAttribute('data-filter');
     expect(zone).toBeTruthy();
     await zoneBtn.click();
 
     const state = await page.evaluate(() => {
       const cards = Array.from(document.querySelectorAll('#arsenalGrid .weapon-card'));
-      const shown = cards.filter(function(c) { return c.style.display !== 'none'; });
+      const shown = cards.filter(function(c) { return !c.hidden; });
       return {
         total: cards.length,
         shown: shown.length,
@@ -375,19 +351,19 @@ test.describe('AX09 — Arsenal zone filter', () => {
   });
 
   test('"ВСЕ" restores every weapon', async ({ page }) => {
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const total = await page.locator('#arsenalGrid .weapon-card').count();
     expect(total).toBeGreaterThan(0);
 
-    await page.locator('.filters .filter-btn:not([data-filter="all"])').first().click();
-    const allBtn = page.locator('.filters .filter-btn[data-filter="all"]');
+    await page.locator('.filters .filter-btn[data-filter-type="situation"]:not([data-filter="all"])').first().click();
+    const allBtn = page.locator('.filters .filter-btn[data-filter-type="situation"][data-filter="all"]');
     await allBtn.click();
 
     const shown = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('#arsenalGrid .weapon-card'))
-        .filter(function(c) { return c.style.display !== 'none'; }).length;
+        .filter(function(c) { return !c.hidden; }).length;
     });
     expect(shown).toBe(total);
     await expect(allBtn).toHaveClass(/active/);
@@ -403,6 +379,12 @@ test.describe('AX10 — System map', () => {
     await page.waitForLoadState('networkidle');
 
     const section = page.locator('#system-map');
+    // The star map labels are unreadable at phone scale; the four zone cards
+    // above carry the same navigation, so the map is intentionally hidden.
+    if (page.viewportSize().width <= 640) {
+      await expect(section).toBeHidden();
+      return;
+    }
     await expect(section).toBeVisible();
 
     const svg = section.locator('svg[role="img"]');
@@ -426,7 +408,7 @@ test.describe('AX11 — Widget input escaped (XSS)', () => {
   const payload = '<img src=x onerror="window.__xss=1">';
 
   test('hypothesis builder renders input as text', async ({ page }) => {
-    await page.goto('/weapons/upravlenie-eksperiment/');
+    await page.goto('/playbook/upravlenie-eksperiment/');
     await page.waitForLoadState('networkidle');
 
     await page.fill('#hbAction', payload);
@@ -440,7 +422,7 @@ test.describe('AX11 — Widget input escaped (XSS)', () => {
   });
 
   test('pre-mortem tool renders input as text', async ({ page }) => {
-    await page.goto('/weapons/haos/');
+    await page.goto('/playbook/haos/');
     await page.waitForLoadState('networkidle');
 
     await page.fill('#pmDecision', payload);
@@ -453,7 +435,7 @@ test.describe('AX11 — Widget input escaped (XSS)', () => {
   });
 
   test('object map builder renders input as text', async ({ page }) => {
-    await page.goto('/weapons/cifrovoy-dvoynik/');
+    await page.goto('/playbook/cifrovoy-dvoynik/');
     await page.waitForLoadState('networkidle');
 
     await page.selectOption('#oopClass', 'ТПА');
@@ -469,12 +451,12 @@ test.describe('AX11 — Widget input escaped (XSS)', () => {
 
 // === AX12 — Landing featured weapons ===
 test.describe('AX12 — Landing featured weapons', () => {
-  test('landing features four weapon cards', async ({ page }) => {
+  test('landing features six weapon cards', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     const cards = page.locator('#weapons-section .weapon-card');
-    await expect(cards).toHaveCount(4);
+    await expect(cards).toHaveCount(6);
   });
 });
 
@@ -483,7 +465,7 @@ test.describe('AX12 — Landing featured weapons', () => {
 // explanations, principles or closing) while the homepage button says "read in full".
 test.describe('AX13 — Manifesto full content', () => {
   test('manifesto page shows preamble, 10 values, 15 principles and closing', async ({ page }) => {
-    await page.goto('/manifesto/');
+    await page.goto('/about/manifesto/');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('.content-page h1')).toHaveText('Манифест');
@@ -501,7 +483,7 @@ test.describe('AX13 — Manifesto full content', () => {
 // near-black background — below AA. They now use the accessible text tokens.
 test.describe('AX14 — Text contrast', () => {
   test('secondary text and badges meet AA on the dark background', async ({ page }) => {
-    await page.goto('/arsenal/');
+    await page.goto('/playbook/');
     await page.waitForLoadState('networkidle');
 
     const results = await page.evaluate(() => {
@@ -526,8 +508,39 @@ test.describe('AX14 — Text contrast', () => {
     });
 
     for (const r of results) {
-      expect(r.missing, r.sel + ' not found on /arsenal/').toBeFalsy();
+      expect(r.missing, r.sel + ' not found on /playbook/').toBeFalsy();
       expect(r.ratio, r.sel + ' contrast ' + r.ratio.toFixed(2) + ' < ' + r.need).toBeGreaterThanOrEqual(r.need);
     }
   });
+});
+
+
+// === AX15 — Widget diagnostics keep a single back button ===
+// Regression: the inline widget template re-injected the back button with the same
+// id as the static one, so 18 chapter pages carried duplicate ids in markup + script.
+test.describe('AX15 — Widget diagnostics', () => {
+  for (const path of ['/playbook/mayatnik-upravleniya/', '/playbook/sistemnaya-dinamika/']) {
+    test(path + ' keeps one back button and hides it outside the questions', async ({ page }) => {
+      await page.goto(path);
+      const widget = page.locator('.widget').first();
+      const back = widget.locator('[id$="BackBtn"]');
+      await expect(back).toBeHidden();
+      await widget.locator('.btn-outline').first().click();
+      await expect(back).toBeVisible();
+      for (let i = 0; i < 12; i += 1) {
+        const next = widget.locator('.btn-outline:visible').first();
+        if (await next.count() === 0) break;
+        await next.click();
+      }
+      await expect(back).toBeHidden();
+      const duplicates = await page.evaluate(() => {
+        const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
+        return ids.filter((id, i) => ids.indexOf(id) !== i);
+      });
+      expect(duplicates).toEqual([]);
+      await widget.getByRole('button', { name: /Пройти заново/ }).click();
+      await expect(back).toBeHidden();
+      await expect(widget.locator('.btn-outline').first()).toBeVisible();
+    });
+  }
 });

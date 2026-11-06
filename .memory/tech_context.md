@@ -1,11 +1,14 @@
 # AntiManager — Tech Context
-> Updated: 2026-10-21
+> Updated: 2026-11-06
 
 ## Build
 ```bash
 cd site
 npm run build               # build.js — static HTML/partials → dist/
-npm test                    # unit (node --test) + Playwright
+npm run test:unit           # unit (node --test; shallow dist/ shared, --test-concurrency=1)
+npx playwright test         # e2e on dist/, port 3100 (PLAYWRIGHT_PORT)
+npm run gen:redirects       # regenerate deploy/redirects.conf from src/routes.js
+npm run check:redirects     # exit 1 on drift between routes.js and redirects.conf
 npm run render:pdf          # PDF for /full/ and /articles/ (after build; never concurrent with build)
 npm run render:og           # og-image.png from og-image.svg
 npm run optimize:thinkers   # .webp siblings for thinker photos
@@ -28,7 +31,8 @@ python -m unittest discover -s site/feedback/tests   # feedback microservice
 - `site/deploy.ps1` (site) and `site/feedback/deploy.ps1` (feedback microservice)
 - TLS terminates at Caddy; nginx sees http (relative redirects, `absolute_redirect off`)
 - Nginx (`site/deploy/nginx.conf`): shared security headers at server level, locations set only
-  `expires` (assets 7d, HTML 5m); `www→apex` 301, trailing-slash 301, custom 404, HSTS.
+  `expires` (assets 7d, HTML 5m); `www→apex` 301, trailing-slash 301, custom 404, HSTS. Legacy
+  routes come from the generated `deploy/redirects.conf` (mounted at `/etc/nginx/redirects.conf`).
 - `POST /api/feedback` is proxied same-origin to the `antimanager-feedback` container; the bot
   token lives only in the server-side `feedback.env` (never in client JS or the repo).
 - SSH port 2222 is flaky: the optional Caddy-reload step may time out after the container restart —

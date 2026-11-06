@@ -1,0 +1,16 @@
+site: dist
+force_language: ru
+exclude_selectors:
+  - "[data-pagefind-ignore]"
+  - ".breadcrumbs"
+  - ".article-toc"
+  - ".method-toc"
+  - ".role-toc"
+  - ".materials-section"
+  - ".doc-downloads"
+  - ".article-links"
+  - ".article-series-block"
+  - ".cta-band"
+  - ".read-more-card"
+  - ".site-header"
+  - ".site-footer"

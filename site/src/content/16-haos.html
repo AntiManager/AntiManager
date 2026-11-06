@@ -33,15 +33,15 @@
     <div class="widget-title">Предсмертный анализ решения</div>
     <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Представьте, что ваше решение провалилось. Заполните поля — и вы увидите слепые зоны до того, как они проявятся в реальности.</p>
     <div class="form-group">
-      <label>Какое решение / эксперимент вы планируете?</label>
+      <label for="pmDecision">Какое решение / эксперимент вы планируете?</label>
       <textarea id="pmDecision" rows="2" style="width:100%;" placeholder="Например: установить датчики температуры на форму"></textarea>
     </div>
     <div class="form-group">
-      <label>Почему это могло провалиться? (напишите 3–5 причин)</label>
+      <label for="pmReasons">Почему это могло провалиться? (напишите 3–5 причин)</label>
       <textarea id="pmReasons" rows="3" style="width:100%;" placeholder="1. Датчики дают ложные срабатывания из-за вибрации&#10;2. Операторы не обучены&#10;3. Руководство отменит бюджет через неделю"></textarea>
     </div>
     <div class="form-group">
-      <label>Что можно сделать уже сейчас, чтобы предотвратить каждую причину?</label>
+      <label for="pmPrevent">Что можно сделать уже сейчас, чтобы предотвратить каждую причину?</label>
       <textarea id="pmPrevent" rows="3" style="width:100%;" placeholder="1. Протестировать датчики в реальных условиях&#10;2. Провести 30-минутный тренинг&#10;3. Закрепить бюджет письменно"></textarea>
     </div>
     <button class="btn btn-primary" onclick="runPremortem()">Проверить гипотезу</button>

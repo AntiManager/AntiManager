@@ -29,11 +29,14 @@ function Run-Scp($local, $remote) {
   if (-not $?) { throw "SCP failed: $local -> $remote" }
 }
 
+Push-Location $PSScriptRoot
+# Fail before touching the server if routes.js and the generated redirect map drifted.
+npm run check:redirects; if (-not $?) { Pop-Location; exit 1 }
 if (-not $SkipBuild) {
   Write-Host "Building..." -ForegroundColor Cyan
-  Push-Location $PSScriptRoot
-  node build.js; if ($?) { Pop-Location } else { Pop-Location; exit 1 }
+  npm run build; if (-not $?) { Pop-Location; exit 1 }
 }
+Pop-Location
 
 Write-Host "Copying dist to VPS..." -ForegroundColor Cyan
 Run-Ssh "mkdir -p $remoteDir/current"
@@ -43,9 +46,10 @@ Run-Ssh "chmod -R 755 $remoteDir/current/; find $remoteDir/current/ -type f -exe
 
 Write-Host "Creating nginx config..." -ForegroundColor Cyan
 Run-Scp "$PSScriptRoot\deploy\nginx.conf" "$remoteDir/nginx.conf"
+Run-Scp "$PSScriptRoot\deploy\redirects.conf" "$remoteDir/redirects.conf"
 
 Write-Host "Restarting Docker container..." -ForegroundColor Cyan
-Run-Ssh "docker rm -f antimanager-web 2>/dev/null; docker run -d --name antimanager-web --restart unless-stopped --network vps_shared -v $remoteDir/current:/usr/share/nginx/html:ro -v $remoteDir/nginx.conf:/etc/nginx/conf.d/default.conf:ro nginx:alpine"
+Run-Ssh "docker rm -f antimanager-web 2>/dev/null; docker run -d --name antimanager-web --restart unless-stopped --network vps_shared -v $remoteDir/current:/usr/share/nginx/html:ro -v $remoteDir/nginx.conf:/etc/nginx/conf.d/default.conf:ro -v $remoteDir/redirects.conf:/etc/nginx/redirects.conf:ro nginx:alpine"
 
 Write-Host "Reloading Caddy if configured..." -ForegroundColor Cyan
 Run-Ssh "docker exec caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || true" 2>$null

@@ -49,8 +49,8 @@
         <button class="btn btn-outline" onclick="answerNd(1)">Скорее нет — информация закрыта</button>
         <button class="btn btn-outline" onclick="answerNd(0)">Полная изоляция, каждый сам за себя</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="ndBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackNd()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="ndBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackNd()">← Назад</button>
     <div id="ndResult" style="display:none;">
       <div class="block-principle" id="ndResultText"></div>
       <button class="btn btn-ghost" onclick="resetNd()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -111,11 +111,11 @@
       '<button class="btn btn-outline" onclick="answerNd(3)">Да, полностью</button>' +
       '<button class="btn btn-outline" onclick="answerNd(2)">Скорее да</button>' +
       '<button class="btn btn-outline" onclick="answerNd(1)">Скорее нет</button>' +
-      '<button class="btn btn-outline" onclick="answerNd(0)">Совсем нет</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="ndBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackNd()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerNd(0)">Совсем нет</button></div>';
   }
 
   function showNdResult() {
+    document.getElementById('ndBackBtn').style.display = 'none';
     var scores = window._ndDiag.scores;
     document.getElementById('ndQuestion').style.display = 'none';
     document.getElementById('ndResult').style.display = 'block';

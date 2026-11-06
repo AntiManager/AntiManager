@@ -107,10 +107,10 @@ test('each article ships TOC, 4-level breadcrumb, FAQPage, materials and CTA', f
       assert.ok(html.includes('materials-section'), a.slug + ' needs a materials block');
       assert.ok(html.includes('class="cta-band"'), a.slug + ' needs a CTA band');
       assert.ok(html.includes('https://t.me/antimanagerpro_bot'), a.slug + ' CTA must point at Telegram');
-      assert.ok(html.includes('/headquarters/'), a.slug + ' CTA must link the Штаб');
+      assert.ok(html.includes('/contact/'), a.slug + ' CTA must link the contact form');
       assert.ok(html.includes('class="article-links"'), a.slug + ' needs the interlink block');
       // Every interlink must resolve to a built page (a stale slug in the
-      // generator previously shipped /weapons/18-<slug>/ links that 404).
+      // generator previously shipped /playbook/18-<slug>/ links that 404).
       const linksBlock = (html.match(/<section class="article-links">[\s\S]*?<\/section>/) || [''])[0];
       const hrefs = (linksBlock.match(/href="(\/[^"]*)"/g) || []).map(function(m) { return m.slice(6, -1); });
       assert.ok(hrefs.length >= 2, a.slug + ' needs at least two interlinks');

@@ -39,7 +39,7 @@ test('build emits SEO metadata', function() {
     const sitemap = readDist('sitemap.xml');
     assert.ok(sitemap.includes('<lastmod>' + BUILD_DATE + '</lastmod>'), 'sitemap lastmod must use BUILD_DATE');
 
-    const weapon = readDist('weapons', 'sistemnaya-dinamika', 'index.html');
+    const weapon = readDist('playbook', 'sistemnaya-dinamika', 'index.html');
     assert.ok(weapon.includes('"dateModified": "' + BUILD_DATE + '"'), 'weapon dateModified must use BUILD_DATE');
     assert.ok(weapon.includes('<meta property="article:modified_time" content="' + BUILD_DATE + '">'), 'article:modified_time must be present');
 
@@ -49,20 +49,21 @@ test('build emits SEO metadata', function() {
     // 3. article:tag count matches the weapon tags count.
     const weapons = JSON.parse(fs.readFileSync(path.join(SITE_DIR, 'src', 'data', 'weapons.json'), 'utf-8'));
     const w02 = weapons.find(function(w) { return w.slug === 'slozhnye-sistemy'; });
-    const page02 = readDist('weapons', 'slozhnye-sistemy', 'index.html');
+    const page02 = readDist('playbook', 'slozhnye-sistemy', 'index.html');
     const tagCount = (page02.match(/property="article:tag"/g) || []).length;
     assert.strictEqual(tagCount, w02.tags.length, 'article:tag metas must match weapon tags');
 
     // 4. Static page has a breadcrumb.
-    assert.ok(readDist('arsenal', 'index.html').includes('"BreadcrumbList"'), 'static pages need BreadcrumbList');
+    assert.ok(readDist('playbook', 'index.html').includes('"BreadcrumbList"'), 'static pages need BreadcrumbList');
 
-    // 5. Landing: four featured weapons; corrected meta description.
+    // 5. Landing: six featured weapons; corrected meta description.
     const index = readDist('index.html');
     const sectionHtml = index.slice(index.indexOf('id="weapons-section"')).split('</section>')[0];
     const featured = (sectionHtml.match(/class="weapon-card"/g) || []).length;
-    assert.strictEqual(featured, 4, 'landing must feature four weapons');
-    assert.ok(index.includes('4 контура'), 'meta description must state 4 zones');
+    assert.strictEqual(featured, 6, 'landing must feature six weapons');
+    assert.ok(index.includes('14 long-reads'), 'meta description must state the long-read count');
     assert.ok(index.includes('23 главы'), 'meta description must use the correct plural');
+    assert.ok(!index.includes('Интерактивная карта'), 'the old card-map positioning must be gone');
     assert.ok(!index.includes('5 контуров'), 'stale "5 контуров" must be gone');
 
     // 6. Fabricated landing stats are gone (SEO Phase 2).
@@ -72,8 +73,8 @@ test('build emits SEO metadata', function() {
     assert.ok(!index.includes('>47<'), 'fabricated "47" stat must be gone');
 
     // 7. All weapons published; no review badges/status on cards (SEO Phase 2).
-    const arsenal = readDist('arsenal', 'index.html');
-    assert.ok(arsenal.includes('23 опубликовано, 23 всего'), 'arsenal must report 23 of 23 published');
+    const arsenal = readDist('playbook', 'index.html');
+    assert.ok(arsenal.includes('Все 23 главы с полным текстом.'), 'arsenal must state the full-text coverage');
     assert.ok(!arsenal.includes('badge-status-review'), 'no review badge on arsenal');
 
     // 8. Raster OG image is produced and referenced.
@@ -81,8 +82,8 @@ test('build emits SEO metadata', function() {
     assert.ok(index.includes('content="https://antimanager.pro/og-image.png"'), 'og:image must point to the PNG');
 
     // 9. Full page carries a description distinct from its landing (no duplicate snippets).
-    const landing02 = readDist('weapons', 'slozhnye-sistemy', 'index.html');
-    const full02 = readDist('weapons', 'slozhnye-sistemy', 'full', 'index.html');
+    const landing02 = readDist('playbook', 'slozhnye-sistemy', 'index.html');
+    const full02 = readDist('playbook', 'slozhnye-sistemy', 'full', 'index.html');
     const descOf = function(html) { return (html.match(/<meta name="description" content="([^"]*)"/) || [])[1]; };
     assert.ok(descOf(landing02), 'landing must have a description');
     assert.notStrictEqual(descOf(full02), descOf(landing02), 'full-page description must differ from the landing');
@@ -103,10 +104,10 @@ test('build emits SEO metadata', function() {
     // 13. The XXXX Yandex verification placeholder must never ship.
     assert.ok(!fs.existsSync(distPath('yandex_XXXXXXXXXXXXXXXX.html')), 'placeholder yandex verification file must not ship');
 
-    // 14. Footer exposes about/headquarters/privacy (fixes orphan pages + compliance link).
+    // 14. Footer exposes about / about/manifesto / about/origins / privacy
     assert.ok(index.includes('class="footer-nav"'), 'footer nav must be present');
     assert.ok(index.includes('href="/about/"'), 'about must be linked from the footer');
-    assert.ok(index.includes('href="/headquarters/"'), 'headquarters must be linked from the footer');
+    assert.ok(index.includes('href="/about/origins/"'), 'origins must be linked from the footer');
     assert.ok(index.includes('href="/privacy/"'), 'privacy must be linked from the footer');
   } finally {
     runBuild(); // restore dist/ from default settings for later tests/serving

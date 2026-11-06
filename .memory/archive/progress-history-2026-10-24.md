@@ -50,3 +50,14 @@
 - **Docs/plans/harness cleanup + commit (2026-10-21):** archived completed plans; fixed README/`site/AGENTS.md`/`.kilo/AGENTS.md` drift; harness 0 problems; committed/pushed.
 - **Articles 53–55 (2026-10-20):** three digital articles published, fact-check reports, unit 16/16, Playwright 192/192, PDF 31, live 200s.
 - Earlier sessions → `.memory/archive/progress-history-2026.md` and `progress-history-2026-10-24.md`.
+
+- **Harness rollout (2026-10-24):** `.kilo/AGENTS.md` wired into `instructions`; local `.kilo/kilo.json` restored with obsidian MCP (`connected`); GitHub MCP not restored (use `gh`); config example aligned; memory compacted to caps. Global harness installed at `~/.config/kilo/`.
+
+## Archived from the rolling log (2026-10-26)
+
+- **Methodology suite published locally (2026-10-26):** four vault notes moved into `Методология ПС/Типовые документы/` (ритм совещаний, Gemba-обход, internal СНУ regulation) + public СНУ concept brief; article 56 published; new `/genome/documents/` with `documents.json`, `gen_documents_pages.py`, `check_documents.py`. Evidence: checkers 0, unit 25/25, feedback 26/26, Playwright 231/231, 40 PDFs, deployed with IndexNow 83 URLs.
+
+## Restored from the rolling log (2026-10-22 entries)
+
+- **SEO package deployed (2026-10-22):** `npm test` unit 22/22 + Playwright 228/228; `deploy.ps1`; container `antimanager-web` restarted; final `caddy reload` hit SSH timeout. `$ErrorActionPreference="Stop"` aborted the script before IndexNow, so ran `npm run indexnow` manually → 78 URLs, HTTP 202. `verify-deploy.ps1` 6/6; live 7/7 practice pages 200, sitemap 78, `?v=20261022a`, footer link. **Lesson:** optional `caddy reload` can abort deploy and skip IndexNow; verify "Deploy complete", else `cd site; npm run indexnow`.
+- **SEO diagnostics + tech package (2026-10-22):** disproved the third-party report (sitemap 200, robots correct, Timeweb `5.129.221.85`, Googlebot 27 requests/17 URLs, YandexBot 0). Real cause: no Webmaster/GSC registration. Added verification meta via env, IndexNow key + deploy hook, shortened 2 titles >70, expanded 8 descriptions to 125–154 chars, build warnings for title >70 / description >200. New `practice` topic + 5 articles (ids 60–64). Review fixes applied. Unit 22/22, Playwright 228/228, 0 replacement chars/BOM.

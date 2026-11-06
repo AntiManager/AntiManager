@@ -1,37 +1,73 @@
 # AntiManager — Active Context
-> Updated: 2026-11-05 · Mini-PC migration verified; previous snapshot → `.memory/archive/active_context-2026-10-24.md`
+> Updated: 2026-11-06 · No active plan. `1793969494727` (site IA refactor) is closed and archived;
+> new plans go to `.kilo/plans/`.
 
 ## State
 
-- **Mini-PC migration + readiness (2026-11-05):** restored repo, vault, harness, `.env` and SSH key; fixed all stale host paths. Evidence: build OK; unit 25/25; Playwright 231/231; feedback 26/26; proc 47 passed; checkers 0; no drift; IndexNow 84; live verify-deploy 6/6.
-- **A3 regulation (2026-11-04, `3160f92`):** `Методология ПС/Типовые документы/Форма-А3.md` + site page `/genome/documents/a3-reshenie-problem/` (PDF, DOCX, hub card); `.run/a3_*` scratch builders.
-- **Methodology suite (2026-10-26):** `/genome/documents/` (4 docs) + article 56.
-- **SEO:** verification meta, IndexNow, `practice` topic + articles 60–64; GSC/Webmaster pending.
-- **Methodology:** 14 system cards (12 fields), full checklist 132/7 (v1.1), express 40 (blocks 1–6), project model; canonical **ТПР**.
-- **Process library:** 21 groups / 83 processes / 259 subprocesses / 1041 operations; only known `PRJ-*` dangling links remain; checkers 0/0, artifacts OK.
-- **Articles:** 42 vault notes; published 40, 41, 50–56, 60–64; materials under `site/materials/`.
-- **Линейные системы:** ООО + ИП Санников (ROSCA); base 60. Next: 100–150 companies, 10 SKU benchmark, 10 calls.
-- **Git:** `main` = `3160f92`; `origin/main` = `gitverse/main`; `origin` pushes to GitHub + GitVerse.
+- **Plan complete (S11, 2026-11-06).** Releases A/B/C are built, tested and deployed
+  (Release B/C went live 2026-11-06). Final gate on a fresh build: unit 43/43, `npm test` 378 passed /
+  6 skipped (3 projects), `check:links` 85 pages 0/0/0/0, `check:redirects` no drift, Pagefind
+  82 indexed / 15,946 words. `VERSION` = `20261106d`.
+- **Working tree uncommitted** — 124 entries (90 modified, 34 untracked); no commit was requested.
+  Release A went live from this same tree on 2026-11-06.
+- **Closeout repairs:** `site/AGENTS.md` (`/playbook/`, retired HQ CTA, «Имитация развития»),
+  `.kilo/AGENTS.md` (canonical routes, no active plan), `.kilo/harness.md` (gate baselines),
+  `.memory/system_patterns.md` (route map). `task-conversion` gained the rename-sweep rule;
+  global `HARNESS.md` updated.
 
 ## Next
 
-1. Register in Yandex.Webmaster/GSC; set `YANDEX_VERIFICATION`/`GOOGLE_VERIFICATION`; redeploy, submit sitemap.
-2. Линейные системы: enrich base, top-30, 10 calls; ROSCA positioning (ICP A/B/E, offer, proof, objections, landing, KPI).
-3. Process library: `PRJ` flow links → T2.6 tranche 2 (`MFG-02/03`) → `MFG-04/05`.
-4. PS-audit: human blind-scoring of 5 criteria; publish via separate plan.
-5. Editorial: DRAFT series 30–35 before `/full/`.
-6. After content changes: `.\site\deploy.ps1`, then `.\site\scripts\verify-deploy.ps1`.
-7. Security: rotate tokens exposed by the public Yandex mirror + regenerate the VPS SSH key.
+- **User-owned:** 12.1 hero value proposition, 12.3 named author/experience facts, Metrika goal
+  names (12.6), `/start/` editorial approval.
+- No open technical P0/P1. Start new work as a fresh local plan in `.kilo/plans/`.
+
+### Resume commands
+
+```powershell
+cd site; npm test
+cd site; .\scripts\verify-deploy.ps1
+cd site; npm run check:links; npm run check:redirects
+```
+
+### Already read (do not re-read)
+
+- `site/build.js` (routes/sitemap/home/catalog/playbook/start/method/about/search/renderPage),
+  `src/routes.js`, `src/lib/{catalog,legacy-routes,escape}.js`,
+  `scripts/{gen-redirects.js,check-links.mjs}`, `src/templates/base.html`,
+  `src/components/{header,footer}.html`.
+- `site/deploy.ps1`, `scripts/verify-deploy.ps1`, `deploy/{nginx.conf,redirects.conf}`,
+  `package.json`, `playwright.config.js`, `pagefind.yml`.
+- `css/brutalist.css` (header/search/home/footer/filters/cards/genome/method/about,
+  `.chapter-nav`, `.related-*`, `.thinker-links`, `.lead-magnet`, `.offer-facts`);
+  `js/{brutalist,search,analytics}.js`; `tests/{search,home,nav-mobile,book-facets,genome,about,
+  ux-critical,a11y,analytics}.spec.js`; `unit/build-{search,home,routes,start-book,about,genome,
+  escape,seo,related}.test.js`.
+- `site/src/content/genome/landing.html` offer + lead magnet; 18 chapter widget partials.
 
 ## Hot rules
 
-- **Paths:** workspace `C:\Work\Python`; vault `C:\Work\Personal Vault` (no `D:`).
-- **Toolchain:** Python 3.14 + `ftfy python-docx openpyxl pytest`; Pandoc 3.13; `cd site; npm ci; npx playwright install chromium`.
-- Skills 8 / commands 10 / agents 0; `/check-site` = `npm test`.
-- Generators default to the vault; override with `--vault`; `check_system_cards.py` takes it positionally.
-- Obsidian MCP writes on Cyrillic paths are broken — use `Write`/`Edit` + Python.
-- `check_artifacts.py` takes the **library root**, not the vault root.
-- Data SSOT: `articles.json` + topics + series; only `published` renders.
-- Every article `.md`: title block + `---`; no Mermaid.
-- `render:pdf` two-pass; deploy may time out on Caddy reload — verify live.
-- History → `.memory/archive/`.
+- Paths: workspace `C:\Work\Python`; vault `C:\Work\Personal Vault`; `.env` at repo root.
+- Toolchain: Python 3.14 + `ftfy python-docx openpyxl pytest`; Pandoc 3.13; Node 26 + Pagefind 1.6;
+  Playwright chromium; tests use port 3100 (`PLAYWRIGHT_PORT`), never 3000.
+- `/playbook/` is canonical; `/book/` is a single-hop 301. Series «Имитация развития».
+  `/about/headquarters/` and `/headquarters/` 301 to `/contact/` (club retired).
+- `npm test` = unit + `check:redirects` + build (site + Pagefind) + `check:links` + Playwright.
+  `node build.js` alone wipes `dist/` and skips the search index; unit tests share `dist/`
+  (`--test-concurrency=1`); `check:links` scans `dist/`.
+- Search: `/search/` stays noindex, out of the sitemap, without `data-pagefind-body`; a future CSP
+  with `script-src` needs `'self'` and `wasm-unsafe-eval`; Pagefind matches token prefixes.
+- Widgets: one static back button outside `#<id>Question` (AX15).
+- Deploy: `npm test` first; `nginx -t` on a throwaway `nginx:alpine`; SSH 2222 is flaky (the copy
+  may already be live); Caddy reload may refuse `localhost:2019` (non-fatal); `verify-deploy.ps1`
+  must probe 3xx with `HttpClient`, not `Invoke-WebRequest -MaximumRedirection 0` on PS 7.6.
+- Generators default to the vault (`--vault`; `check_system_cards.py` positional); `--check`
+  compares marker regions — re-run the generator, never hand-edit markers.
+- Obsidian MCP writes on Cyrillic paths are broken — use `Write`/`Edit` + Python; guard encoding.
+- `check_artifacts.py` takes the library root, not the vault root.
+- Data SSOT: `articles.json` + topics + series; only `published` renders. Every article `.md`:
+  title block + `---`; no Mermaid.
+- `render:pdf` two-pass; PDFs churn on every run — restore untouched tracked PDFs before commit.
+- Home is exactly six sections; `#system-map` is a container, not a section.
+- Long H1 words are capped, not split (`.content-page h1`, `.hero-gen h1`, `.documents-hub h1`,
+  `.privacy-page h1`); `/method/` `#offer` sits before `#problem`.
+- Skills 8 / commands 10 / agents 0; `/check-site` = `npm test`. History → `.memory/archive/`.

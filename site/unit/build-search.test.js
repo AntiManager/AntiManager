@@ -68,10 +68,39 @@ test('IndexNow dry run reads every sitemap URL', function() {
   assert.ok(output.includes(String(count) + ' URLs'), 'dry run must report the sitemap URL count');
 });
 
-test('arsenal description derives its count from weapons.json', function() {
+test('book description derives its count from weapons.json', function() {
   const weapons = require('../src/data/weapons.json');
-  const html = readDist('arsenal', 'index.html');
-  assert.ok(html.includes('Арсенал Антименеджера: ' + weapons.length + ' '),
-    'the arsenal description must count the real weapons list');
+  const html = readDist('playbook', 'index.html');
+  assert.ok(html.includes('Все ' + weapons.length + ' ') && html.includes('плейбука Антименеджера'),
+    'the book description must count the real weapons list');
   assert.ok(!/\d+ \d+ инструмент/.test(html), 'the count must not be duplicated');
+});
+
+test('Pagefind opt-in, search fallback page and robots rules', function() {
+  const home = readDist('index.html');
+  assert.ok(home.includes('data-pagefind-body'), 'indexable pages must opt into Pagefind');
+  assert.ok(home.includes('data-pagefind-meta="type:Главная"'), 'the home page needs a result type');
+  assert.ok(home.includes('id="site-search"'), 'the search dialog must ship on every page');
+  assert.ok(home.includes('data-search-open'), 'the header must expose the search entry point');
+
+  const chapter = readDist('playbook', 'antikrizis', 'index.html');
+  assert.ok(chapter.includes('data-pagefind-meta="type:Глава"'), 'chapters need a type badge');
+  assert.ok(chapter.includes('data-pagefind-filter="situation:crisis"'), 'chapters expose situation filters');
+
+  for (const dir of [['search'], ['404'], ['privacy']]) {
+    const html = readDist.apply(null, dir.concat('index.html'));
+    assert.ok(!html.includes('data-pagefind-body'), dir[0] + ' must stay out of the search index');
+  }
+
+  const searchPage = readDist('search', 'index.html');
+  assert.ok(searchPage.includes('<meta name="robots" content="noindex">'), '/search/ must be noindex');
+  assert.ok(searchPage.includes('action="/search/"'), '/search/ keeps the no-JS GET fallback');
+  assert.ok(searchPage.includes('data-search-page'), '/search/ is the fallback page marker');
+
+  const sitemap = readDist('sitemap.xml');
+  assert.ok(!sitemap.includes('/search/'), '/search/ must not be in the sitemap');
+
+  const robots = readDist('robots.txt');
+  assert.ok(robots.includes('Disallow: /pagefind/'), 'robots.txt must keep the index bundle out of search');
+  assert.ok(robots.includes('Sitemap: https://antimanager.pro/sitemap.xml'), 'sitemap directive must stay');
 });

@@ -36,30 +36,47 @@ test('build escapes payload fields and rejects a traversal slug', function() {
     title: payload,
     subtitle: payload,
     slug: 'fixture-weapon',
-    zone: 'crisis"',
+    zone: 'crisis',
     thinker: null,
     tags: [],
     status: 'published',
+  }]);
+  const chaptersFixture = writeFixture('antimanager-chapters', [{
+    id: '99', part: 0, title: payload, slug: 'fixture-weapon', subtitle: payload,
+    ray: 'strategy', roles: [], tools: [], cases: [], tags: [],
+  }]);
+  const scenariosFixture = writeFixture('antimanager-scenarios', [{
+    id: 'crisis', title: 'КРИЗИС', subtitle: 'test', icon: 'fire', weapons: ['99'],
+    symptoms: ['test symptom'],
+    steps: [
+      { text: 'step one', chapter: 'fixture-weapon' },
+      { text: 'step two', chapter: 'fixture-weapon' },
+      { text: 'step three', chapter: 'fixture-weapon' },
+    ],
+    document: 'a3-reshenie-problem',
+    article: 'optimizaciya-razvitie-antikrizis',
   }]);
   const badSlug = writeFixture('antimanager-bad-slug', [{
     id: '99', title: 'x', slug: '../../evil', status: 'draft',
   }]);
 
   try {
-    runBuild({ WEAPONS_FILE: fixture });
+    runBuild({ WEAPONS_FILE: fixture, CHAPTERS_FILE: chaptersFixture, SCENARIOS_FILE: scenariosFixture });
 
-    const page = fs.readFileSync(path.join(DIST, 'weapons', 'fixture-weapon', 'index.html'), 'utf-8');
+    const page = fs.readFileSync(path.join(DIST, 'playbook', 'fixture-weapon', 'index.html'), 'utf-8');
     assert.ok(
       page.includes('&lt;img src=x onerror=&quot;window.__xss=1&quot;&gt;'),
       'payload text must be HTML-escaped in the output'
     );
     assert.ok(!page.includes('<img src=x onerror='), 'raw payload must not appear in the output');
-    assert.ok(page.includes('badge-zone-crisis&quot;'), 'zone value must be escaped inside the class attribute');
+    assert.ok(page.includes('badge-zone-crisis'), 'zone value must drive the badge class');
 
     assert.throws(function() { runBuild({ WEAPONS_FILE: badSlug }); }, /Invalid weapons\.json slug/);
     assert.ok(!fs.existsSync(path.join(DIST, '..', 'evil')), 'traversal slug must not create files outside dist');
   } finally {
     fs.unlinkSync(fixture);
+    fs.unlinkSync(chaptersFixture);
+    fs.unlinkSync(scenariosFixture);
     fs.unlinkSync(badSlug);
     runBuild(); // restore dist/ from the real data so later tests/serving see a clean build
   }

@@ -1,5 +1,9 @@
 const { defineConfig, devices } = require('@playwright/test');
 
+// Dedicated port: 3000 is commonly occupied by other local dev servers, and
+// `reuseExistingServer` would silently point every test at a foreign app.
+const PORT = process.env.PLAYWRIGHT_PORT || 3100;
+
 module.exports = defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -8,7 +12,7 @@ module.exports = defineConfig({
   reporter: [['html', { outputFolder: 'playwright-report' }]],
   timeout: 30000,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:' + PORT,
     trace: 'on-first-retry',
   },
   projects: [
@@ -28,8 +32,8 @@ module.exports = defineConfig({
   testDir: './tests',
   snapshotPathTemplate: '{testDir}/snapshots/{projectName}/{testFilePath}/{arg}{ext}',
   webServer: {
-    command: 'npx serve dist',
-    port: 3000,
+    command: 'npx serve dist -l ' + PORT,
+    port: Number(PORT),
     reuseExistingServer: !process.env.CI,
   },
 });

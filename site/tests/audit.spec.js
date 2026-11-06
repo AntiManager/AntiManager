@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/mc.yandex.ru/**', (route) => route.abort());
 });
 
-const PAGE = '/genome/audit/';
+const PAGE = '/method/audit/';
 
 test.describe('AUDIT01 — Express audit page', () => {
   test('renders 40 collapsed criteria and opens one with levels, KPI and verification', async ({ page }) => {

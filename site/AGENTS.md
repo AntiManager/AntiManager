@@ -13,21 +13,22 @@ AntiManager/
   site/              # Website source code
     build.js         # Static site builder
     src/             # Templates, data, chapter content
+    src/routes.js    # Single source of truth for paths + legacy redirect map
     src/content/     # Topic-landing partials (XX-slug.html) + contact.html
     src/content/full/# Full-text article partials (XX-slug.html) — presence enables /full/
-    src/content/genome/ # «Геном завода» section partials (landing.html, role.html)
+    src/content/genome/ # «Методология» section partials (landing.html, role.html, audit.html, systems.html, documents.html)
     src/content/articles/ # «Статьи» long-read partials (XX-slug.html)
-    src/content/documents/ # Generated typical-document body partials (/genome/documents/<slug>/)
-    src/lib/         # escape.js (shared build helpers)
+    src/content/documents/ # Generated typical-document body partials (/method/documents/<slug>/)
+    src/lib/         # escape.js, catalog.js, legacy-routes.js
     materials/       # Downloadable assets: <slug>.pdf/.docx (generated) + <slug>/ (authored extras)
-    scripts/         # render-og.js, render-pdf.js
+    scripts/         # render-og.js, render-pdf.js, gen-redirects.js, verify-deploy.ps1
     css/             # Stylesheets
     js/              # JavaScript
     fonts/           # Self-hosted woff2
     tests/           # Playwright UX tests
     unit/            # build unit tests (node --test)
     feedback/        # feedback-form microservice (Python stdlib)
-    deploy/          # nginx config
+    deploy/          # nginx config + generated redirects.conf
     deploy.ps1       # Deploy to VPS
     package.json
     playwright.config.js
@@ -44,8 +45,8 @@ Configure the path in `.env` (`ARTICLES_DIR`). Default location:
 
 Chapters are numbered `XX_Title.md` and map to chapters in `site/src/data/chapters.json`.
 
-Two-tier content per theme: the topic landing at `/weapons/<slug>/` carries the
-interactive model/diagnostic; the full text at `/weapons/<slug>/full/` carries the
+Two-tier content per theme: the topic landing at `/playbook/<slug>/` carries the
+interactive model/diagnostic; the full text at `/playbook/<slug>/full/` carries the
 complete article plus a materials block (article PDF + extras). The landing shows a
 read-more card only when a full-text partial exists, and the full page is generated
 only then too.
@@ -63,14 +64,39 @@ When publishing the full text:
 3. Run `node site/build.js`, then `npm run render:pdf` to regenerate `materials/<slug>.pdf`
 4. Rebuild so the materials block picks up the PDF, then run `.\deploy.ps1`
 
-## «Геном завода» section (`/genome/`, `/genome/role/`)
+## Routes, redirects, legacy URLs (IA refactor 2026-11-06)
 
-A consulting-service section, not an arsenal weapon. Indexable static pages rendered by
+- `src/routes.js` is the single source of truth for every emitted path: `/`, `/playbook/`,
+  `/playbook/<slug>/`, `/playbook/<slug>/full/`, `/start/`, `/articles/…`, `/method/`,
+  `/method/audit|systems|documents|role/`, `/about/`, `/about/manifesto|origins/`,
+  `/contact/`, `/privacy/`, `/search/`, `/404/`. It also owns `RESERVED_SLUGS` and the
+  `legacyRoutes` map; do not hard-code a route in `build.js`, tests or generators.
+- `src/lib/catalog.js` joins `weapons.json` ↔ `chapters.json` (1:1 slug/id, shared text fields
+  asserted) and merges published articles + documents. `src/lib/legacy-routes.js` rewrites and
+  asserts old hrefs in `renderPage`.
+- **Cases are retired:** `/cases/` has no page, nav entry or sitemap entry and 301s to `/`.
+  `src/data/cases.json` and chapter `cases` fields are preserved (restore = write case pages and
+  remove the redirect/retirement rule).
+- `npm run gen:redirects` regenerates `deploy/redirects.conf` from `legacyRoutes` (slash and
+  no-slash variants, longest-first, `/strategy/**` stays nginx-only). `npm run check:redirects`
+  exits 1 on drift — run it after any route change. `deploy/nginx.conf` includes the file;
+  `deploy.ps1` copies and mounts it.
+- New/renamed URL tests: `unit/build-routes.test.js`, `unit/build-cases-retired.test.js`,
+  `tests/nav-mobile.spec.js`. Every page is rewritten and asserted at build time, so a legacy
+  `href` fails the build rather than shipping.
+
+## «Геном завода» section (`/method/`, `/method/role/`)
+
+A consulting-service section (URL `/method/`), not a book chapter. Indexable static pages rendered by
 `build.js` from authored partials in `src/content/genome/`:
-- `landing.html` — model, comparison, the free PLAN-group sample (3 processes / 11 subprocesses
-  / 49 operations) and six document cards (05/06 link to the role page anchors).
+- `landing.html` — breadcrumbs, four `.method-tool` entry cards (audit / systems / documents /
+  role) above the fold, a sticky `.method-toc`, the model, comparison, the free PLAN-group sample
+  (3 processes / 11 subprocesses / 49 operations) and six document cards (05/06 link to the role
+  page anchors). The tool cards are the discovery surface; do not re-add the old
+  `.audit-entry` / `.systems-entry` / `.documents-entry` sections.
 - `role.html` — full role documents: the КУ package (levels 1–5 descriptors, question bank,
-  cases, 360°) and the recruiter profile. The KU/profile block is generated offline from the
+  cases, 360°) and the recruiter profile, with breadcrumbs, a sticky `.role-toc` (`#ku`,
+  `#profile`) and a reading-progress bar. The KU/profile block is generated offline from the
   Obsidian vault by `.kilo/scripts/genome_doc_build.py` (idempotent, fills the `<!--KU:*-->` /
   `<!--PROFILE:*-->`   markers). Re-run it after vault edits, then commit the regenerated partial —
   `node build.js` itself stays vault-independent.
@@ -78,10 +104,11 @@ A consulting-service section, not an arsenal weapon. Indexable static pages rend
   vault-relative and `.md` references are rendered as plain text, so a dead `.md` link can
   never leak onto the published page.
 
-CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/headquarters/`.
-Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`.
+CTAs: commercial buttons open the feedback form (`/contact/?pack=…`); «Задать вопрос в Штаб» → `/contact/`.
+Section styles live in the `/* === GENOME SECTION === */` block of `css/brutalist.css`
+(the CSS block names predate the `/method/` URL rename).
 
-## «Экспресс-аудит» (`/genome/audit/`)
+## «Экспресс-аудит» (`/method/audit/`)
 
 A static tool page nested under Геном: the 40-criterion express checklist with 0–5 anchors (one
 native `<details>` per criterion) plus a fillable XLSX
@@ -103,10 +130,10 @@ published.
 - The request-context slug is `audit`: registered in both `js/contact.js` and
   `feedback/server.py` (unknown packs are silently dropped by the service, so update both and
   redeploy the feedback container with the site).
-- Section styles live in the `/* === GENOME AUDIT (/genome/audit/) === */` block of
+- Section styles live in the `/* === GENOME AUDIT (/method/audit/) === */` block of
   `css/brutalist.css`.
 
-## «Карта систем» (`/genome/systems/`)
+## «Карта систем» (`/method/systems/`)
 
 A nested Геном page that publishes the 14 system cards as a uniform 12-field template, plus a
 blank card template for a client's own systems. Source of truth: `Методология ПС/Карточки-систем.md`
@@ -121,12 +148,12 @@ never hand-edited.
   via pandoc; `--check` compares the marker regions, the owner Markdown and the template and exits
   1 on drift.
 - The page reuses `.doc-cards` / `.doc-card` / `.doc-full` and the summary `.table-wrap`; page
-  styles live in the `/* === SYSTEMS MAP (/genome/systems/) === */` block of `css/brutalist.css`.
-- Discovery: a `.systems-entry` section on `/genome/` (deliberately not a seventh `.doc-card`, so
-  the landing still renders exactly six role documents), a sitemap entry, and
-  `unit/build-systems.test.js`. `/genome/systems/` is in the `ux-critical` no-hscroll path list.
+  styles live in the `/* === SYSTEMS MAP (/method/systems/) === */` block of `css/brutalist.css`.
+- Discovery: the «Карта систем» `.method-tool` card at the top of `/method/` (deliberately not a
+  seventh `.doc-card`, so the landing still renders exactly six role documents), a sitemap entry,
+  and `unit/build-systems.test.js`. `/method/systems/` is in the `ux-critical` no-hscroll path list.
 
-## «Типовые документы» (`/genome/documents/`)
+## «Типовые документы» (`/method/documents/`)
 
 A nested Геном section publishing the methodology templates: rhythm of meetings, Gemba walk, the
 continuous-improvement concept brief and the A3 problem-solving regulation. Source of truth:
@@ -144,10 +171,10 @@ internal and never a source).
   the header only, heading jumps, duplicate H2, wiki resolution by basename/alias, internal leak).
 - Downloads are existence-gated by `docDownloadsHtml()`: PDF (from `render:pdf`) and DOCX are linked
   only when the file exists. Build → `npm run render:pdf` → build again.
-- Page styles live in the `/* === TYPICAL DOCUMENTS (/genome/documents/) === */` block of
+- Page styles live in the `/* === TYPICAL DOCUMENTS (/method/documents/) === */` block of
   `css/brutalist.css`; print CSS strips the download row, interlinks, license note and CTA.
-- Discovery: a `.documents-entry` section on `/genome/` (deliberately not a seventh `.doc-card`),
-  sitemap entries, `unit/build-documents.test.js`, and the route list in `ux-critical`.
+- Discovery: the «Типовые документы» `.method-tool` card at the top of `/method/` (deliberately not
+  a seventh `.doc-card`), sitemap entries, `unit/build-documents.test.js`, and the route list in `ux-critical`.
 
 ### A3 regulation source (`Форма-А3.md`)
 
@@ -179,7 +206,7 @@ Data lives in three files under `src/data/`:
   each with a title, description and `order`;
 - `articles.json` — one entry per article (`id`, `topic`, `order`, optional `series`, text fields,
   `date`, `tags`, `status`, four `faq` items);
-- `article-series.json` — cross-topic series (`capability` = «Управление способностью»).
+- `article-series.json` — cross-topic series (`capability` = «Имитация развития»).
 
 `practice` is the applied topic: query-targeted guides (5S, OEE, хронометраж, Lean, KPI).
 Their partials are authored directly in `src/content/articles/`, not generated from the vault,
@@ -208,7 +235,7 @@ The `/contact/` page hosts the feedback form. It is a static partial (`src/conte
 wired in `build.js` with `js/contact.js`), so the site stays static. Submitting posts JSON to the
 **same-origin** `POST /api/feedback`, proxy-passed by nginx to the `antimanager-feedback` container
 (the `site/feedback/` microservice: Python stdlib, no deps) which forwards the message to the owner's
-Telegram chat via the bot. The offer CTAs on `/genome/` and `cta-band` link to `/contact/` (with a
+Telegram chat via the bot. The offer CTAs on `/method/` and `cta-band` link to `/contact/` (with a
 `?pack=` context slug); the footer carries «Связаться».
 
 Rules:
@@ -218,7 +245,7 @@ Rules:
 - Because the endpoint is same-origin, the existing CSP (`form-action 'self'`, no `connect-src`)
   already permits it — do not move the endpoint to another origin without adding `connect-src`.
 - The service is covered by `python -m unittest discover -s site/feedback/tests` (not by
-  `npm test`, which only runs the site build + Playwright); the Playwright `contact.spec.js`
+  `npm test`, which runs the site unit tests, build, integrity checks and Playwright); the Playwright `contact.spec.js`
   intercepts `/api/feedback`, so no real network call is made in tests (the static `serve` cannot
   answer POST).
 - Deploy the service (`site/feedback/deploy.ps1`) before/independently of the site; nginx resolves
@@ -254,17 +281,22 @@ Section styles live in the `/* === CONTACT === */` block of `css/brutalist.css`.
 ```bash
 cd site
 node build.js           # Build site into dist/
-npx serve dist          # Local preview
-npm test                # unit + Playwright tests
+npx serve dist -l 3100  # Local preview (tests use PLAYWRIGHT_PORT || 3100)
+npm test                # unit + check:redirects + build (site + Pagefind) + check:links + Playwright
 npm run test:unit       # unit tests only
-npm run test:e2e        # Playwright only
+npm run test:e2e        # build + Playwright only
+npm run gen:redirects   # regenerate deploy/redirects.conf from src/routes.js
+npm run check:redirects # exit 1 when redirects.conf drifts from routes.js
+npm run check:links     # audit dist/: duplicate ids, heading skips, broken links/anchors
 npm run render:og       # regenerate src/templates/og-image.png from og-image.svg
 npm run render:pdf      # render materials/<slug>.pdf from each full-text page (run after build)
 npm run optimize:thinkers  # generate .webp siblings for thinker photos (run after adding a photo)
 npm run indexnow        # submit dist/sitemap.xml URLs to IndexNow (Yandex/Bing)
 .\deploy.ps1            # Deploy to VPS (reads .env; submits IndexNow unless -SkipIndexNow)
-.\scripts\verify-deploy.ps1  # post-deploy live check: genome, practice, sitemap, IndexNow key → non-zero on failure
+.\scripts\verify-deploy.ps1  # post-deploy live check: new routes, 301 matrix, sitemap, IndexNow key
 ```
+Stale route assertions are the usual cause of a red build: check `src/routes.js` and
+`unit/build-routes.test.js` first, not individual page tests.
 Regenerate the genome role documents after vault edits (needs the local Obsidian vault):
 `python ..\.kilo\scripts\genome_doc_build.py`
 Regenerate the article long-read partials after vault edits (same vault):
@@ -313,8 +345,19 @@ calls under `$ErrorActionPreference="Continue"`, and retry a timed-out SSH hop a
 - Materials are honest: only real files are linked (`materials/<slug>.pdf`, declared extras); never "coming soon"
 - `materials.json` `href` must match `/materials/<slug>/<file>` (build rejects anything else)
 - Print stylesheet (`@media print` in `brutalist.css`) strips site chrome for the PDF; regenerate PDFs with `npm run render:pdf`
-- All 23 weapons indexed (00, 02–23; article 01 is `/manifesto/`)
-- Widgets: one question per screen, back button, step counter, progress bar
+- All 23 chapters indexed under `/playbook/` (00, 02–23; article 01 is `/about/manifesto/`)
+- Header = 4 nav links + `Обсудить задачу` CTA; `aria-current` is injected at build time via
+  `navSection`. The header/footer mobile breakpoint is **980px** (CTA moves into the open menu);
+  keep it in sync with `tests/nav-mobile.spec.js`.
+- Home is exactly six `<section>`s: book hero, one situation chooser (four `.zone-card` links to
+  `/start/#<id>` plus the secondary `#system-map` star map), six featured chapters, three featured
+  long-reads, three `.method-tool` methodology cards, and a project/Штаб block. Featured ids live
+  in `build.js` (`featuredChapterIds`, `featuredArticleIds`); do not re-add the manifesto wall,
+  the standalone map section or the old HQ block. `tests/home.spec.js` + `unit/build-home.test.js`
+  guard the structure.
+- Widgets: one question per screen, back button, step counter, progress bar. Keep a
+  single static back button outside the re-rendered `#<id>Question` container — never
+  re-inject an element with the same `id` from the question template (AX15).
 - SEO: `og:image` must be the raster `/og-image.png` (social networks do not render SVG);
   run `npm run render:og` after editing `src/templates/og-image.svg`
 - `datePublished` and sitemap `lastmod` use each entry's `date` (`weapons.json` for weapon pages,
@@ -322,5 +365,5 @@ calls under `$ErrorActionPreference="Continue"`, and retry a timed-out SSH hop a
 - Thinker photos ship as `<picture>` (generated `.webp` + original fallback); build guards on
   the `.webp` existing, so a missing generation degrades gracefully to the raster
 - Long inline code/identifier chips (`.anchor-code`, `.cv`) must **wrap** (`overflow-wrap: anywhere`),
-  never `white-space: nowrap` — a nowrap chip caused page-level horizontal scroll on `/genome/`
+  never `white-space: nowrap` — a nowrap chip caused page-level horizontal scroll on `/method/`
   (375/768px). The shared no-hscroll Playwright test (`ux-critical` AX04) guards this.

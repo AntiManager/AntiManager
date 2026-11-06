@@ -42,8 +42,8 @@
         <button class="btn btn-outline" onclick="answerMat(3)">В основном да — есть пробелы, но справляется</button>
         <button class="btn btn-outline" onclick="answerMat(4)">Да, полностью — эксперт в этой задаче</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="matBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackMat()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="matBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackMat()">← Назад</button>
     <div id="matResult" style="display:none;">
       <div class="block-principle" id="matResultText"></div>
       <button class="btn btn-ghost" onclick="resetMat()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -94,11 +94,12 @@
     for (var i = 0; i < q.options.length; i++) {
       html += '<button class="btn btn-outline" onclick="answerMat(' + q.options[i] + ')">' + q.labels[i] + '</button>';
     }
-    html += '</div><button class="btn btn-ghost btn-sm" id="matBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackMat()">← Назад</button>';
+    html += '</div>';
     c.innerHTML = html;
   }
 
   function showMatResult() {
+    document.getElementById('matBackBtn').style.display = 'none';
     var answers = window._matDiag.answers;
     var avg = answers.reduce(function(a,b){return a+b;},0) / answers.length;
     var container = document.getElementById('matQuestion');

@@ -1,13 +1,12 @@
 <header class="site-header">
   <a href="/" class="logo"><span class="logo-accent">Anti</span>Manager</a>
-  <button class="menu-toggle" aria-label="Меню" aria-expanded="false">☰</button>
-  <nav class="header-nav">
-    <a href="/manifesto/">Манифест</a>
-    <a href="/archive/">Архив</a>
-    <a href="/arsenal/">Арсенал</a>
-    <a href="/articles/">Статьи</a>
-    <a href="/genome/">Геном</a>
-    <a href="/scenarios/">Сценарии</a>
-    <a href="/cases/">Дневники</a>
+  <button class="menu-toggle" aria-label="Меню" aria-controls="header-nav" aria-expanded="false">☰</button>
+  <nav class="header-nav" id="header-nav" aria-label="Основная навигация">
+    <a href="/playbook/" data-nav="book">Плейбук</a>
+    <a href="/articles/" data-nav="articles">Статьи</a>
+    <a href="/method/" data-nav="method">Методология</a>
+    <a href="/about/" data-nav="about">О проекте</a>
   </nav>
+  <a href="/search/" class="header-search" data-search-open aria-label="Поиск по сайту" aria-controls="site-search" aria-expanded="false">Поиск</a>
+  <a href="/contact/" class="header-cta" data-cta="header_consult">Обсудить задачу</a>
 </header>

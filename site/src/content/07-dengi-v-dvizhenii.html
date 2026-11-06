@@ -21,10 +21,10 @@
 <section><h2>Калькулятор: сколько стоит минута простоя?</h2>
 <div class="widget" id="oeeCalc"><div class="widget-title">Калькулятор стоимости простоя</div>
 <p style="font-size:var(--text-sm);margin-bottom:var(--space-4);">Введите данные по одному станку или участку.</p>
-<div class="form-group"><label>Стоимость станко-часа (амортизация + энергия + обслуживание), руб/час</label><input type="number" id="oeeRate" placeholder="например: 2500" style="width:100%;"></div>
-<div class="form-group"><label>Ставка оператора, руб/час</label><input type="number" id="oeeWage" placeholder="например: 500" style="width:100%;"></div>
-<div class="form-group"><label>Среднее время простоя в день, минут</label><input type="number" id="oeeDown" placeholder="например: 45" style="width:100%;"></div>
-<div class="form-group"><label>Рабочих дней в месяце</label><input type="number" id="oeeDays" placeholder="22" style="width:100%;"></div>
+<div class="form-group"><label for="oeeRate">Стоимость станко-часа (амортизация + энергия + обслуживание), руб/час</label><input type="number" id="oeeRate" placeholder="например: 2500" style="width:100%;"></div>
+<div class="form-group"><label for="oeeWage">Ставка оператора, руб/час</label><input type="number" id="oeeWage" placeholder="например: 500" style="width:100%;"></div>
+<div class="form-group"><label for="oeeDown">Среднее время простоя в день, минут</label><input type="number" id="oeeDown" placeholder="например: 45" style="width:100%;"></div>
+<div class="form-group"><label for="oeeDays">Рабочих дней в месяце</label><input type="number" id="oeeDays" placeholder="22" style="width:100%;"></div>
 <button class="btn btn-primary" onclick="calcOee()">Посчитать</button>
 <div id="oeeResult" style="display:none;margin-top:var(--space-4);"><div class="block-principle" id="oeeResultText"></div><button class="btn btn-ghost" onclick="resetOee()" style="margin-top:var(--space-2)">Заново</button></div></div></section>
 

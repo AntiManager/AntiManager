@@ -1,4 +1,4 @@
-"""Generate the /genome/documents/ partials from the Personal Vault.
+"""Generate the /method/documents/ partials from the Personal Vault.
 
 Source of truth: `Методология ПС/Типовые документы/*.md` (public notes only).
 Outputs:
@@ -103,7 +103,7 @@ def esc(value: str) -> str:
 def render_cards(docs: list[dict]) -> str:
     out = []
     for d in sorted(docs, key=lambda x: x.get("order", 0)):
-        href = "/genome/documents/" + d["slug"] + "/"
+        href = "/method/documents/" + d["slug"] + "/"
         meta = "Версия %s · %s · обновлён %s" % (
             esc(d.get("version", "")), esc(d.get("license", "")),
             esc(ru_date(d.get("updated", ""))))

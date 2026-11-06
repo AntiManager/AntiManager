@@ -40,8 +40,8 @@
         <button class="btn btn-outline" onclick="answerSys(1)">Иногда анализируем, но часто ищем виноватого</button>
         <button class="btn btn-outline" onclick="answerSys(0)">Находим виноватого — и проблема «решена»</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="sysBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackSys()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="sysBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackSys()">← Назад</button>
     <div id="sysResult" style="display:none;">
       <div class="block-principle" id="sysResultText"></div>
       <button class="btn btn-ghost" onclick="resetSys()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -94,11 +94,12 @@
     for (var i = 0; i < q.options.length; i++) {
       html += '<button class="btn btn-outline" onclick="answerSys(' + q.options[i] + ')">' + q.labels[i] + '</button>';
     }
-    html += '</div><button class="btn btn-ghost btn-sm" id="sysBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackSys()">← Назад</button>';
+    html += '</div>';
     c.innerHTML = html;
   }
 
   function showSysResult() {
+    document.getElementById('sysBackBtn').style.display = 'none';
     var score = window._sysDiag.score;
     document.getElementById('sysQuestion').style.display = 'none';
     document.getElementById('sysResult').style.display = 'block';

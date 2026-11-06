@@ -43,8 +43,8 @@
         <button class="btn btn-outline" onclick="answerRy(1)">Формально есть, но живёт своей жизнью</button>
         <button class="btn btn-outline" onclick="answerRy(0)">Нет — «работаем ради зарплаты», инициатива наказуема</button>
       </div>
-      <button class="btn btn-ghost btn-sm" id="ryBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRy()">← Назад</button>
     </div>
+    <button class="btn btn-ghost btn-sm" id="ryBackBtn" style="display:none;margin-top:var(--space-3);" onclick="goBackRy()">← Назад</button>
     <div id="ryResult" style="display:none;">
       <div class="block-principle" id="ryResultText"></div>
       <button class="btn btn-ghost" onclick="resetRy()" style="margin-top:var(--space-3)">Пройти заново</button>
@@ -108,11 +108,11 @@
       '<div style="display:flex;flex-direction:column;gap:var(--space-2);">' +
       '<button class="btn btn-outline" onclick="answerRy(2)">Да — полностью здоровый луч</button>' +
       '<button class="btn btn-outline" onclick="answerRy(1)">Формально есть, но не работает</button>' +
-      '<button class="btn btn-outline" onclick="answerRy(0)">Нет — серьёзный перекос</button></div>' +
-      '<button class="btn btn-ghost btn-sm" id="ryBackBtn" style="display:inline-flex;margin-top:var(--space-3);" onclick="goBackRy()">← Назад</button>';
+      '<button class="btn btn-outline" onclick="answerRy(0)">Нет — серьёзный перекос</button></div>';
   }
 
   function showRyResult() {
+    document.getElementById('ryBackBtn').style.display = 'none';
     var scores = window._ryDiag.scores;
     document.getElementById('ryQuestion').style.display = 'none';
     document.getElementById('ryResult').style.display = 'block';
