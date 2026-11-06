@@ -4,8 +4,8 @@
     "bash": "allow",
     "skill": "allow",
     "external_directory": {
-      "C:\\Users\\{{USERNAME}}\\Python\\AntiManager\\*": "allow",
-      "C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}\\*": "allow",
+      "{{WORKSPACE_ROOT}}\\AntiManager\\*": "allow",
+      "{{VAULT_DIR}}\\*": "allow",
       "{{TEMP_DIR}}\\*": "allow"
     }
   },
@@ -20,7 +20,7 @@
         "obsidian-mcp",
         "serve",
         "--vault",
-        "vault=C:\\Users\\{{USERNAME}}\\Documents\\{{VAULT_DIR}}"
+        "vault={{VAULT_DIR}}"
       ],
       "enabled": true
     }

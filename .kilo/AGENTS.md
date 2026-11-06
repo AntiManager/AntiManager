@@ -6,6 +6,7 @@ Site plan: `.kilo/plans/site-development-plan.md`.
 Repository plan: `.kilo/plans/antimanager-repo-restructure.md`.
 Active local plan: none — `1793969494727` (site IA refactor) closed and archived 2026-11-06; new plans go to `.kilo/plans/`.
 Plan policy: new plans are local (`.kilo/plans/` is gitignored) and enter the repository only deliberately; tracked plans (`site-development-plan.md`, `antimanager-repo-restructure.md`, `1784652237510-site-brutalist-rebuild.md`) are history — do not touch. Completed local plans move to `.kilo/plans/archive/`; only the active plan stays at the root. Do not modify `.gitignore`.
+- Deploy provenance: deploy only from a committed tree; record live `VERSION` ↔ SHA in `.memory` (details: `.kilo/harness.md`).
 
 ## Site IA (since 2026-11-06)
 

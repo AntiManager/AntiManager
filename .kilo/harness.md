@@ -1,6 +1,6 @@
 # Harness provenance — AntiManager
 
-> Written by `/harness-init` 2026-11-05; updated when the harness changes. Not autoloaded.
+> Written by `/harness-init` 2026-11-05; updated 2026-11-06 (deploy provenance, budgets). Not autoloaded.
 
 ## Composition
 
@@ -19,7 +19,7 @@
 
 ## Verify
 
-- Command: `powershell -NoProfile -File "$env:USERPROFILE\.config\kilo\scripts\verify_repo.ps1" AntiManager`
+- Command: `pwsh -NoProfile -File "$env:USERPROFILE\.config\kilo\scripts\verify_repo.ps1" -Repo "C:\Work\Python\AntiManager"`
 - Success: `STATUS: OK`, exit 0
 - Scope: git state, remotes, harness files, encoding (names only for `.env`)
 - Not covered: site tests, vault generators, live deploy — run the full gate below
@@ -31,7 +31,21 @@
   - `python .kilo/scripts/check_documents.py --vault "<vault>"` → 0 findings
   - `python .kilo/scripts/gen_documents_pages.py --check`, `gen_ps_audit_page.py --check`,
     `gen_systems_page.py --check` → exit 0 (missing vault → exit 2)
+  - `git status --porcelain` → empty (or the deploy commit is tagged) before deploying
   - `.\site\deploy.ps1`, then `.\site\scripts\verify-deploy.ps1` → live checks pass (301 matrix)
+  - record live `VERSION` ↔ commit SHA in `.memory` after the deploy
+
+## Session budget
+
+- Batch ≥2.5 independent tool calls per turn; stop at ~150–180k context.
+- Implementation phase ≤120 turns; an audit ≤80 turns, one domain + file allowlist.
+- `session_audit.py` counts deploy/live checks as validations (2026-11-06).
+
+## Deploy provenance
+
+- Deploy only from a committed tree; commit and tag (or record the SHA) first.
+- A live version without a commit SHA is not acceptance: write `VERSION` ↔ SHA to
+  `.memory/active_context.md` and `.memory/progress.md`.
 
 ## Known exceptions
 
