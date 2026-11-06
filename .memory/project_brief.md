@@ -13,7 +13,7 @@
 - **Analytics**: Yandex Metrika (id: 111010335)
 - **Feedback**: Python stdlib microservice (`site/feedback/`) behind a same-origin nginx proxy
 - **Tooling**: Python 3.14 + `ftfy`, `python-docx`, `openpyxl`, `pytest`; Pandoc 3.13 for DOCX
-- **Hosts**: workspace `C:\Users\Евгений\Python`; vault `C:\Users\Евгений\Documents\Personal Vault`
+- **Hosts**: workspace `C:\Work\Python`; vault `C:\Work\Personal Vault`
 - **Tests**: unit (Node) + Playwright in `site/unit/` + `site/tests/`; run `cd site; npm test` (counts grow per feature — read them from the run output)
 
 ## Structure

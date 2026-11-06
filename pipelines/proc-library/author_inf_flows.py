@@ -14,7 +14,7 @@ import io
 import re
 import sys
 
-FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Work\Personal Vault\Библиотека процессов"
         r"\library\INF.md")
 
 # code -> (subprocess host, op dict); inserted at the end of the host section.

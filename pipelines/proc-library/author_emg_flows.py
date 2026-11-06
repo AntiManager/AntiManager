@@ -19,7 +19,7 @@ import io
 import re
 import sys
 
-FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Work\Personal Vault\Библиотека процессов"
         r"\library\EMG.md")
 
 # code -> (host subprocess, op dict). A boundary op is inserted at the end of

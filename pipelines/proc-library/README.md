@@ -8,7 +8,7 @@ Parser + validator + CLI for the Spiral A process-library template
 
 ```powershell
 # validate a library folder (scoped to <folder>/library) :
-python engine.py "C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
+python engine.py "C:\Work\Personal Vault\Библиотека процессов"
 
 # validate a single file (e.g. the template stub) :
 python engine.py "...\Библиотека процессов\specs\_template-stub.md"
@@ -791,7 +791,7 @@ domain: `ORG` / `STRAT`** — same five sub-steps.
 ## Tests
 
 ```powershell
-cd C:\Users\Евгений\Python\AntiManager\pipelines\proc-library
+cd C:\Work\Python\AntiManager\pipelines\proc-library
 python -m pytest -q -p no:cacheprovider
 ```
 

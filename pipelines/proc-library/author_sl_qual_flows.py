@@ -16,7 +16,7 @@ import io
 import re
 import sys
 
-FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Work\Personal Vault\Библиотека процессов"
         r"\library\SL_QUAL.md")
 
 # code -> (subprocess host, op dict). The boundary op is inserted at the end of

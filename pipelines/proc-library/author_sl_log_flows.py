@@ -9,7 +9,7 @@ import os
 import re
 import sys
 
-FILE = (r"C:\Users\Евгений\Documents\Personal Vault\Библиотека процессов"
+FILE = (r"C:\Work\Personal Vault\Библиотека процессов"
         r"\library\SL_LOG.md")
 
 # (src, dst, token, condition)

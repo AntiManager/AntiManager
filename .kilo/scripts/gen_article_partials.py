@@ -22,7 +22,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'pipelines' / 'obsidian-to-site'))
 from md_to_partial import convert  # noqa: E402
 
-VAULT = Path(r'C:\Users\Евгений\Documents\Personal Vault')
+VAULT = Path(r'C:\Work\Personal Vault')
 ARTICLES = VAULT / 'Книга' / '01_Статьи'
 OUT = REPO / 'site' / 'src' / 'content' / 'articles'
 

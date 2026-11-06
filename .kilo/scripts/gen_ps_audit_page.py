@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
-DEFAULT_VAULT = Path(r"C:\Users\Евгений\Documents\Personal Vault")
+DEFAULT_VAULT = Path(r"C:\Work\Personal Vault")
 NOTE_REL = Path("Аудит ПС") / "Экспресс-чек-лист-аудита-ПС.md"
 PARTIAL = HERE / "site" / "src" / "content" / "genome" / "audit.html"
 WORKBOOK = HERE / "site" / "materials" / "ps-express-audit" / "express-audit-ps.xlsx"

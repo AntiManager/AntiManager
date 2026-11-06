@@ -25,7 +25,7 @@
 
 ## Hot rules
 
-- **Paths:** workspace `C:\Users\Евгений\Python`; vault `C:\Users\Евгений\Documents\Personal Vault` (no `D:`).
+- **Paths:** workspace `C:\Work\Python`; vault `C:\Work\Personal Vault` (no `D:`).
 - **Toolchain:** Python 3.14 + `ftfy python-docx openpyxl pytest`; Pandoc 3.13; `cd site; npm ci; npx playwright install chromium`.
 - Skills 8 / commands 10 / agents 0; `/check-site` = `npm test`.
 - Generators default to the vault; override with `--vault`; `check_system_cards.py` takes it positionally.

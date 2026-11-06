@@ -81,7 +81,7 @@ skill) — no dedicated agent; the former `vault-auditor` agent added nothing be
 5. Restore the SSH deploy key to `~/.ssh/id_ed25519` (VPS: `chemule@5.129.221.85:2222`), mode user-only.
 6. Sync the vault (remotely-save pulls content only); it stays outside the repo.
 7. Verify: `cd site; npm test`; `python .kilo/scripts/check_documents.py --vault "<vault>"`; each generator with `--check`; `.\site\scripts\verify-deploy.ps1`.
-8. Generators default to `C:\Users\Евгений\Documents\Personal Vault`; pass `--vault <path>` on another host. `check_system_cards.py` takes the vault as a positional argument.
+8. Generators default to `C:\Work\Personal Vault`; pass `--vault <path>` on another host. `check_system_cards.py` takes the vault as a positional argument.
 
 ---
 

@@ -219,7 +219,7 @@ def check_express(path: Path, base_text: str, errors: list[str], warns: list[str
 def main() -> int:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     vault = Path(args[0]) if args else Path(
-        r"C:\Users\Евгений\Documents\Personal Vault"
+        r"C:\Work\Personal Vault"
     )
     if "--print-fingerprint" in sys.argv:
         base = vault / BASE_REL
