@@ -5,14 +5,24 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
-- **Feedback anti-spam (2026-11-15, uncommitted):** layered defence for `/contact/` — signed
-  challenge + SHA-256 proof of work (`GET /api/feedback/challenge`), fill-time trap, `url`
-  honeypot, content heuristics (`latin_only`, `short_no_detail`, `price_probe`,
-  `random_mailbox`, `link_in_message`, `latin_name`), per-IP + global limits, nginx
-  `limit_req`, and quarantine delivery instead of silent drops. Turnstile/reCAPTCHA rejected
-  (unreachable/unlawful for the Russian audience); no third-party script, CSP untouched.
-  Evidence: Python 48/48; `npm test` 393 passed / 6 skipped; real-stack browser stories —
-  lead delivered, reported probe quarantined, instant PoW bot `too_fast`, honeypot dropped.
+- **Feedback anti-spam deployed (2026-11-15, `848f4f1`, live `20261115a` ↔ `5a68d9c`):** layered
+  defence for `/contact/` — signed challenge + SHA-256 proof of work
+  (`GET /api/feedback/challenge`), fill-time trap, `url` honeypot, content heuristics
+  (`latin_only`, `short_no_detail`, `price_probe`, `random_mailbox`, `link_in_message`,
+  `latin_name`), per-IP + global limits, nginx `limit_req`, and quarantine delivery instead of
+  silent drops. Turnstile/reCAPTCHA rejected (unreachable/unlawful for the Russian audience); no
+  third-party script, CSP untouched. Pre-commit review fixed a `TypeError` path: challenge
+  signatures are now compared as bytes, so a non-ASCII signature is `bad_challenge`, not a 500.
+  Evidence: Python 49/49; unit 43/43; `npm test` 393 passed / 6 skipped; `check:links` 85 pages
+  clean; live clean PoW lead → `deliver reason=ok`; no-challenge probe → `quarantine` with 6
+  reasons; honeypot POST → `drop reason=honeypot`, no delivery; `verify-deploy.ps1` passed.
+- **Real client IP behind Caddy fixed (2026-11-15, `5a68d9c`):** live logs showed `ip=172.19.0.6`
+  (Caddy's bridge address), so the nginx `limit_req` zone and the service per-IP limiter were one
+  global bucket — 5 submissions / 10 min for the whole site. Added `real_ip_header
+  X-Forwarded-For` + private `set_real_ip_from` ranges to `deploy/nginx.conf` (validated with
+  `nginx -t` on `nginx:alpine`), redeployed the site. Confirmed live: after the fix a honeypot
+  POST logged a public client `ip=` (`drop reason=honeypot`), where every earlier event carried
+  Caddy's bridge address.
 - **Harness optimization (2026-11-15, `53107e4`):** `.kilo/AGENTS.md` cut 123 → 59 lines
   (10.8 → 3.2 KB) per HP-001; site IA, language policy, skills/commands/scripts, publication
   rules, MCP, security protocol and new-machine setup moved to `.kilo/harness.md` (on demand).
