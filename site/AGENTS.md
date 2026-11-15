@@ -264,6 +264,10 @@ Rules:
 - The challenge endpoint needs its own nginx `location = /api/feedback/challenge`; the service is
   same-origin, so both locations proxy to `antimanager-feedback`. `limit_req_zone` lives at file
   level in `deploy/nginx.conf` because that file is mounted inside `http {}`.
+- **nginx sees Caddy's container IP, not the visitor's.** `deploy/nginx.conf` sets
+  `real_ip_header X-Forwarded-For` plus `set_real_ip_from` for the private ranges, so `$remote_addr`
+  is the client again. Remove those lines and both the `limit_req` zone and the service's per-IP
+  limiter collapse into one shared bucket (5 submissions / 10 min for the whole site).
 - Component focus styles must not kill the global ring: a `.field input:focus { outline: none }`
   rule outranks the global `:focus-visible { outline: 3px }` by specificity and silently removes
   the keyboard indicator. Rely on the global rule; change only `border-color` locally.
