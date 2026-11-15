@@ -1,8 +1,6 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "permission": {
-    "bash": "allow",
-    "skill": "allow",
     "external_directory": {
       "{{WORKSPACE_ROOT}}\\AntiManager\\*": "allow",
       "{{VAULT_DIR}}\\*": "allow",

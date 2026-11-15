@@ -9,7 +9,18 @@
     ".memory/progress.md"
   ],
   "permission": {
-    "bash": "allow",
+    "bash": {
+      "Remove-Item *": "ask",
+      "git reset --hard*": "ask",
+      "git clean*": "ask",
+      "git push --force*": "ask",
+      "git push -f*": "ask",
+      "rm *": "ask",
+      "del *": "ask",
+      "rmdir *": "ask",
+      "docker compose down -v*": "ask",
+      "*": "allow"
+    },
     "read": {
       ".env*": "deny",
       "**/.env*": "deny",
