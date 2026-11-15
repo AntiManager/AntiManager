@@ -5,6 +5,14 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
+- **Contact phone published (2026-11-15, `57d3a94`, live `20261115b`):** `+7 922 180-43-61` on
+  `/contact/` (`tel:` in E.164 + visible text, mirrored in `<noscript>`), in the footer
+  «Связаться» column on every page, and as `Organization.telephone` in the site JSON-LD
+  (`build.js` `orgNode()`) — Google's Organization guidance wants country + area code and
+  crawlable text. No image/JS/obfuscation. Evidence: unit 43/43; `check:links` 85/85 clean;
+  E2E 393 passed / 6 skipped (on port 3105 — 3100 was occupied by a foreign app, which made the
+  first E2E run fail on another site); live contact `tel:` href + visible number, live home
+  schema telephone, `VERSION 20261115b`; `verify-deploy.ps1` passed.
 - **Feedback anti-spam deployed (2026-11-15, `848f4f1`, live `20261115a` ↔ `5a68d9c`):** layered
   defence for `/contact/` — signed challenge + SHA-256 proof of work
   (`GET /api/feedback/challenge`), fill-time trap, `url` honeypot, content heuristics

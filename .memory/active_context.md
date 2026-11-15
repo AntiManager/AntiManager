@@ -1,21 +1,18 @@
 # AntiManager — Active Context
-> Updated: 2026-11-15 · Harness commit `53107e4`. New plans go to `.kilo/plans/`.
+> Updated: 2026-11-15 · Harness `53107e4`. Plans → `.kilo/plans/`.
 
 ## State
 
-- **Live `VERSION 20261115a` ↔ `5a68d9c`** (deployed 2026-11-15). Feedback anti-spam is in
-  production: signed `GET /api/feedback/challenge` + SHA-256 PoW, fill-time trap, `url` honeypot,
-  heuristics, quarantine instead of drop. Live evidence: clean PoW lead → `deliver reason=ok`;
-  no-challenge probe → `quarantine reason=latin_only,short_no_detail,price_probe,latin_name,
-  random_mailbox,no_challenge`; honeypot POST → `drop reason=honeypot`, no delivery.
-  Gate: Python 49/49, unit 43/43, `npm test` 393 passed / 6 skipped, `check:links` 85 pages
-  clean, Pagefind 82 / 15,946, `verify-deploy.ps1` passed.
-- **Real client IP fixed (`5a68d9c`):** Caddy runs as a container, so nginx saw one bridge address
-  and every feedback limit (nginx `limit_req`, service per-IP) was effectively global.
-  `real_ip_header X-Forwarded-For` + private `set_real_ip_from` restore `$remote_addr`; `nginx -t`
-  on `nginx:alpine` first. Confirmed live: after the fix a honeypot POST logged a public client
-  `ip=` (`drop reason=honeypot`), where every earlier event carried Caddy's bridge address.
-- **Harness (`53107e4`):** HP-003/004/005/010/013 closed, `/closeout` added; checks green.
+- **Contact phone published (2026-11-15, `57d3a94`, live `20261115b`):** `+7 922 180-43-61` on
+  `/contact/` (`tel:` E.164, also in `<noscript>`), in the footer «Связаться» on every page, and
+  as `Organization.telephone` in JSON-LD (country + area code). Live check:
+  contact tel + visible number, home schema telephone, `20261115b` live;
+  `verify-deploy.ps1` passed. Gate: unit 43/43, `check:links` 85/85, E2E 393/6.
+- **Anti-spam deployed (`848f4f1`; was live as `20261115a` ↔ `5a68d9c`).** Signed challenge + SHA-256
+  PoW, fill-time trap, `url` honeypot, heuristics, quarantine instead of drop. Live evidence and
+  details in `progress.md`. Gate: Python 49/49, unit 43/43, E2E 393/6, `check:links` 85 pages.
+- **Real client IP fixed (`5a68d9c`):** `real_ip_header X-Forwarded-For` + private
+  `set_real_ip_from` in `deploy/nginx.conf`; without them every per-IP limit is one global bucket.
 
 ## Next
 
@@ -39,7 +36,9 @@ cd site; .\scripts\verify-deploy.ps1
 
 - Paths: workspace `C:\Work\Python`; vault `C:\Work\Personal Vault`; `.env` at repo root.
 - Toolchain: Python 3.14 + ftfy/python-docx/openpyxl/pytest; Pandoc 3.13; Node 26 + Pagefind 1.6;
-  Playwright chromium; tests use port 3100 (`PLAYWRIGHT_PORT`), never 3000.
+  Playwright chromium; tests use port 3100 (`PLAYWRIGHT_PORT`), never 3000. Port 3100 can be
+  taken by a foreign app: `reuseExistingServer` then tests it (384 false failures seen
+  2026-11-15) — check the port and rerun with `PLAYWRIGHT_PORT=3105`.
 - `/playbook/` canonical; `/book/` single-hop 301; `/cases/` retired. Series «Имитация развития».
 - `npm test` = unit + `check:redirects` + build (site + Pagefind) + `check:links` + Playwright.
 - Deploy only from a committed tree; `npm test` first; record `VERSION` ↔ SHA. Gotchas:
