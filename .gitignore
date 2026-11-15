@@ -27,5 +27,11 @@ site/tests/snapshots/**/*.png
 __pycache__/
 *.pyc
 
+# Local scratch. Only the A3 regeneration scripts stay tracked; screenshots,
+# smoke output and review artifacts under .run/ are local-only.
+.run/*
+!.run/a3_*.py
+!.run/a3_*.js
+
 # Zed editor
 .zed/

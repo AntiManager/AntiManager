@@ -10,7 +10,8 @@
 - **Repo hygiene (2026-11-15):** removed untracked `.run/` scratch (session scripts + review
   screenshots, ~15 MB) and `site/tmp-widget-*.mjs`; refreshed `README.md` (routes, structure) and
   `.kilo/harness.md` (artifact policy). No code changes, no deploy; the tracked `a3_*` scripts in
-  `.run/` stay.
+  `.run/` stay. `.run/` scratch is now gitignored (`.run/*` + `!.run/a3_*`), so screenshots and
+  session scripts never reappear as untracked.
 - **Harness optimization (2026-11-06):** global turn/audit budgets (≥2.5 calls/turn; ≤120/80
   turns), bounded reviewer (15 steps, diff-only), deploy provenance (`VERSION` ↔ SHA);
   `session_audit.py` now counts deploy/live checks and reports tools/turn + cache/turn. Local

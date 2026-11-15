@@ -20,12 +20,13 @@
 
 ## Artifacts
 
-- `.run/` is **not gitignored**. It holds only the tracked A3 regeneration scripts
-  (`a3_*.py|js`); every other file there is local scratch and must be removed before commit.
+- `.run/` is local scratch and is **gitignored** (`.run/*`), except the tracked A3
+  regeneration scripts (`!.run/a3_*.py|js`). Screenshots (`shots/`, `review/`), smoke output and
+  session scripts never reach git; delete them freely.
 - `.kilo/reports/` is local-only (`*` ignored by its own `.gitignore`); generator output and
   deploy reports are never committed.
-- `site/prototype/team-landing.html` — untracked draft landing for `team.antimanager.pro`;
-  not part of `build.js`, tests or the sitemap.
+- `site/prototype/team-landing.html` — tracked draft landing for `team.antimanager.pro`
+  (`dc90922`, `noindex`); not part of `build.js`, tests or the sitemap.
 
 ## Verify
 

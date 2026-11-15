@@ -11,6 +11,9 @@ Rolling log, recent first. Keep this file under 8 KB; move older entries to `.me
 - **Prototype tracked (2026-11-15):** committed the draft `site/prototype/team-landing.html`
   (`dc90922`, `noindex`, out of the build) per user decision and pushed to GitHub + GitVerse.
   Content review (real contacts, 17 vs 15+ plants, >350 vs >500 млн ₽) still pending.
+- **`.run/` scratch gitignored (2026-11-15):** `.gitignore` now has `.run/*` with
+  `!.run/a3_*.py|js`, so only the A3 regeneration scripts stay tracked; `shots/`, `review/` and
+  session scripts can no longer show up as untracked. Harness artifact policy updated.
 - **Harness optimization (2026-11-06):** global turn/audit budgets (≥2.5 calls/turn; ≤120/80
   turns), bounded reviewer (15 steps, diff-only), deploy provenance (`VERSION` ↔ SHA);
   `session_audit.py` now counts deploy/verify/nginx/live checks and reports tools/turn + cache/turn.
