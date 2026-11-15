@@ -207,6 +207,17 @@ Vault structure audit is `/vault-audit` (health mode of `vault-indexer`).
 - Deploy only from a committed tree; commit and tag (or record the SHA) first.
 - A live version without a commit SHA is not acceptance: write `VERSION` ↔ SHA to
   `.memory/active_context.md` and `.memory/progress.md`.
+- Run `npm test` first; validate nginx config on a throwaway `nginx:alpine` (`nginx -t`); SSH
+  port 2222 is flaky; a Caddy reload may refuse `localhost:2019` (non-fatal).
+
+## Front-end gotchas
+
+- Long H1 words are capped, not split: `.content-page h1`, `.hero-gen h1`, `.documents-hub h1`,
+  `.privacy-page h1`. On `/method/`, `#offer` sits before `#problem`.
+- `/search/` is `noindex` and absent from the sitemap; a future CSP `script-src` needs `'self'` +
+  `'wasm-unsafe-eval'` (Pagefind).
+- `node build.js` alone wipes `dist/` and skips the search index; `npm test` builds site + Pagefind,
+  runs unit + `check:redirects` + `check:links` (scans `dist/`) + Playwright.
 
 ## New machine setup
 

@@ -1,31 +1,25 @@
 # AntiManager — Active Context
-> Updated: 2026-11-15 · No active plan. New plans go to `.kilo/plans/`.
+> Updated: 2026-11-15 · Harness commit `53107e4`. New plans go to `.kilo/plans/`.
 
 ## State
 
-- **Live:** `VERSION 20261106d` ↔ commit `455d25b` (deployed from the identical tree). HEAD
-  `32fe433` is harness-only — the site tree is unchanged, so live content still maps to `455d25b`.
-  Gate at closure: unit 43/43, `npm test` 378 passed / 6 skipped, `check:links` 85 pages 0/0/0/0,
-  `check:redirects` no drift, Pagefind 82 / 15,946.
-- **Repo hygiene (2026-11-15):** removed untracked `.run/` scratch (session scripts + review
-  screenshots, ~15 MB) and `site/tmp-widget-*.mjs`; refreshed `README.md` (routes, structure) and
-  `.kilo/harness.md` (artifact policy). No code changes, no deploy; the tracked `a3_*` scripts in
-  `.run/` stay. `.run/` scratch is now gitignored (`.run/*` + `!.run/a3_*`), so screenshots and
-  session scripts never reappear as untracked.
-- **Harness optimization (2026-11-06):** global turn/audit budgets (≥2.5 calls/turn; ≤120/80
-  turns), bounded reviewer (15 steps, diff-only), deploy provenance (`VERSION` ↔ SHA);
-  `session_audit.py` now counts deploy/live checks and reports tools/turn + cache/turn. Local
-  `.kilo/kilo.json` paths repaired to `C:\Work\...`; `verify_repo.ps1` needs `-Repo <path>`.
-- **History:** site-IA plan closed; details → `.memory/archive/active-context-2026-11-06-site-ia.md`.
+- **Live:** `VERSION 20261106d` ↔ commit `455d25b`; the site tree is unchanged since, so live content
+  still maps to `455d25b`. Gate: unit 43/43, `npm test` 378/6, `check:links` 85 pages 0/0/0/0,
+  Pagefind 82 / 15,946.
+- **Harness (`53107e4`):** HP-003/004/005/010/013 closed; `/closeout` added; `.kilo/AGENTS.md`
+  trimmed to 59 lines (detail moved to `.kilo/harness.md`); local `.kilo/kilo.json` and its example
+  no longer override `permission.bash`, so the root asks apply. Checks: `verify_repo.ps1`
+  `STATUS: OK`; `check_harness.py .kilo` 0 problems; `harness_lint.py` 0 findings; JSON parses.
+- **Repo hygiene:** `.run/*` gitignored except the 8 tracked `a3_*` scripts; `.kilo/reports/`
+  local-only; untracked scratch removed (`b975270`).
 
 ## Next
 
 - **User-owned:** 12.1 hero value proposition, 12.3 named author/experience facts, Metrika goal
   names (12.6), `/start/` editorial approval.
-- **Draft:** `site/prototype/team-landing.html` (team subdomain, `noindex`, out of the build) —
-  tracked since `dc90922`; still needs real contacts, number reconciliation (17 vs 15+ plants;
-  >350 vs >500 млн ₽) and a publish decision.
-- No open technical P0/P1. Start new work as a fresh local plan.
+- **Draft:** `site/prototype/team-landing.html` (`dc90922`, `noindex`, out of the build) — needs
+  real contacts, number reconciliation (17 vs 15+ plants; >350 vs >500 млн ₽), publish decision.
+- No open technical P0/P1. New work starts as a fresh local plan; ambiguous work gets a SPEC first.
 
 ### Resume commands
 
@@ -38,23 +32,15 @@ cd site; npm run check:links; npm run check:redirects
 ## Hot rules
 
 - Paths: workspace `C:\Work\Python`; vault `C:\Work\Personal Vault`; `.env` at repo root.
-- Toolchain: Python 3.14 + `ftfy python-docx openpyxl pytest`; Pandoc 3.13; Node 26 + Pagefind 1.6;
+- Toolchain: Python 3.14 + ftfy/python-docx/openpyxl/pytest; Pandoc 3.13; Node 26 + Pagefind 1.6;
   Playwright chromium; tests use port 3100 (`PLAYWRIGHT_PORT`), never 3000.
-- `/playbook/` is canonical; `/book/` is a single-hop 301. Series «Имитация развития».
-  `/about/headquarters/` and `/headquarters/` 301 to `/contact/` (club retired).
+- `/playbook/` canonical; `/book/` single-hop 301; `/cases/` retired. Series «Имитация развития».
 - `npm test` = unit + `check:redirects` + build (site + Pagefind) + `check:links` + Playwright.
-  `node build.js` alone wipes `dist/` and skips the search index; unit tests share `dist/`
-  (`--test-concurrency=1`); `check:links` scans `dist/`.
-- Search: `/search/` noindex, not in sitemap, no `data-pagefind-body`; future CSP `script-src`
-  needs `'self'` + `wasm-unsafe-eval`; Pagefind matches prefixes.
-- Widgets: one static back button outside `#<id>Question` (AX15).
-- Deploy: `npm test` first; `nginx -t` on a throwaway `nginx:alpine`; SSH 2222 is flaky; Caddy
-  reload may refuse `localhost:2019` (non-fatal); `verify-deploy.ps1` probes 3xx with `HttpClient`.
-  Deploy only from a committed tree; record `VERSION` ↔ SHA.
+- Deploy only from a committed tree; `npm test` first; record `VERSION` ↔ SHA. Gotchas:
+  `.kilo/harness.md` §Deploy provenance.
 - Generators default to the vault (`--vault`; `check_system_cards.py` positional); `--check`
   compares marker regions — re-run the generator, never hand-edit markers.
 - Obsidian MCP writes on Cyrillic paths are broken — use `Write`/`Edit` + Python; guard encoding.
-- Data SSOT: `articles.json` + topics + series; only `published` renders. Every article `.md`:
-  title block + `---`; no Mermaid. `render:pdf` two-pass; restore untouched PDFs before commit.
-- Long H1 words are capped, not split (`.content-page h1`, `.hero-gen h1`, `.documents-hub h1`,
-  `.privacy-page h1`); `/method/` `#offer` sits before `#problem`.
+- Data SSOT: `articles.json` + topics + series; only `published` renders; no Mermaid.
+  `render:pdf` two-pass; restore untouched PDFs with `git checkout -- site/materials`.
+- Front-end/search gotchas: `.kilo/harness.md` §Front-end gotchas.
