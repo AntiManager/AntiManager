@@ -21,8 +21,9 @@
 
 - **User-owned:** 12.1 hero value proposition, 12.3 named author/experience facts, Metrika goal
   names (12.6), `/start/` editorial approval.
-- **Draft:** `site/prototype/team-landing.html` (team subdomain, untracked) — needs real contacts,
-  number reconciliation (17 vs 15+ plants; >350 vs >500 млн ₽) and a publish decision.
+- **Draft:** `site/prototype/team-landing.html` (team subdomain, `noindex`, out of the build) —
+  tracked since `dc90922`; still needs real contacts, number reconciliation (17 vs 15+ plants;
+  >350 vs >500 млн ₽) and a publish decision.
 - No open technical P0/P1. Start new work as a fresh local plan.
 
 ### Resume commands

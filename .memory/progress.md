@@ -7,8 +7,10 @@ Rolling log, recent first. Keep this file under 8 KB; move older entries to `.me
 
 - **Repo hygiene (2026-11-15):** removed untracked `.run/` scratch (session scripts + review
   screenshots, ~15 MB) and `site/tmp-widget-*.mjs`; refreshed `README.md` (routes/structure) and
-  `.kilo/harness.md` (artifact policy). No code changes, no deploy; draft
-  `site/prototype/team-landing.html` stays untracked by decision.
+  `.kilo/harness.md` (artifact policy). No code changes, no deploy.
+- **Prototype tracked (2026-11-15):** committed the draft `site/prototype/team-landing.html`
+  (`dc90922`, `noindex`, out of the build) per user decision and pushed to GitHub + GitVerse.
+  Content review (real contacts, 17 vs 15+ plants, >350 vs >500 млн ₽) still pending.
 - **Harness optimization (2026-11-06):** global turn/audit budgets (≥2.5 calls/turn; ≤120/80
   turns), bounded reviewer (15 steps, diff-only), deploy provenance (`VERSION` ↔ SHA);
   `session_audit.py` now counts deploy/verify/nginx/live checks and reports tools/turn + cache/turn.
