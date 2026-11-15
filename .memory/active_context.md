@@ -1,11 +1,16 @@
 # AntiManager — Active Context
-> Updated: 2026-11-06 · No active plan. New plans go to `.kilo/plans/`.
+> Updated: 2026-11-15 · No active plan. New plans go to `.kilo/plans/`.
 
 ## State
 
-- **Live:** `VERSION 20261106d` ↔ commit `455d25b` (pushed to `origin`/`gitverse`; deployed before the
-  commit from the identical tree). Gate: unit 43/43, `npm test` 378 passed / 6 skipped,
-  `check:links` 85 pages 0/0/0/0, `check:redirects` no drift, Pagefind 82 / 15,946.
+- **Live:** `VERSION 20261106d` ↔ commit `455d25b` (deployed from the identical tree). HEAD
+  `32fe433` is harness-only — the site tree is unchanged, so live content still maps to `455d25b`.
+  Gate at closure: unit 43/43, `npm test` 378 passed / 6 skipped, `check:links` 85 pages 0/0/0/0,
+  `check:redirects` no drift, Pagefind 82 / 15,946.
+- **Repo hygiene (2026-11-15):** removed untracked `.run/` scratch (session scripts + review
+  screenshots, ~15 MB) and `site/tmp-widget-*.mjs`; refreshed `README.md` (routes, structure) and
+  `.kilo/harness.md` (artifact policy). No code changes, no deploy; the tracked `a3_*` scripts in
+  `.run/` stay.
 - **Harness optimization (2026-11-06):** global turn/audit budgets (≥2.5 calls/turn; ≤120/80
   turns), bounded reviewer (15 steps, diff-only), deploy provenance (`VERSION` ↔ SHA);
   `session_audit.py` now counts deploy/live checks and reports tools/turn + cache/turn. Local
@@ -16,6 +21,8 @@
 
 - **User-owned:** 12.1 hero value proposition, 12.3 named author/experience facts, Metrika goal
   names (12.6), `/start/` editorial approval.
+- **Draft:** `site/prototype/team-landing.html` (team subdomain, untracked) — needs real contacts,
+  number reconciliation (17 vs 15+ plants; >350 vs >500 млн ₽) and a publish decision.
 - No open technical P0/P1. Start new work as a fresh local plan.
 
 ### Resume commands

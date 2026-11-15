@@ -20,7 +20,7 @@
 | **Люди** | 09, 10, 12, 14, 20, 21, 23 | Бей-беги-замри, ситуационное развитие, анти-тайм-менеджмент, живая система, выученная беспомощность, Run/Change, коммуникационный конструктор |
 | **Адаптация** | 04, 16, 17, 18, 22 | PDCA, хаос, лестница ошибок, антикризис, траектория |
 
-Книгу дополняет библиотека лонгридов [`/articles/`](https://antimanager.pro/articles/) — стратегия, экономика, управление, цифровизация. Типовые документы производственной системы — [`/method/documents/`](https://antimanager.pro/method/documents/) — выходят с PDF и редактируемым DOCX. Старые адреса (`/weapons/`, `/genome/`, `/arsenal/`, `/manifesto/`, `/headquarters/`, `/cases/`) отдают одиночный 301 на новую структуру.
+Главы — [`/playbook/`](https://antimanager.pro/playbook/) (полный текст — `/playbook/<slug>/full/`), вход для руководителя — [`/start/`](https://antimanager.pro/start/), лонгриды — [`/articles/`](https://antimanager.pro/articles/), методология и типовые документы — [`/method/`](https://antimanager.pro/method/) (PDF + редактируемый DOCX), поиск — `/search/`. Старые адреса (`/weapons/`, `/genome/`, `/arsenal/`, `/book/`, `/scenarios/`, `/manifesto/`, `/archive/`, `/about/headquarters/`, `/headquarters/`, `/cases/`) отдают одиночный 301; карта генерируется из `site/src/routes.js` в `site/deploy/redirects.conf`.
 
 ## Технологии
 
@@ -37,28 +37,30 @@
 Фото_мыслителей/     # Фотографии мыслителей (копируются в dist/images/thinkers/)
 manifesto-ru.md      # Манифест (русский)
 manifesto-en.md      # Manifesto (English)
+.kilo/               # Harness: команды, скиллы, скрипты-генераторы, планы
 site/                # Код и деплой сайта
   build.js           # Статический билдер
   src/
+    routes.js        # Единый источник маршрутов и карты 301
     components/      # header, footer (HTML-компоненты)
     templates/       # base.html, og-image.svg/png
-    data/            # weapons, articles, article-topics/series, materials, chapters, tools, thinkers, cases, scenarios, documents
-    content/         # лендинги «оружия» + contact.html
-    content/full/    # полные тексты статей (/full/)
+    data/            # chapters/weapons, articles, topics, series, documents, materials, thinkers, tools, cases, scenarios
+    content/         # лендинги глав плейбука + contact.html
+    content/full/    # полные тексты глав (/playbook/<slug>/full/)
     content/articles/# лонгриды библиотеки «Статьи» (/articles/)
     content/documents/# тексты типовых документов (/method/documents/<slug>/)
     content/genome/  # partials раздела «Методология» (/method/*)
-    lib/             # escape.js, catalog.js, legacy-routes.js (+ routes.js в src/)
+    lib/             # escape.js, catalog.js, legacy-routes.js
   css/               # brutalist.css, fonts.css
-  js/                # brutalist.js, contact.js
+  js/                # brutalist, analytics, search, audit, contact
   fonts/             # Golos Text, PT Serif, JetBrains Mono (woff2)
   materials/         # PDF статей, PDF/DOCX типовых документов и авторские дополнительные материалы
-  scripts/           # render-og.js, render-pdf.js, gen-redirects.js, verify-deploy.ps1
+  scripts/           # render-og, render-pdf, gen-redirects, check-links, indexnow, optimize-thinkers, verify-deploy
   tests/             # Playwright e2e-тесты
   unit/              # unit-тесты сборки (node --test)
   feedback/          # микросервис формы обратной связи (Python)
   deploy/            # nginx.conf + сгенерированный redirects.conf
-  deploy.ps1         # деплой на VPS
+  deploy.ps1         # Деплой на VPS
   dist/              # Build output (gitignored)
 ```
 

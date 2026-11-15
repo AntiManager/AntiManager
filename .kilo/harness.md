@@ -1,6 +1,7 @@
 # Harness provenance — AntiManager
 
-> Written by `/harness-init` 2026-11-05; updated 2026-11-06 (deploy provenance, budgets). Not autoloaded.
+> Written by `/harness-init` 2026-11-05; updated 2026-11-06 (deploy provenance, budgets);
+> 2026-11-15 (artifact policy). Not autoloaded.
 
 ## Composition
 
@@ -16,6 +17,15 @@
   `external_directory` for the vault; deep-merged over the root file.
 - Instructions: `.kilo/AGENTS.md` (not root) — vault/site map, skills, commands, scripts.
 - Skills: 8 under `.kilo/skills/`; commands: 10 under `.kilo/command/`; agents: 0.
+
+## Artifacts
+
+- `.run/` is **not gitignored**. It holds only the tracked A3 regeneration scripts
+  (`a3_*.py|js`); every other file there is local scratch and must be removed before commit.
+- `.kilo/reports/` is local-only (`*` ignored by its own `.gitignore`); generator output and
+  deploy reports are never committed.
+- `site/prototype/team-landing.html` — untracked draft landing for `team.antimanager.pro`;
+  not part of `build.js`, tests or the sitemap.
 
 ## Verify
 
