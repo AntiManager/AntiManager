@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const crypto = require('crypto');
 
 // Hermetic: block external analytics (Yandex.Metrika) so networkidle is deterministic.
 test.beforeEach(async ({ page }) => {
@@ -6,6 +7,16 @@ test.beforeEach(async ({ page }) => {
 });
 
 const CONTACT = '/contact/';
+
+function leadingZeroBits(buffer) {
+  let bits = 0;
+  for (const byte of buffer) {
+    if (byte === 0) { bits += 8; continue; }
+    bits += Math.clz32(byte) - 24;
+    break;
+  }
+  return bits;
+}
 
 // === CF01 — Contact / feedback form ===
 test.describe('CF01 — Contact form', () => {
@@ -54,7 +65,7 @@ test.describe('CF01 — Contact form', () => {
       contact: 'ivan@example.com',
       message: 'Нужен аудит процессов',
       pack: '',
-      website: '',
+      url: '',
       consent: true,
     });
     await expect(page.locator('#cf-name')).toHaveValue('');
@@ -141,5 +152,123 @@ test.describe('CF01 — Contact form', () => {
 
     await expect(page.locator('#formStatus')).toHaveClass(/err/);
     await expect(page.locator('#feedbackForm button[type="submit"]')).toBeEnabled();
+  });
+});
+
+// === CF02 — Anti-bot challenge (proof of work) ===
+test.describe('CF02 — Anti-bot challenge', () => {
+  function challenge(overrides = {}) {
+    return {
+      challenge: 'c0ffee'.repeat(5) + 'abcd',
+      bits: 8,
+      issued: Math.floor(Date.now() / 1000),
+      signature: 'a'.repeat(64),
+      ...overrides,
+    };
+  }
+
+  function fillLead(page) {
+    return (async () => {
+      await page.fill('#cf-name', 'Иван');
+      await page.fill('#cf-contact', 'ivan@example.com');
+      await page.fill('#cf-message', 'Нужен аудит производственных процессов.');
+      await page.check('#cf-consent');
+    })();
+  }
+
+  test('fetches a signed challenge when the page loads', async ({ page }) => {
+    let requested = 0;
+    await page.route('**/api/feedback/challenge', (route) => {
+      requested += 1;
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(challenge()) });
+    });
+
+    await page.goto(CONTACT);
+    await expect.poll(() => requested).toBe(1);
+  });
+
+  test('submits a solved proof of work alongside the lead', async ({ page }) => {
+    const issued = challenge();
+    await page.route('**/api/feedback/challenge', (route) => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(issued) });
+    });
+
+    let payload = null;
+    await page.route('**/api/feedback', (route) => {
+      payload = JSON.parse(route.request().postData());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+
+    const challengeServed = page.waitForResponse('**/api/feedback/challenge');
+    await page.goto(CONTACT);
+    await challengeServed;
+    await page.waitForTimeout(50);
+    await fillLead(page);
+    await page.locator('#feedbackForm button[type="submit"]').click();
+    await expect(page.locator('#formStatus')).toHaveClass(/ok/);
+
+    expect(payload.challenge).toBe(issued.challenge);
+    expect(payload.challenge_signature).toBe(issued.signature);
+    expect(payload.challenge_issued).toBe(issued.issued);
+    const digest = crypto.createHash('sha256')
+      .update(issued.challenge + ':' + payload.challenge_nonce)
+      .digest();
+    expect(leadingZeroBits(digest)).toBeGreaterThanOrEqual(issued.bits);
+  });
+
+  test('submits without a proof when the challenge endpoint is down', async ({ page }) => {
+    await page.route('**/api/feedback/challenge', (route) => route.fulfill({ status: 503, body: 'nope' }));
+
+    let payload = null;
+    await page.route('**/api/feedback', (route) => {
+      payload = JSON.parse(route.request().postData());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+
+    await page.goto(CONTACT);
+    await fillLead(page);
+    await page.locator('#feedbackForm button[type="submit"]').click();
+    await expect(page.locator('#formStatus')).toHaveClass(/ok/);
+    expect(payload.challenge).toBeUndefined();
+    expect(payload.name).toBe('Иван');
+  });
+
+  test('the decoy field is off-screen and outside the tab order', async ({ page }) => {
+    await page.goto(CONTACT);
+
+    const decoy = page.locator('#cf-url');
+    await expect(decoy).toHaveAttribute('tabindex', '-1');
+    await expect(decoy).toHaveAttribute('autocomplete', 'off');
+    const box = await decoy.boundingBox();
+    expect(box === null || box.x < 0).toBe(true);
+  });
+});
+
+// === CF03 — no-JS fallback ===
+test.describe('CF03 — no-JS fallback', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('native submit posts the form-encoded fields', async ({ page }) => {
+    let body = null;
+    await page.route('**/api/feedback', (route) => {
+      body = route.request().postData();
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html; charset=utf-8',
+        body: '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>ok</title></head><body><p>Заявка отправлена</p></body></html>',
+      });
+    });
+
+    await page.goto(CONTACT);
+    await page.fill('#cf-name', 'Иван');
+    await page.fill('#cf-contact', '+7 900 000-00-00');
+    await page.fill('#cf-message', 'Нужен аудит производственных процессов.');
+    await page.check('#cf-consent');
+    await page.locator('#feedbackForm button[type="submit"]').click();
+
+    await expect(page.locator('body')).toContainText('Заявка отправлена');
+    expect(body).toContain('name=');
+    expect(body).toContain('consent=on');
+    expect(body).not.toContain('challenge');
   });
 });

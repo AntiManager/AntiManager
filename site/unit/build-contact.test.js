@@ -34,10 +34,11 @@ test('contact page ships the feedback form and is reachable', function () {
     const contact = readDist('contact', 'index.html');
     assert.ok(contact.includes('id="feedbackForm"'), 'contact page needs the form');
     assert.ok(contact.includes('action="/api/feedback"'), 'form must post to /api/feedback');
-    ['cf-name', 'cf-contact', 'cf-message', 'cf-consent', 'cf-website', 'cf-pack'].forEach(function(id) {
+    ['cf-name', 'cf-contact', 'cf-message', 'cf-consent', 'cf-url', 'cf-pack'].forEach(function(id) {
       assert.ok(contact.includes('id="' + id + '"'), 'field #' + id + ' missing');
     });
-    assert.ok(contact.includes('name="website"'), 'honeypot field must be present');
+    assert.ok(contact.includes('name="url"'), 'honeypot field must be present');
+    assert.ok(contact.includes('tabindex="-1"'), 'honeypot must stay out of the tab order');
     assert.ok(contact.includes('aria-describedby="cf-contact-hint"'), 'contact field must reference its hint');
     assert.ok(contact.includes('id="cf-contact-hint"'), 'the hint must carry the referenced id');
     assert.ok(contact.includes('/js/contact.js'), 'contact.js must be loaded');

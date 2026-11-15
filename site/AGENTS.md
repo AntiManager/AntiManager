@@ -254,6 +254,16 @@ Rules:
   submits `application/x-www-form-urlencoded` natively, which `server.py` also parses
   (a checked consent checkbox arrives as `consent=on`) and answers with a small HTML
   notice when the request `Accept`s HTML. Do not break either path.
+- Anti-bot is layered and must stay that way (2026-11-15): a signed `GET /api/feedback/challenge`
+  + SHA-256 proof of work (`js/contact.js`, WebCrypto, no third-party script — Turnstile and
+  reCAPTCHA are unreachable/unlawful for the Russian audience), a fill-time trap on the signed
+  issue time, a `url`/`website`/`email_confirm` honeypot, per-IP + global limits, and content
+  heuristics. Suspicious submissions are **quarantined**, never dropped (a `⚠️` prefix, or
+  `TELEGRAM_QUARANTINE_CHAT_ID`), so a false positive is a glance, not a lost lead.
+  Never "fix" a heuristic by making it drop.
+- The challenge endpoint needs its own nginx `location = /api/feedback/challenge`; the service is
+  same-origin, so both locations proxy to `antimanager-feedback`. `limit_req_zone` lives at file
+  level in `deploy/nginx.conf` because that file is mounted inside `http {}`.
 - Component focus styles must not kill the global ring: a `.field input:focus { outline: none }`
   rule outranks the global `:focus-visible { outline: 3px }` by specificity and silently removes
   the keyboard indicator. Rely on the global rule; change only `border-color` locally.

@@ -3,18 +3,24 @@
 
 ## State
 
+- **Feedback anti-spam (2026-11-15, uncommitted):** signed `GET /api/feedback/challenge` +
+  SHA-256 PoW, fill-time trap, `url` honeypot, heuristics, **quarantine instead of drop**
+  (`⚠️` prefix or `TELEGRAM_QUARANTINE_CHAT_ID`). Gate: Python 48/48, unit 43, `npm test`
+  393/6. Not deployed.
 - **Live:** `VERSION 20261106d` ↔ commit `455d25b`; the site tree is unchanged since, so live content
   still maps to `455d25b`. Gate: unit 43/43, `npm test` 378/6, `check:links` 85 pages 0/0/0/0,
   Pagefind 82 / 15,946.
 - **Harness (`53107e4`):** HP-003/004/005/010/013 closed; `/closeout` added; `.kilo/AGENTS.md`
-  trimmed to 59 lines (detail moved to `.kilo/harness.md`); local `.kilo/kilo.json` and its example
-  no longer override `permission.bash`, so the root asks apply. Checks: `verify_repo.ps1`
-  `STATUS: OK`; `check_harness.py .kilo` 0 problems; `harness_lint.py` 0 findings; JSON parses.
+  trimmed to 59 lines; local `.kilo/kilo.json` no longer overrides `permission.bash`.
+  Checks: `verify_repo.ps1` OK; `check_harness.py` 0; `harness_lint.py` 0.
 - **Repo hygiene:** `.run/*` gitignored except the 8 tracked `a3_*` scripts; `.kilo/reports/`
   local-only; untracked scratch removed (`b975270`).
 
 ## Next
 
+- **Deploy feedback anti-spam:** `site/feedback/deploy.ps1` then `site/deploy.ps1` (nginx conf
+  changed: challenge location + `limit_req_zone`), then re-record `VERSION` ↔ SHA. Verify live
+  with one clean submission and one probe.
 - **User-owned:** 12.1 hero value proposition, 12.3 named author/experience facts, Metrika goal
   names (12.6), `/start/` editorial approval.
 - **Draft:** `site/prototype/team-landing.html` (`dc90922`, `noindex`, out of the build) — needs

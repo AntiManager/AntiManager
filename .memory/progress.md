@@ -5,6 +5,14 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
+- **Feedback anti-spam (2026-11-15, uncommitted):** layered defence for `/contact/` — signed
+  challenge + SHA-256 proof of work (`GET /api/feedback/challenge`), fill-time trap, `url`
+  honeypot, content heuristics (`latin_only`, `short_no_detail`, `price_probe`,
+  `random_mailbox`, `link_in_message`, `latin_name`), per-IP + global limits, nginx
+  `limit_req`, and quarantine delivery instead of silent drops. Turnstile/reCAPTCHA rejected
+  (unreachable/unlawful for the Russian audience); no third-party script, CSP untouched.
+  Evidence: Python 48/48; `npm test` 393 passed / 6 skipped; real-stack browser stories —
+  lead delivered, reported probe quarantined, instant PoW bot `too_fast`, honeypot dropped.
 - **Harness optimization (2026-11-15, `53107e4`):** `.kilo/AGENTS.md` cut 123 → 59 lines
   (10.8 → 3.2 KB) per HP-001; site IA, language policy, skills/commands/scripts, publication
   rules, MCP, security protocol and new-machine setup moved to `.kilo/harness.md` (on demand).

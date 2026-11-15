@@ -11,8 +11,12 @@ Endpoints:
 The bot token is read from the environment and never returned to a client.
 """
 
+import hashlib
+import hmac
 import json
 import os
+import re
+import secrets
 import sys
 import threading
 import time
@@ -26,6 +30,14 @@ MAX_CONTACT = 200
 MAX_MESSAGE = 3000
 MAX_BODY = 16 * 1024
 TELEGRAM_TEXT_LIMIT = 4096
+
+# Anti-bot tuning. The proof of work is a speed bump for stateless form fillers,
+# not a wall: the real filter is the signed challenge (a bot must fetch one and
+# solve it) plus the heuristics below.
+POW_BITS = 16                # leading zero bits the client must find
+CHALLENGE_TTL = 2 * 60 * 60  # a challenge older than this is stale
+MIN_FILL_TIME = 2.0          # a signed challenge younger than this means a bot
+CLOCK_SKEW = 60              # tolerated client/server clock skew
 
 # Minimal HTML page returned to a no-JS browser that submits the form natively
 # (application/x-www-form-urlencoded). API clients still get JSON.
@@ -57,6 +69,19 @@ class Config:
         self.api_base = (env.get("TELEGRAM_API_BASE") or "https://api.telegram.org").rstrip("/")
         self.rate_max = int(env.get("RATE_LIMIT_MAX") or "5")
         self.rate_window = int(env.get("RATE_LIMIT_WINDOW") or "600")
+        self.global_max = int(env.get("GLOBAL_RATE_LIMIT_MAX") or "120")
+        self.global_window = int(env.get("GLOBAL_RATE_LIMIT_WINDOW") or "3600")
+        self.quarantine_chat_id = (env.get("TELEGRAM_QUARANTINE_CHAT_ID") or "").strip()
+        self.pow_bits = int(env.get("POW_BITS") or str(POW_BITS))
+        # The challenge signing key is a domain-separated derivation of the bot
+        # token, so the service stays zero-config and challenges survive a
+        # restart. An explicit CHALLENGE_SECRET overrides it.
+        explicit = (env.get("CHALLENGE_SECRET") or "").strip()
+        self.challenge_secret = (
+            explicit.encode("utf-8") if explicit
+            else hmac.new(self.token.encode("utf-8"), b"feedback-challenge-v1",
+                          hashlib.sha256).digest()
+        )
 
 
 def validate(payload):
@@ -80,8 +105,15 @@ def validate(payload):
     return {"name": name, "contact": contact, "message": message, "pack": pack}, None
 
 
-def format_message(data):
-    """Plain-text Telegram message (no parse_mode, so user text cannot inject markup)."""
+def format_message(data, prefix=""):
+    """Plain-text Telegram message (no parse_mode, so user text cannot inject markup).
+
+    `prefix` (e.g. a quarantine warning) is prepended and eats into the length
+    budget so the whole message still fits Telegram's limit.
+    """
+    if prefix:
+        prefix = prefix + "\n\n"
+    budget = max(TELEGRAM_TEXT_LIMIT - len(prefix), 0)
     pack = PACK_LABELS.get(data["pack"], "")
     lines = [
         "🔔 Заявка с сайта",
@@ -92,7 +124,130 @@ def format_message(data):
         "Сообщение:",
         data["message"],
     ]
-    return "\n".join(lines)[:TELEGRAM_TEXT_LIMIT]
+    return prefix + "\n".join(lines)[:budget]
+
+
+# --- Challenge / proof of work ----------------------------------------------
+#
+# GET /api/feedback/challenge returns a short-lived, HMAC-signed challenge. The
+# client grinds SHA-256 over "<challenge>:<nonce>" until the digest has `bits`
+# leading zero bits and submits the nonce. A stateless form filler (the observed
+# threat) never calls the endpoint, so it lands in quarantine. The signed issue
+# time also gives the server an unforgeable "time spent on the form" signal.
+
+class Challenge:
+    """Issues and verifies signed proof-of-work challenges."""
+
+    def __init__(self, secret, bits, ttl=CHALLENGE_TTL, min_fill=MIN_FILL_TIME, clock_skew=CLOCK_SKEW):
+        self._secret = secret
+        self._bits = bits
+        self._ttl = ttl
+        self._min_fill = min_fill
+        self._skew = clock_skew
+        self._used = {}
+        self._lock = threading.Lock()
+
+    def _sign(self, challenge, bits, issued):
+        msg = ("%s.%d.%d" % (challenge, bits, issued)).encode("utf-8")
+        return hmac.new(self._secret, msg, hashlib.sha256).hexdigest()
+
+    def issue(self, now=None):
+        issued = int(now if now is not None else time.time())
+        challenge = secrets.token_hex(16)
+        return {
+            "challenge": challenge,
+            "bits": self._bits,
+            "issued": issued,
+            "signature": self._sign(challenge, self._bits, issued),
+        }
+
+    def verify(self, payload, now=None):
+        """Return (ok, issued, reason). `reason` is None on success."""
+        now = now if now is not None else time.time()
+        try:
+            challenge = str(payload.get("challenge") or "")
+            nonce = str(payload.get("challenge_nonce") or "")
+            issued = int(payload.get("challenge_issued"))
+            bits = int(payload.get("challenge_bits"))
+            signature = str(payload.get("challenge_signature") or "")
+        except (TypeError, ValueError):
+            return False, None, "no_challenge"
+        if not challenge or not nonce or bits <= 0 or bits > 32:
+            return False, None, "no_challenge"
+        expected = self._sign(challenge, bits, issued)
+        # Compare bytes: compare_digest raises TypeError on non-ASCII str, which
+        # a hostile client could use to turn a bad challenge into a 500.
+        if not hmac.compare_digest(expected.encode("utf-8"), signature.encode("utf-8", "replace")):
+            return False, None, "bad_challenge"
+        if issued > now + self._skew or now - issued > self._ttl:
+            return False, issued, "stale_challenge"
+        if now - issued < self._min_fill:
+            return True, issued, "too_fast"
+        if not leading_zero_bits("%s:%s" % (challenge, nonce), bits):
+            return False, issued, "bad_pow"
+        with self._lock:
+            self._sweep(now)
+            if challenge in self._used:
+                return False, issued, "replay"
+            self._used[challenge] = issued + self._ttl
+        return True, issued, None
+
+    def _sweep(self, now):
+        if len(self._used) > 2048:
+            for key in [k for k, expiry in self._used.items() if expiry < now]:
+                del self._used[key]
+
+
+def leading_zero_bits(text, bits):
+    """True when sha256(text) has at least `bits` leading zero bits."""
+    digest = hashlib.sha256(text.encode("utf-8")).digest()
+    value = int.from_bytes(digest, "big")
+    return value.bit_length() <= (len(digest) * 8 - bits)
+
+
+# --- Content heuristics ------------------------------------------------------
+
+CYRILLIC = re.compile(r"[А-Яа-яЁё]")
+LATIN_NAME = re.compile(r"^[A-Za-z][A-Za-z .'\-]*$")
+RANDOM_MAILBOX = re.compile(r"^[a-z]{6,}\d{2,}@", re.IGNORECASE)
+PRICE_WORDS = re.compile(
+    r"\b(price|pricing|precio|prezzo|preis|pretium|cost|цена|стоимость)\b", re.IGNORECASE)
+URL_IN_TEXT = re.compile(
+    r"(https?://|www\.|\b[a-z0-9-]+\.(?:com|net|org|ru|io|xyz|top|shop|site|online)\b)",
+    re.IGNORECASE)
+
+# A single strong signal quarantines; otherwise two weak ones do. Quarantine is
+# still delivered (with a warning prefix), so a false positive costs the owner a
+# glance rather than a lost lead.
+STRONG_SIGNALS = {"latin_only", "link_in_message"}
+
+
+def suspicion(data, has_challenge):
+    """Return the list of spam signals for an otherwise valid submission."""
+    reasons = []
+    text = data["name"] + " " + data["message"]
+    if not CYRILLIC.search(text):
+        reasons.append("latin_only")
+        if len(data["message"].split()) <= 12 and not re.search(r"\d", data["message"]):
+            reasons.append("short_no_detail")
+        if PRICE_WORDS.search(data["message"]):
+            reasons.append("price_probe")
+    if LATIN_NAME.match(data["name"]):
+        reasons.append("latin_name")
+    if RANDOM_MAILBOX.match(data["contact"]):
+        reasons.append("random_mailbox")
+    if URL_IN_TEXT.search(data["message"]):
+        reasons.append("link_in_message")
+    if not has_challenge:
+        reasons.append("no_challenge")
+    return reasons
+
+
+def is_quarantine(reasons):
+    if any(reason in STRONG_SIGNALS for reason in reasons):
+        return True
+    weak = [reason for reason in reasons if reason != "no_challenge"]
+    return len(weak) >= 2
 
 
 class RateLimiter:
@@ -127,10 +282,10 @@ class TelegramSender:
         self._config = config
         self._opener = opener or urllib.request.urlopen
 
-    def send(self, text):
+    def send(self, text, chat_id=None):
         url = "%s/bot%s/sendMessage" % (self._config.api_base, self._config.token)
         body = urllib.parse.urlencode({
-            "chat_id": self._config.chat_id,
+            "chat_id": chat_id or self._config.chat_id,
             "text": text,
             "disable_web_page_preview": "true",
         }).encode("utf-8")
@@ -141,7 +296,7 @@ class TelegramSender:
             raise RuntimeError("telegram rejected the message")
 
 
-def make_handler(config, sender, limiter):
+def make_handler(config, sender, limiter, challenge, global_limiter):
     class Handler(BaseHTTPRequestHandler):
         server_version = "AntiManagerFeedback"
         sys_version = ""
@@ -211,10 +366,17 @@ def make_handler(config, sender, limiter):
                     return value.split(",")[0].strip()
             return self.client_address[0]
 
+        def _log_event(self, kind, reason):
+            # No message text or contact — only the verdict, for tuning.
+            print("feedback %s reason=%s ip=%s" % (kind, reason, self._client_ip()),
+                  file=sys.stderr)
+
         def do_GET(self):
             path = self._path()
             if path == "/healthz":
                 self._send_json(200, {"ok": True})
+            elif path == "/api/feedback/challenge":
+                self._send_json(200, challenge.issue())
             elif path == "/api/feedback":
                 self._send_json(405, {"error": "method not allowed"})
             else:
@@ -238,7 +400,12 @@ def make_handler(config, sender, limiter):
                 return
 
             # Honeypot: a filled hidden field means a bot — accept and drop silently.
-            if isinstance(payload, dict) and str(payload.get("website") or "").strip():
+            # `url` is the current field name; `website` is kept for older clients.
+            if isinstance(payload, dict) and any(
+                str(payload.get(field) or "").strip()
+                for field in ("url", "website", "email_confirm")
+            ):
+                self._log_event("drop", "honeypot")
                 self._reply(200, {"ok": True}, "Заявка отправлена")
                 return
 
@@ -247,12 +414,38 @@ def make_handler(config, sender, limiter):
                 self._reply(400, {"error": "invalid"}, "Проверьте форму и попробуйте снова")
                 return
 
-            if not limiter.allow(self._client_ip()):
+            ip = self._client_ip()
+            if not limiter.allow(ip):
+                self._log_event("drop", "rate_ip")
+                self._reply(429, {"error": "too many requests"}, "Слишком много заявок — напишите в Telegram")
+                return
+            if not global_limiter.allow("*"):
+                self._log_event("drop", "rate_global")
                 self._reply(429, {"error": "too many requests"}, "Слишком много заявок — напишите в Telegram")
                 return
 
+            challenge_ok, _issued, reason = challenge.verify(payload)
+            if reason == "too_fast":
+                # A signed challenge younger than MIN_FILL_TIME is a machine
+                # filling the form instantly. Drop silently: no feedback loop.
+                self._log_event("drop", "too_fast")
+                self._reply(200, {"ok": True}, "Заявка отправлена")
+                return
+
+            reasons = suspicion(data, challenge_ok)
+            quarantine = is_quarantine(reasons)
+            if reason in ("bad_pow", "replay", "bad_challenge", "stale_challenge"):
+                reasons.append(reason)
+
             try:
-                sender.send(format_message(data))
+                if quarantine:
+                    prefix = "⚠️ Возможно спам (%s)" % ", ".join(reasons)
+                    sender.send(format_message(data, prefix),
+                                chat_id=config.quarantine_chat_id or None)
+                    self._log_event("quarantine", ",".join(reasons))
+                else:
+                    sender.send(format_message(data))
+                    self._log_event("deliver", "ok")
             except Exception as exc:  # noqa: BLE001 - never leak delivery details
                 print("telegram send failed: %s" % exc, file=sys.stderr)
                 self._reply(502, {"error": "delivery failed"}, "Не удалось отправить — напишите в Telegram")
@@ -265,10 +458,15 @@ def make_handler(config, sender, limiter):
     return Handler
 
 
-def build_server(config, sender=None, limiter=None):
+def build_server(config, sender=None, limiter=None, challenge=None, global_limiter=None):
     sender = sender or TelegramSender(config)
     limiter = limiter or RateLimiter(config.rate_max, config.rate_window)
-    return ThreadingHTTPServer(("0.0.0.0", config.port), make_handler(config, sender, limiter))
+    challenge = challenge or Challenge(config.challenge_secret, config.pow_bits)
+    global_limiter = global_limiter or RateLimiter(config.global_max, config.global_window)
+    return ThreadingHTTPServer(
+        ("0.0.0.0", config.port),
+        make_handler(config, sender, limiter, challenge, global_limiter),
+    )
 
 
 def main():

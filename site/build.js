@@ -10,7 +10,7 @@ const { buildCatalog, situationLabels, roleLabels, typeLabels } = require('./src
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261106d';
+const VERSION = '20261115a';
 // Search-engine verification codes are build-time secrets: a missing code ships
 // nothing, so a placeholder can never reach production. The Yandex code is also
 // used for the HTML-file verification method further down.

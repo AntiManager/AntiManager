@@ -57,8 +57,9 @@ class _StubServer:
 
 
 class _Service:
-    def __init__(self, config):
-        self.httpd = server.build_server(config)
+    def __init__(self, config, challenge=None, global_limiter=None):
+        self.httpd = server.build_server(
+            config, challenge=challenge, global_limiter=global_limiter)
         self.port = self.httpd.server_address[1]
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
 
@@ -152,9 +153,30 @@ def _config(stub_port, **overrides):
         "TELEGRAM_API_BASE": "http://127.0.0.1:%d" % stub_port,
         "RATE_LIMIT_MAX": "50",
         "RATE_LIMIT_WINDOW": "600",
+        "GLOBAL_RATE_LIMIT_MAX": "500",
+        "GLOBAL_RATE_LIMIT_WINDOW": "3600",
     }
     env.update({k: str(v) for k, v in overrides.items()})
     return server.Config(env)
+
+
+def _challenge(config, bits=8, min_fill=0.0):
+    """A challenge with a trivial difficulty so tests stay fast."""
+    return server.Challenge(config.challenge_secret, bits, min_fill=min_fill)
+
+
+def _solve(item):
+    """Return the submitted proof fields for an issued challenge."""
+    nonce = 0
+    while not server.leading_zero_bits("%s:%s" % (item["challenge"], nonce), item["bits"]):
+        nonce += 1
+    return {
+        "challenge": item["challenge"],
+        "challenge_bits": item["bits"],
+        "challenge_issued": item["issued"],
+        "challenge_signature": item["signature"],
+        "challenge_nonce": str(nonce),
+    }
 
 
 VALID = {"name": "Иван", "contact": "+7 900 000-00-00", "message": "Нужен аудит", "pack": "process", "consent": True, "website": ""}
@@ -234,6 +256,133 @@ class RateLimiterTests(unittest.TestCase):
         self.assertTrue(limiter.allow("other-ip"))
 
 
+class ChallengeTests(unittest.TestCase):
+    def setUp(self):
+        self.secret = b"test-secret"
+        self.challenge = server.Challenge(self.secret, bits=8, min_fill=0.0)
+
+    def test_issue_then_verify_succeeds(self):
+        item = self.challenge.issue()
+        ok, issued, reason = self.challenge.verify(_solve(item))
+        self.assertTrue(ok)
+        self.assertIsNone(reason)
+        self.assertEqual(issued, item["issued"])
+
+    def test_wrong_nonce_is_bad_pow(self):
+        item = self.challenge.issue()
+        proof = _solve(item)
+        proof["challenge_nonce"] = "0"
+        ok, _issued, reason = self.challenge.verify(proof)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "bad_pow")
+
+    def test_tampered_signature_is_rejected(self):
+        item = self.challenge.issue()
+        proof = _solve(item)
+        proof["challenge_signature"] = "0" * 64
+        ok, _issued, reason = self.challenge.verify(proof)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "bad_challenge")
+
+    def test_non_ascii_signature_is_rejected_not_crashing(self):
+        item = self.challenge.issue()
+        proof = _solve(item)
+        proof["challenge_signature"] = "подпись"
+        ok, _issued, reason = self.challenge.verify(proof)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "bad_challenge")
+
+    def test_challenge_cannot_be_rewritten_with_another_issue_time(self):
+        # The issue time is inside the HMAC, so a bot cannot backdate it to
+        # defeat the fill-time trap.
+        item = self.challenge.issue()
+        proof = _solve(item)
+        proof["challenge_issued"] = int(proof["challenge_issued"]) - 600
+        ok, _issued, reason = self.challenge.verify(proof)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "bad_challenge")
+
+    def test_expired_challenge_is_stale(self):
+        item = self.challenge.issue(now=1000)
+        proof = _solve(item)
+        ok, _issued, reason = self.challenge.verify(proof, now=1000 + server.CHALLENGE_TTL + 1)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "stale_challenge")
+
+    def test_instant_submission_is_too_fast(self):
+        slow = server.Challenge(self.secret, bits=8, min_fill=2.0)
+        item = slow.issue(now=1000)
+        ok, _issued, reason = slow.verify(_solve(item), now=1000.5)
+        self.assertTrue(ok)
+        self.assertEqual(reason, "too_fast")
+
+    def test_human_speed_submission_passes(self):
+        slow = server.Challenge(self.secret, bits=8, min_fill=2.0)
+        item = slow.issue(now=1000)
+        ok, _issued, reason = slow.verify(_solve(item), now=1010)
+        self.assertTrue(ok)
+        self.assertIsNone(reason)
+
+    def test_replay_is_rejected(self):
+        item = self.challenge.issue()
+        proof = _solve(item)
+        self.assertTrue(self.challenge.verify(proof)[0])
+        ok, _issued, reason = self.challenge.verify(proof)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "replay")
+
+    def test_missing_fields_is_no_challenge(self):
+        ok, _issued, reason = self.challenge.verify({"name": "x"})
+        self.assertFalse(ok)
+        self.assertEqual(reason, "no_challenge")
+
+
+class SuspicionTests(unittest.TestCase):
+    SPAM = {
+        "name": "RobertMal",
+        "contact": "aveyekoha655@gmail.com",
+        "message": "Hi, ego volo scire vestri pretium.",
+        "pack": "",
+    }
+    LEAD = {
+        "name": "Иван",
+        "contact": "+7 900 000-00-00",
+        "message": "Нужен аудит производственных процессов на двух площадках.",
+        "pack": "audit",
+    }
+
+    def test_observed_spam_is_quarantined(self):
+        reasons = server.suspicion(dict(self.SPAM), has_challenge=True)
+        self.assertIn("latin_only", reasons)
+        self.assertIn("price_probe", reasons)
+        self.assertIn("random_mailbox", reasons)
+        self.assertTrue(server.is_quarantine(reasons))
+
+    def test_ordinary_lead_is_delivered(self):
+        reasons = server.suspicion(dict(self.LEAD), has_challenge=True)
+        self.assertEqual(reasons, [])
+        self.assertFalse(server.is_quarantine(reasons))
+
+    def test_lead_without_challenge_is_still_delivered(self):
+        # The no-JS path: a plausible Cyrillic request must not be quarantined
+        # just because it carries no proof of work.
+        reasons = server.suspicion(dict(self.LEAD), has_challenge=False)
+        self.assertEqual(reasons, ["no_challenge"])
+        self.assertFalse(server.is_quarantine(reasons))
+
+    def test_latin_name_with_cyrillic_message_is_fine(self):
+        data = dict(self.LEAD, name="Ivan")
+        reasons = server.suspicion(data, has_challenge=True)
+        self.assertEqual(reasons, ["latin_name"])
+        self.assertFalse(server.is_quarantine(reasons))
+
+    def test_link_in_message_quarantines(self):
+        data = dict(self.LEAD, message="Смотрите https://spam.example/promo — это вам поможет")
+        reasons = server.suspicion(data, has_challenge=True)
+        self.assertIn("link_in_message", reasons)
+        self.assertTrue(server.is_quarantine(reasons))
+
+
 class EndpointTests(unittest.TestCase):
     def setUp(self):
         _StubTelegram.calls = []
@@ -244,8 +393,9 @@ class EndpointTests(unittest.TestCase):
     def tearDown(self):
         self.stub.__exit__(None, None, None)
 
-    def _start(self, **overrides):
-        service = _Service(_config(self.stub.port, **overrides))
+    def _start(self, challenge=None, **overrides):
+        config = _config(self.stub.port, **overrides)
+        service = _Service(config, challenge=challenge or _challenge(config))
         service.__enter__()
         self.addCleanup(lambda: service.__exit__(None, None, None))
         return service.port
@@ -295,6 +445,127 @@ class EndpointTests(unittest.TestCase):
         port = self._start()
         status, _ = _get(port, "/api/feedback")
         self.assertEqual(status, 405)
+
+
+class ChallengeEndpointTests(unittest.TestCase):
+    def setUp(self):
+        _StubTelegram.calls = []
+        _StubTelegram.ok = True
+        self.stub = _StubServer()
+        self.stub.__enter__()
+
+    def tearDown(self):
+        self.stub.__exit__(None, None, None)
+
+    def _start(self, challenge=None, **overrides):
+        config = _config(self.stub.port, **overrides)
+        service = _Service(config, challenge=challenge or _challenge(config))
+        service.__enter__()
+        self.addCleanup(lambda: service.__exit__(None, None, None))
+        return config, service.port
+
+    def _issue(self, port):
+        status, body = _get(port, "/api/feedback/challenge")
+        self.assertEqual(status, 200)
+        return json.loads(body)
+
+    def test_challenge_endpoint_returns_signed_material(self):
+        _config_obj, port = self._start()
+        item = self._issue(port)
+        self.assertEqual(len(item["challenge"]), 32)
+        self.assertEqual(item["bits"], 8)
+        self.assertIsInstance(item["issued"], int)
+        self.assertEqual(len(item["signature"]), 64)
+
+    def test_valid_proof_is_delivered(self):
+        _config_obj, port = self._start()
+        proof = _solve(self._issue(port))
+        payload = dict(VALID, **proof)
+        status, body = _post(port, "/api/feedback", payload, {"X-Real-IP": "10.0.1.1"})
+        self.assertEqual(status, 200)
+        self.assertTrue(body["ok"])
+        self.assertEqual(len(_StubTelegram.calls), 1)
+        self.assertNotIn("Возможно спам", _StubTelegram.calls[0][1]["text"])
+
+    def test_instant_proof_is_dropped_silently(self):
+        config = _config(self.stub.port)
+        slow = server.Challenge(config.challenge_secret, bits=8, min_fill=2.0)
+        _config_obj, port = self._start(challenge=slow)
+        proof = _solve(self._issue(port))
+        status, body = _post(port, "/api/feedback", dict(VALID, **proof),
+                             {"X-Real-IP": "10.0.1.2"})
+        self.assertEqual(status, 200)
+        self.assertTrue(body["ok"])
+        self.assertEqual(_StubTelegram.calls, [])
+
+    def test_spam_with_a_valid_proof_is_quarantined(self):
+        _config_obj, port = self._start()
+        proof = _solve(self._issue(port))
+        spam = {
+            "name": "RobertMal",
+            "contact": "aveyekoha655@gmail.com",
+            "message": "Hi, ego volo scire vestri pretium.",
+            "pack": "",
+            "consent": True,
+        }
+        status, _body = _post(port, "/api/feedback", dict(spam, **proof),
+                              {"X-Real-IP": "10.0.1.3"})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(_StubTelegram.calls), 1)
+        text = _StubTelegram.calls[0][1]["text"]
+        self.assertTrue(text.startswith("⚠️ Возможно спам"))
+        self.assertIn("latin_only", text)
+
+    def test_spam_without_a_challenge_is_quarantined(self):
+        _config_obj, port = self._start()
+        spam = {
+            "name": "RobertMal",
+            "contact": "aveyekoha655@gmail.com",
+            "message": "Hi, ego volo scire vestri pretium.",
+            "pack": "",
+            "consent": True,
+        }
+        status, _body = _post(port, "/api/feedback", spam, {"X-Real-IP": "10.0.1.4"})
+        self.assertEqual(status, 200)
+        text = _StubTelegram.calls[0][1]["text"]
+        self.assertTrue(text.startswith("⚠️ Возможно спам"))
+        self.assertIn("no_challenge", text)
+
+    def test_quarantine_chat_is_used_when_configured(self):
+        _config_obj, port = self._start(TELEGRAM_QUARANTINE_CHAT_ID="-100999")
+        spam = {
+            "name": "RobertMal",
+            "contact": "aveyekoha655@gmail.com",
+            "message": "Hi, ego volo scire vestri pretium.",
+            "pack": "",
+            "consent": True,
+        }
+        _post(port, "/api/feedback", spam, {"X-Real-IP": "10.0.1.5"})
+        self.assertEqual(_StubTelegram.calls[0][1]["chat_id"], "-100999")
+
+    def test_global_limit_returns_429(self):
+        _config_obj, port = self._start(GLOBAL_RATE_LIMIT_MAX="1")
+        payload = dict(VALID)
+        status, _ = _post(port, "/api/feedback", payload, {"X-Real-IP": "10.0.2.1"})
+        self.assertEqual(status, 200)
+        status, _ = _post(port, "/api/feedback", payload, {"X-Real-IP": "10.0.2.2"})
+        self.assertEqual(status, 429)
+
+    def test_honeypot_url_field_is_dropped(self):
+        _config_obj, port = self._start()
+        bot = dict(VALID, url="https://spam.example")
+        status, _body = _post(port, "/api/feedback", bot, {"X-Real-IP": "10.0.2.3"})
+        self.assertEqual(status, 200)
+        self.assertEqual(_StubTelegram.calls, [])
+
+
+class EndpointFlowTests(unittest.TestCase):
+    """Remaining endpoint paths; reuses the EndpointTests fixture without
+    re-collecting its test methods (inheritance would run them twice)."""
+
+    setUp = EndpointTests.setUp
+    tearDown = EndpointTests.tearDown
+    _start = EndpointTests._start
 
     def test_healthz(self):
         port = self._start()
