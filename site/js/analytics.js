@@ -1,4 +1,5 @@
 // AntiManager — Yandex.Metrika goals (plan 12.6).
+// Contract: C:\Work\Python\integration-yandex-metrica\CONTRACT.md @ 304fa22 (v1, live).
 // Counter id is duplicated in base.html; keep both in sync.
 (function() {
   var METRIKA_ID = 111010335;
