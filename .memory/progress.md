@@ -5,7 +5,7 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
-- **Review follow-up on the measurement plan (2026-11-23, uncommitted):** reverted the tracked
+- **Review follow-up on the measurement plan (2026-11-23, `a695776`, live `20261123a`):** reverted the tracked
   `kilo.json` MCP block (machine vault path + auto-`npx` remain only in gitignored
   `.kilo/kilo.json`); added `lead_sent` — `contact.js` dispatches `am:goal` on a successful POST,
   `analytics.js` mirrors it to Metrika and GA4, keeping it distinct from the Metrika auto-goal
@@ -17,12 +17,14 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
   aligned the contact success wording with the form; updated runbook §3/§5/§6, the Metrica
   analysis note, harness counters (418/8) and the "test:unit wipes Pagefind" hot rule.
   Evidence: feedback 51/51; unit 43/43; playwright 418 passed / 8 skipped; links 85/85;
-  redirects no drift. Not committed or deployed.
-- **Conversion & measurement plan (2026-11-23, `VERSION 20261123a`, uncommitted):** T1 mirrors
+  redirects no drift. Committed `a695776` and deployed (`VERSION 20261123a`): service first,
+  site second; `verify-deploy.ps1` passed; live no-message lead → `deliver reason=ok
+  ip=77.50.254.216`; xlsx/PDF `Cache-Control: max-age=604800`; IndexNow 82 URLs.
+- **Conversion & measurement plan (2026-11-23, committed `a695776`, live `20261123a`):** T1 mirrors
   every Metrika goal to GA4 via `gtag('event', …)` (independent try/catch); Playwright blocks both
   tags and asserts `window.dataLayer`. T2 adds «Рабочие файлы» (`workshopFilesHtml`) to all 14
   articles and every `/full/` page: express-audit XLSX, system-card DOCX, one context DOCX mapped
-  from zone/topic, documents hub; `data-toc="skip"`, print-hidden, existence-gated. T3 makes the
+  from zone/topic, documents hub; print-hidden, existence-gated. T3 makes the
   contact message optional end-to-end (no `required`, hint, reply-window note; server accepts
   empty/omitted, prints «Сообщение: —», `short_no_detail` only on non-empty text). T4 adds
   `docs/measurement-runbook.md` and fixes the Metrica P1 recommendations. T5 extends a11y to 11
@@ -97,3 +99,4 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 - **GitVerse token** in `.git/config` (plaintext) — rotate + move to credential helper/SSH.
 - **F16.3:** Kilo 7.7.5 frontmatter parse warning on `.kilo/command|agent/**` writes
   (content-independent; write succeeds). No local fix.
+
