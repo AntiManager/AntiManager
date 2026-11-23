@@ -5,7 +5,7 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
-- **`/products/` commercial page (2026-11-23, committed this change, not yet deployed):** new
+- **`/products/` commercial page (2026-11-23, `8b87547`, live `20261123b`):** new
   static route `siteRoutes.products()` → `/products/`, authored `src/content/products.html`:
   seven owner questions → seven products (`#dengi`…`#peredacha`) with result / artifacts / term /
   KPI / format, the 0–7 order ladder with explicit "not before" bans, and the product-vs-interim
@@ -17,8 +17,11 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
   replaces `#111` literals; `no aria-current` asserted (deliberately not in the header nav);
   `/products/` added to the axe smoke list and the no-hscroll sweep; `verify-deploy.ps1` checks
   the live page and sitemap. Evidence: unit 45/45; `npm test` 427 passed / 8 skipped; `check:links`
-  86/86; redirects no drift; `verify_repo.ps1` STATUS OK. Untracked by design:
-  `docs/seo-analysis-2026-11-23.md`, `site/prototype/products.html`.
+  86/86; redirects no drift; `verify_repo.ps1` STATUS OK. Deployed: service first (verify probe
+  aborted spuriously; container `Up (healthy)`), then the site (`VERSION 20261123b`);
+  `verify-deploy.ps1` passed (`/products/` 200, sitemap match, 301 matrix); live CSS
+  `?v=20261123b`. Untracked by design: `docs/seo-analysis-2026-11-23.md`,
+  `site/prototype/products.html`.
 - **Review follow-up on the measurement plan (2026-11-23, `a695776`, live `20261123a`):**
   reverted the tracked `kilo.json` MCP block (machine settings stay in gitignored
   `.kilo/kilo.json`); added `lead_sent` (`am:goal` on a successful POST → Metrika + GA4, distinct

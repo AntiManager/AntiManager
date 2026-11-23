@@ -3,7 +3,7 @@
 
 ## State
 
-- **`/products/` page (2026-11-23, committed this change, not deployed).** Static route
+- **`/products/` page (2026-11-23, `8b87547`, live `20261123b`).** Static route
   `siteRoutes.products()`; `src/content/products.html`: 7 owner questions → 7 products
   (`#dengi`…`#peredacha`), order ladder 0–7, product-vs-mandate table; no prices/clients/cases
   (test-asserted). Pack slugs added to `js/contact.js` + `feedback/server.py`;
@@ -20,9 +20,7 @@
 
 ## Next
 
-- Deploy `/products/`: feedback service first (`site\feedback\deploy.ps1` — new packs must be
-  accepted), then the site (`site\deploy.ps1`), then `scripts\verify-deploy.ps1`. Record
-  `VERSION` ↔ SHA; push the branch.
+- Push `main` (GitHub + GitVerse); the deploy commit is `8b87547` / live `20261123b`.
 - User-owned: hero 12.1, author 12.3, Metrika goal names 12.6, auto-goal decision (runbook §3),
   `/start/`. Check GA4 `lead_sent` in the first report; never merge Metrika/GA4.
 
