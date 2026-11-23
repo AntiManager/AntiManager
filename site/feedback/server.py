@@ -98,7 +98,8 @@ def validate(payload):
         return None, "invalid name"
     if not 1 <= len(contact) <= MAX_CONTACT:
         return None, "invalid contact"
-    if not 1 <= len(message) <= MAX_MESSAGE:
+    # The message is optional: name + contact are the required minimum.
+    if len(message) > MAX_MESSAGE:
         return None, "invalid message"
     if pack not in PACK_LABELS:
         pack = ""  # an unknown pack is not fatal; drop it rather than reject.
@@ -120,10 +121,11 @@ def format_message(data, prefix=""):
         "Имя: " + data["name"],
         "Контакт: " + data["contact"],
         "Интересует: " + (pack if pack else "—"),
-        "",
-        "Сообщение:",
-        data["message"],
     ]
+    if data["message"]:
+        lines += ["", "Сообщение:", data["message"]]
+    else:
+        lines.append("Сообщение: —")
     return prefix + "\n".join(lines)[:budget]
 
 
@@ -228,9 +230,11 @@ def suspicion(data, has_challenge):
     text = data["name"] + " " + data["message"]
     if not CYRILLIC.search(text):
         reasons.append("latin_only")
-        if len(data["message"].split()) <= 12 and not re.search(r"\d", data["message"]):
+        # Only judge detail when a message exists: an empty optional message is
+        # a legitimate short lead, not a "short_no_detail" spam signal.
+        if data["message"] and len(data["message"].split()) <= 12 and not re.search(r"\d", data["message"]):
             reasons.append("short_no_detail")
-        if PRICE_WORDS.search(data["message"]):
+        if data["message"] and PRICE_WORDS.search(data["message"]):
             reasons.append("price_probe")
     if LATIN_NAME.match(data["name"]):
         reasons.append("latin_name")

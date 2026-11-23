@@ -196,11 +196,19 @@ class ValidateTests(unittest.TestCase):
         self.assertIsNone(data)
         self.assertIn("consent", error)
 
-    def test_empty_message_is_rejected(self):
-        bad = dict(VALID)
-        bad["message"] = "   "
-        data, _ = server.validate(bad)
-        self.assertIsNone(data)
+    def test_empty_message_is_accepted(self):
+        good = dict(VALID)
+        good["message"] = "   "
+        data, error = server.validate(good)
+        self.assertIsNone(error)
+        self.assertEqual(data["message"], "")
+
+    def test_message_omitted_is_accepted(self):
+        good = dict(VALID)
+        good.pop("message")
+        data, error = server.validate(good)
+        self.assertIsNone(error)
+        self.assertEqual(data["message"], "")
 
     def test_overlong_message_is_rejected(self):
         bad = dict(VALID)
@@ -238,6 +246,12 @@ class FormatMessageTests(unittest.TestCase):
     def test_audit_pack_label_is_formatted(self):
         data, _ = server.validate(dict(VALID, pack="audit"))
         self.assertIn("Полный чек-лист ПС (120 критериев)", server.format_message(data))
+
+    def test_empty_message_prints_a_placeholder_not_an_empty_block(self):
+        data, _ = server.validate(dict(VALID, message=""))
+        text = server.format_message(data)
+        self.assertIn("Сообщение: —", text)
+        self.assertNotIn("Сообщение:\n", text)
 
     def test_documents_pack_is_accepted(self):
         data, error = server.validate(dict(VALID, pack="documents"))

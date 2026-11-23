@@ -1,6 +1,8 @@
-// AntiManager — Yandex.Metrika goals (plan 12.6).
+// AntiManager — Yandex.Metrika goals (plan 12.6), mirrored into GA4.
 // Contract: C:\Work\Python\integration-yandex-metrica\CONTRACT.md @ 304fa22 (v1, live).
 // Counter id is duplicated in base.html; keep both in sync.
+// GA4 shares the same snake_case event names on purpose: compare each system on
+// its own, never merge the two event streams into one report.
 (function() {
   var METRIKA_ID = 111010335;
   var scroll75Sent = false;
@@ -9,6 +11,13 @@
     try {
       if (typeof window.ym === 'function') {
         window.ym(METRIKA_ID, 'reachGoal', goal, params || {});
+      }
+    } catch (e) { /* analytics must never break the page */ }
+    // Independent guard: a Metrika failure must not skip the GA4 mirror, and
+    // a GA4 failure must not break the page.
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', goal, params || {});
       }
     } catch (e) { /* analytics must never break the page */ }
   }
@@ -46,6 +55,15 @@
       } catch (e) { /* leave malformed links untouched */ }
     }
   }
+
+  // Generic hook for components that cannot reach analytics.js directly
+  // (e.g. contact.js after a successful lead POST): dispatch
+  // `am:goal` with { detail: { name, params } } and it is mirrored to both
+  // systems like every other goal.
+  document.addEventListener('am:goal', function(e) {
+    var detail = e.detail || {};
+    if (detail.name) send(detail.name, detail.params || {});
+  });
 
   document.addEventListener('am:search-open', function() {
     send('search_open', { placement: placement() });

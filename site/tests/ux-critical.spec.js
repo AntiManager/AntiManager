@@ -1,4 +1,6 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 // Hermetic tests: block external analytics (Yandex.Metrika) so the network
 // reaches idle deterministically. Without this, `waitForLoadState('networkidle')`
@@ -543,4 +545,49 @@ test.describe('AX15 — Widget diagnostics', () => {
       await expect(widget.locator('.btn-outline').first()).toBeVisible();
     });
   }
+});
+
+// === AX16 — Long content on mobile (375px) ===
+// The fixed path list in AX04 covers the hubs; the long texts grow with the
+// library, so derive them from data and run this sweep in the mobile project
+// only (running it three times would triple the suite time for no new signal).
+test.describe('AX16 — Long content on mobile', () => {
+  test('articles and full chapters keep tables scrolling inside the column', async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile', 'mobile-only sweep');
+    test.setTimeout(180000);
+
+    const DIST = path.join(__dirname, '..', 'dist');
+    function distFile(url) {
+      return path.join.apply(path, [DIST].concat(url.split('/').filter(Boolean), ['index.html']));
+    }
+    const articles = require('../src/data/articles.json')
+      .filter((a) => a.status === 'published')
+      .map((a) => '/articles/' + a.topic + '/' + a.slug + '/');
+    const chapters = Object.values(require('../src/data/chapters.json'))
+      .map((c) => '/playbook/' + c.slug + '/full/');
+    const paths = articles.concat(chapters).filter((p) => fs.existsSync(distFile(p)));
+    expect(paths.length).toBeGreaterThan(0);
+
+    for (const p of paths) {
+      await page.goto(p);
+      await page.waitForLoadState('networkidle');
+      const state = await page.evaluate(() => {
+        const doc = document.documentElement;
+        const containers = Array.from(document.querySelectorAll('.table-wrap, .loss-map, pre')).map((el) => ({
+          className: el.className,
+          overflowX: getComputedStyle(el).overflowX,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+        }));
+        return { pageOverflow: doc.scrollWidth - doc.clientWidth, containers };
+      });
+
+      expect(state.pageOverflow, p + ': page-level horizontal scroll at 375px').toBeLessThanOrEqual(2);
+      state.containers.forEach((c) => {
+        const scrollsInside = ['auto', 'scroll', 'overlay'].includes(c.overflowX);
+        expect(scrollsInside, p + ': .' + c.className.split(' ')[0] + ' must scroll inside, not widen the page')
+          .toBe(true);
+      });
+    }
+  });
 });

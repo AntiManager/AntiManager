@@ -26,7 +26,8 @@ cannot backdate the issue time to defeat the fill-time trap and a challenge can 
 }
 ```
 
-- `name` 1–100, `contact` 1–200, `message` 1–3000 chars; `consent` must be `true`.
+- `name` 1–100, `contact` 1–200 chars, `consent` must be `true`; `message` is optional
+  (0–3000 chars — an empty or omitted message is valid).
 - `pack` is an optional context slug (`express|process|library|pilot|audit|documents`).
 - `url` is the honeypot: any value (`url`, `website` or `email_confirm`) means a bot — the
   request is accepted (`200`) and dropped silently.
@@ -45,8 +46,8 @@ cannot backdate the issue time to defeat the fill-time trap and a challenge can 
 | no/expired/replayed challenge, clean content | delivered |
 | no/expired/replayed challenge, suspicious content | delivered quarantined |
 
-Suspicious signals: content with no Cyrillic at all (`latin_only`), a short message with no
-digits (`short_no_detail`), price-probe words in Latin (`price_probe`), a generated-looking
+Suspicious signals: content with no Cyrillic at all (`latin_only`), a short non-empty message
+with no digits (`short_no_detail`), price-probe words in Latin (`price_probe`), a generated-looking
 mailbox (`random_mailbox`), a link in the message (`link_in_message`), a Latin-only name
 (`latin_name`). A strong signal (`latin_only`, `link_in_message`) quarantines alone; otherwise
 two weak ones do. Quarantine is deliberately **not** a drop: a false positive costs the owner a

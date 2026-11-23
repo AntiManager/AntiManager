@@ -155,7 +155,13 @@
       }).then(function () {
         form.reset();
         if (packInput) packInput.value = pack;
-        setStatus('Заявка отправлена. Отвечу в ближайшее время.', 'ok');
+        // A separate goal from Metrika's automatic `contact_data_sent` (that
+        // one cannot be reproduced in GA4 and would double-count). analytics.js
+        // mirrors `am:goal` into both Metrika and GA4.
+        document.dispatchEvent(new CustomEvent('am:goal', {
+          detail: { name: 'lead_sent', params: { pack: pack || 'none' } },
+        }));
+        setStatus('Заявка отправлена. Отвечу в течение рабочего дня, пн–пт.', 'ok');
       }).catch(function (err) {
         if (err && err.status === 429) {
           setStatus('Слишком много заявок подряд. Напишите, пожалуйста, в Telegram.', 'err');

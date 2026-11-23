@@ -71,6 +71,49 @@ test.describe('CF01 — Contact form', () => {
     await expect(page.locator('#cf-name')).toHaveValue('');
   });
 
+  test('submits without an optional message', async ({ page }) => {
+    await page.goto(CONTACT);
+
+    let payload = null;
+    await page.route('**/api/feedback', (route) => {
+      payload = JSON.parse(route.request().postData());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+
+    await page.fill('#cf-name', 'Иван');
+    await page.fill('#cf-contact', 'ivan@example.com');
+    await page.check('#cf-consent');
+    await page.locator('#feedbackForm button[type="submit"]').click();
+
+    await expect(page.locator('#formStatus')).toHaveClass(/ok/);
+    expect(payload.message).toBe('');
+    expect(payload.name).toBe('Иван');
+  });
+
+  test('successful submit fires the lead_sent goal in both systems', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__goals = [];
+      window.ym = (id, method, goal, params) => {
+        if (method === 'reachGoal') window.__goals.push({ goal, params });
+      };
+    });
+    await page.goto(CONTACT + '?pack=process');
+    await page.route('**/api/feedback', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
+
+    await page.fill('#cf-name', 'Иван');
+    await page.fill('#cf-contact', 'ivan@example.com');
+    await page.check('#cf-consent');
+    await page.locator('#feedbackForm button[type="submit"]').click();
+
+    await expect(page.locator('#formStatus')).toHaveClass(/ok/);
+    await expect.poll(() => page.evaluate(() => window.__goals.map((g) => g.goal))).toContain('lead_sent');
+    const params = await page.evaluate(() => window.__goals.filter((g) => g.goal === 'lead_sent').pop().params);
+    expect(params.pack).toBe('process');
+    await expect.poll(() => page.evaluate(() => (window.dataLayer || [])
+      .filter((item) => item && item[0] === 'event')
+      .map((item) => item[1]))).toContain('lead_sent');
+  });
+
   test('?pack= prefills the offer context', async ({ page }) => {
     await page.goto(CONTACT + '?pack=process');
 
@@ -270,5 +313,27 @@ test.describe('CF03 — no-JS fallback', () => {
     expect(body).toContain('name=');
     expect(body).toContain('consent=on');
     expect(body).not.toContain('challenge');
+  });
+
+  test('native submit works without a message', async ({ page }) => {
+    let body = null;
+    await page.route('**/api/feedback', (route) => {
+      body = route.request().postData();
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html; charset=utf-8',
+        body: '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>ok</title></head><body><p>Заявка отправлена</p></body></html>',
+      });
+    });
+
+    await page.goto(CONTACT);
+    await page.fill('#cf-name', 'Иван');
+    await page.fill('#cf-contact', '+7 900 000-00-00');
+    await page.check('#cf-consent');
+    await page.locator('#feedbackForm button[type="submit"]').click();
+
+    await expect(page.locator('body')).toContainText('Заявка отправлена');
+    expect(body).toContain('name=');
+    expect(body).toContain('consent=on');
   });
 });

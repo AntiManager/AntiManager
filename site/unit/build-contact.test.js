@@ -41,6 +41,11 @@ test('contact page ships the feedback form and is reachable', function () {
     assert.ok(contact.includes('tabindex="-1"'), 'honeypot must stay out of the tab order');
     assert.ok(contact.includes('aria-describedby="cf-contact-hint"'), 'contact field must reference its hint');
     assert.ok(contact.includes('id="cf-contact-hint"'), 'the hint must carry the referenced id');
+    assert.ok(!/id="cf-message"[^>]*required/.test(contact), 'message must stay optional');
+    assert.ok(contact.includes('aria-describedby="cf-message-hint"'), 'message field must reference its hint');
+    assert.ok(contact.includes('id="cf-message-hint"'), 'the message hint must carry the referenced id');
+    assert.ok(contact.includes('Сообщение (необязательно)'), 'message label must say it is optional');
+    assert.ok(contact.includes('Отвечу в течение рабочего дня'), 'the form must state the reply window');
     assert.ok(contact.includes('/js/contact.js'), 'contact.js must be loaded');
     assert.ok(contact.includes('href="/privacy/"'), 'consent must link to /privacy/');
     assert.ok(/<meta name="robots" content="index, follow/.test(contact), 'contact page must be indexable');

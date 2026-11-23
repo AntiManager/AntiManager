@@ -1,10 +1,13 @@
-// Plan 12.6 — Metrika goals. The counter itself is stubbed and the tag script
-// is blocked, so the test proves our event wiring, not Yandex availability.
+// Plan 12.6 — Metrika goals, mirrored into GA4. Both tags are stubbed/blocked,
+// so the test proves our event wiring, not Yandex or Google availability.
 
 const { test, expect } = require('@playwright/test');
 
 async function stubMetrika(page) {
   await page.route('**/mc.yandex.ru/**', function(route) { return route.abort(); });
+  // GA4 must not reach the network either; the inline gtag() copies events into
+  // window.dataLayer, which is what we assert on.
+  await page.route('**/googletagmanager.com/**', function(route) { return route.abort(); });
   await page.addInitScript(function() {
     window.__goals = [];
     window.ym = function(id, method, goal, params) {
@@ -29,6 +32,26 @@ function goalParams(page, name) {
   }, name);
 }
 
+// The inline declaration is `function gtag(){dataLayer.push(arguments)}`, so a
+// window.__ga stub would be irrelevant: read the queue the real gtag() fills.
+function gaEvents(page) {
+  return page.evaluate(function() {
+    return (window.dataLayer || []).filter(function(item) {
+      return item && item[0] === 'event';
+    }).map(function(item) {
+      return { name: item[1], params: item[2] || {} };
+    });
+  });
+}
+
+function gaEventNames(page) {
+  return page.evaluate(function() {
+    return (window.dataLayer || []).filter(function(item) {
+      return item && item[0] === 'event';
+    }).map(function(item) { return item[1]; });
+  });
+}
+
 test('search goals fire on open, query and result click', async ({ page }) => {
   await stubMetrika(page);
   await page.goto('/search/?q=OEE');
@@ -45,6 +68,12 @@ test('search goals fire on open, query and result click', async ({ page }) => {
   const click = await goalParams(page, 'search_result_click');
   expect(click.position).toBe(1);
   expect(click.url).toMatch(/^\//);
+
+  await expect.poll(function() { return gaEventNames(page); }).toEqual(
+    expect.arrayContaining(['search_open', 'search_query', 'search_result_click'])
+  );
+  const gaQuery = (await gaEvents(page)).filter(function(e) { return e.name === 'search_query'; }).pop();
+  expect(gaQuery.params.query).toBe('OEE');
 });
 
 test('CTA and scroll goals fire on the home page', async ({ page }) => {
@@ -56,8 +85,13 @@ test('CTA and scroll goals fire on the home page', async ({ page }) => {
   const cta = await goalParams(page, 'cta_click');
   expect(cta.cta).toBe('hero_start');
 
+  await expect.poll(function() { return gaEventNames(page); }).toContain('cta_click');
+  const gaCta = (await gaEvents(page)).filter(function(e) { return e.name === 'cta_click'; }).pop();
+  expect(gaCta.params.cta).toBe('hero_start');
+
   await page.evaluate(function() { window.scrollTo(0, document.documentElement.scrollHeight); });
   await expect.poll(function() { return goals(page); }).toContain('scroll_75');
+  await expect.poll(function() { return gaEventNames(page); }).toContain('scroll_75');
 });
 
 test('download and Telegram goals fire; Telegram links carry UTM', async ({ page }) => {
@@ -77,4 +111,8 @@ test('download and Telegram goals fire; Telegram links carry UTM', async ({ page
   await expect.poll(function() { return goals(page); }).toContain('download');
   const download = await goalParams(page, 'download');
   expect(download.file).toBe('express-audit-ps.xlsx');
+
+  await expect.poll(function() { return gaEventNames(page); }).toContain('download');
+  const gaDownload = (await gaEvents(page)).filter(function(e) { return e.name === 'download'; }).pop();
+  expect(gaDownload.params.file).toBe('express-audit-ps.xlsx');
 });

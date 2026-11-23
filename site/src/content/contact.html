@@ -18,8 +18,9 @@
     </div>
 
     <div class="field">
-      <label for="cf-message">Сообщение <span class="req">*</span></label>
-      <textarea id="cf-message" name="message" required maxlength="3000" rows="6"></textarea>
+      <label for="cf-message">Сообщение (необязательно)</label>
+      <textarea id="cf-message" name="message" maxlength="3000" rows="6" aria-describedby="cf-message-hint"></textarea>
+      <p class="hint" id="cf-message-hint">Можно не заполнять: имени и контакта достаточно. Если хотите — опишите задачу в двух словах.</p>
     </div>
 
     <div class="hp-field" aria-hidden="true">
@@ -32,6 +33,7 @@
       <label for="cf-consent">Согласен(на) на обработку персональных данных в соответствии с <a href="/privacy/">политикой конфиденциальности</a> <span class="req">*</span></label>
     </div>
 
+    <p class="form-note">Отвечу в течение рабочего дня, пн–пт.</p>
     <button type="submit" class="btn btn-primary">Отправить</button>
     <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
   </form>

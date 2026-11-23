@@ -185,8 +185,12 @@ Vault structure audit is `/vault-audit` (health mode of `vault-indexer`).
   → `total findings: 0` (it does not see `.kilo/AGENTS.md`; that is why HP-001 is checked by the kit check)
 - Not covered: site tests, vault generators, live deploy — run the full gate below
 - Full gate (2026-11-06 S11 baseline):
+  - `cd site; python -m unittest discover -s feedback/tests -v` → feedback service tests pass
   - `cd site; npm run build; npm run test:unit` → unit 43 pass
-  - `cd site; npx playwright test` → 378 passed / 6 skipped (3 projects)
+  - `cd site; npx playwright test` → 418 passed / 8 skipped (3 projects)
+  - `test:unit` shells out to `build.js`, so it overwrites `dist/` **without** the
+    Pagefind index; run `npm run build` before any E2E run that touches search
+    (`analytics.spec.js` `search_query` fails otherwise — not a branch defect)
   - `cd site; npm run check:links` → 85 pages, 0 duplicate ids / heading skips / broken links / anchors
   - `cd site; npm run check:redirects` → `redirects.conf: no drift`
   - `python .kilo/scripts/check_documents.py --vault "<vault>"` → 0 findings

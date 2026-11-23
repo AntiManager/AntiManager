@@ -10,7 +10,7 @@ const { buildCatalog, situationLabels, roleLabels, typeLabels } = require('./src
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261115b';
+const VERSION = '20261123a';
 // Search-engine verification codes are build-time secrets: a missing code ships
 // nothing, so a placeholder can never reach production. The Yandex code is also
 // used for the HTML-file verification method further down.
@@ -456,6 +456,17 @@ function chapterMetaDescription(subtitle) {
   return base.slice(0, 160 - tail.length - 1).replace(/[\s,;:.—–-]+$/, '') + '…';
 }
 
+// A wide <pre> (plain-text tables in chapter 07) scrolls horizontally inside its
+// own box; axe requires such scroll regions to be keyboard-reachable. Add
+// tabindex="0" at build time so every scrollable block can be focused and
+// scrolled without touching the authored partials.
+function focusablePre(html) {
+  return String(html).replace(/<pre(\s[^>]*)?>/gi, function(m, attrs) {
+    if (/\btabindex=/.test(attrs || '')) return m;
+    return '<pre' + (attrs || '') + ' tabindex="0">';
+  });
+}
+
 // Inject anchor ids into H2/H3 and return { html, toc } so the full-text page
 // ships a static, no-JS table of contents.
 function withToc(html) {
@@ -521,6 +532,54 @@ function materialsBlockHtml(w) {
     + empty
     + '<div class="materials-actions">' + printBtn
     + '<a class="btn btn-ghost btn-sm" href="https://t.me/antimanagerpro_bot">Спросить в Telegram</a></div>'
+    + '</section>';
+}
+
+// Contextual "working files" block for articles and full chapters: the two
+// always-useful files (express audit XLSX, system-card DOCX), one document
+// matched to the topic/zone, and the documents hub. Every file link is
+// existence-gated; no "coming soon".
+var workshopDocByContext = {
+  crisis: 'a3-reshenie-problem',
+  changes: 'a3-reshenie-problem',
+  management: 'a3-reshenie-problem',
+  strategy: 'snu-kontur-uluchsheniy',
+  economics: 'snu-kontur-uluchsheniy',
+  team: 'ritm-soveshchaniy',
+  system: 'ritm-soveshchaniy',
+  practice: 'gemba-obhod',
+  digital: 'snu-kontur-uluchsheniy'
+};
+var workshopDocLabels = {
+  'a3-reshenie-problem': 'Форма А3 · DOCX',
+  'ritm-soveshchaniy': 'Ритм совещаний · DOCX',
+  'gemba-obhod': 'Gemba-обход · DOCX',
+  'snu-kontur-uluchsheniy': 'Контур улучшений · DOCX'
+};
+
+function workshopFilesHtml(opts) {
+  opts = opts || {};
+  var actions = [];
+  if (fs.existsSync(path.join(__dirname, 'materials', 'ps-express-audit', 'express-audit-ps.xlsx'))) {
+    actions.push('<a class="btn btn-primary btn-sm" href="/materials/ps-express-audit/express-audit-ps.xlsx?v=3.0" download="Экспресс-чек-лист-аудита-ПС-v3.0.xlsx" data-cta="lead_magnet_xlsx">Экспресс-аудит ПС · XLSX</a>');
+  }
+  if (fs.existsSync(path.join(__dirname, 'materials', 'ps-systems-map', 'system-card-template.docx'))) {
+    actions.push('<a class="btn btn-ghost btn-sm" href="/materials/ps-systems-map/system-card-template.docx" download data-cta="lead_magnet_docx">Карта систем · шаблон DOCX</a>');
+  }
+  var contextSlug = workshopDocByContext[opts.context];
+  if (contextSlug && fs.existsSync(path.join(__dirname, 'materials', contextSlug + '.docx'))) {
+    var label = workshopDocLabels[contextSlug] || 'Типовой документ · DOCX';
+    actions.push('<a class="btn btn-ghost btn-sm" href="/materials/' + contextSlug + '.docx" download data-cta="lead_magnet_context_docx">' + label + '</a>');
+  }
+  if (!actions.length) return '';
+  actions.push('<a class="btn btn-ghost btn-sm" href="/method/documents/" data-cta="lead_magnet_docs_hub">Все типовые документы →</a>');
+  return '<section class="lead-magnet workshop-files">'
+    + '<div class="lead-magnet-copy">'
+    + '<div class="lead-magnet-kicker">Рабочие файлы</div>'
+    + '<h2>Рабочие файлы к теме</h2>'
+    + '<p>Без регистрации и без „оставьте email“: скачивайте файлы и адаптируйте под своё предприятие.</p>'
+    + '</div>'
+    + '<div class="lead-magnet-actions">' + actions.join('') + '</div>'
     + '</section>';
 }
 
@@ -891,6 +950,9 @@ function renderPage(title, description, content, opts) {
   // noindex pages (404, privacy, search) and explicit opt-outs never ship it.
   const indexable = opts.indexable !== undefined ? opts.indexable : !opts.noindex;
   if (indexable) content = searchMetaHtml(opts.search || searchMetaFromUrl(canonicalUrl)) + content;
+
+  // Keyboard-reachable horizontal scroll regions (a11y scrollable-region-focusable).
+  content = focusablePre(content);
 
   let html = base;
   html = html.replace(/\{\{version\}\}/g, VERSION);
@@ -1433,6 +1495,7 @@ const fullTemplate = '<div class="content-page full-article-page">'
   + '{{toc}}'
   + '<article class="full-article">{{content_body}}</article>'
   + '{{materials_section}}'
+  + '{{workshop_files}}'
   + '{{thinker_block}}'
   + '{{chapter_nav}}'
   + '{{related_weapons}}'
@@ -1732,6 +1795,7 @@ for (var wi = 0; wi < weapons.length; wi++) {
     fullHtml = fullHtml.replace('{{toc}}', function() { return toc.toc; });
     fullHtml = fullHtml.replace('{{content_body}}', function() { return toc.html; });
     fullHtml = fullHtml.replace('{{materials_section}}', function() { return materialsBlockHtml(w); });
+    fullHtml = fullHtml.replace('{{workshop_files}}', function() { return workshopFilesHtml({ context: w.zone }); });
     fullHtml = fullHtml.replace('{{thinker_block}}', function() { return thinkerBlock; });
     fullHtml = fullHtml.replace('{{chapter_nav}}', function() { return chapterNav; });
     fullHtml = fullHtml.replace('{{related_weapons}}', function() { return relatedHtml; });
@@ -1819,6 +1883,7 @@ var articleTemplate = '<div class="content-page full-article-page article-page">
   + '{{faq_section}}'
   + '{{materials_section}}'
   + '{{related_block}}'
+  + '{{workshop_files}}'
   + '{{cta_band}}'
   + '</div>';
 
@@ -1899,6 +1964,7 @@ publishedArticles.forEach(function(a) {
     return relatedBlockHtml(relatedEntries(articleEntry, ['chapter', 'document'], 3), 'Из плейбука и методологии');
   });
   html = html.replace('{{cta_band}}', function() { return articleCtaBand; });
+  html = html.replace('{{workshop_files}}', function() { return workshopFilesHtml({ context: a.topic }); });
 
   var aUrl = SITE_URL + siteRoutes.article(a.topic, a.slug);
   var aSection = a.articleSection || topic.title;

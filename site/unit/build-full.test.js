@@ -47,6 +47,10 @@ test('full-text page ships read-more path, TOC, materials and sitemap entry', fu
     const full = readDist('playbook', 'mayatnik-upravleniya', 'full', 'index.html');
     assert.ok(full.includes('article-toc'), 'full page needs a table of contents');
     assert.ok(full.includes('materials-section'), 'full page needs a materials block');
+    assert.ok(full.includes('class="lead-magnet workshop-files"'), 'full page needs the working-files block');
+    assert.ok(full.includes('/materials/ps-express-audit/express-audit-ps.xlsx?v=3.0'), 'full page must link the express-audit XLSX');
+    const fullToc = (full.match(/<nav class="article-toc"[\s\S]*?<\/nav>/) || [''])[0];
+    assert.ok(!fullToc.includes('Рабочие файлы'), 'working files must stay out of the TOC');
     assert.ok(full.includes('"position": 4'), 'full page breadcrumb must be four levels deep');
     assert.ok(full.includes('/materials/mayatnik-upravleniya.pdf'), 'article PDF must be linked');
     assert.ok(!/\{\{[a-z_]+\}\}/.test(full), 'no template tokens may remain in the full page');

@@ -320,6 +320,8 @@ Regenerate the typical-document partials, hub cards and DOCX after vault edits (
 
 Unit tests run with `--test-concurrency=1`: any unit test that shells out to `build.js`
 writes the shared `dist/`, so parallel test files would race. Keep that flag.
+Because they rebuild without Pagefind, `npm run test:unit` also wipes the search
+index — run `npm run build` before E2E/`analytics.spec.js`, or search-goal tests fail.
 `build.js` accepts a `BUILD_DATE` env override (used by tests for deterministic dates).
 
 `render:pdf` serves `dist/` and prints each `/full/` page in print media — never run it

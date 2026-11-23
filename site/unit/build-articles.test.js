@@ -105,6 +105,11 @@ test('each article ships TOC, 4-level breadcrumb, FAQPage, materials and CTA', f
       assert.ok(html.includes('"@type": "Question"'), a.slug + ' FAQPage needs Question entities');
       assert.ok(html.includes('class="article-faq"'), a.slug + ' FAQ must be visible on the page');
       assert.ok(html.includes('materials-section'), a.slug + ' needs a materials block');
+      assert.ok(html.includes('class="lead-magnet workshop-files"'), a.slug + ' needs the working-files block');
+      assert.ok(html.includes('/materials/ps-express-audit/express-audit-ps.xlsx?v=3.0'), a.slug + ' must link the express-audit XLSX');
+      assert.ok(html.includes('data-cta="lead_magnet_xlsx"'), a.slug + ' XLSX link needs a CTA marker');
+      assert.ok(html.includes('/method/documents/'), a.slug + ' working files must link the documents hub');
+      assert.ok(!toc.includes('Рабочие файлы'), a.slug + ' working files must stay out of the TOC');
       assert.ok(html.includes('class="cta-band"'), a.slug + ' needs a CTA band');
       assert.ok(html.includes('https://t.me/antimanagerpro_bot'), a.slug + ' CTA must point at Telegram');
       assert.ok(html.includes('/contact/'), a.slug + ' CTA must link the contact form');
