@@ -122,6 +122,19 @@ test.describe('CF01 — Contact form', () => {
     await expect(page.locator('#cf-pack')).toHaveValue('process');
   });
 
+  test('?pack= accepts the /products/ page slugs', async ({ page }) => {
+    const cases = [
+      { pack: 'dengi', label: 'Деньги на виду' },
+      { pack: 'peredacha', label: 'Система без автора' },
+    ];
+    for (const c of cases) {
+      await page.goto(CONTACT + '?pack=' + c.pack);
+      await expect(page.locator('#packNote')).toBeVisible();
+      await expect(page.locator('#packNote')).toContainText(c.label);
+      await expect(page.locator('#cf-pack')).toHaveValue(c.pack);
+    }
+  });
+
   test('rate limit (429) shows a specific, actionable message', async ({ page }) => {
     await page.goto(CONTACT);
 

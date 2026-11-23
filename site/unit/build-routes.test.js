@@ -38,13 +38,14 @@ test('route registry covers the target IA', function() {
   assert.strictEqual(routes.documents(), '/method/documents/');
   assert.strictEqual(routes.document('gemba-obhod'), '/method/documents/gemba-obhod/');
   assert.strictEqual(routes.role(), '/method/role/');
+  assert.strictEqual(routes.products(), '/products/');
   assert.strictEqual(routes.about(), '/about/');
   assert.strictEqual(routes.manifesto(), '/about/manifesto/');
   assert.strictEqual(routes.origins(), '/about/origins/');
   assert.strictEqual(routes.search(), '/search/');
   assert.strictEqual(outFile('/playbook/antikrizis/'), 'playbook/antikrizis/index.html');
   assert.strictEqual(outFile('/'), 'index.html');
-  ['start', 'search', 'full', 'book', 'playbook'].forEach(function(slug) { assert.ok(RESERVED_SLUGS.has(slug)); });
+  ['start', 'search', 'full', 'book', 'playbook', 'products'].forEach(function(slug) { assert.ok(RESERVED_SLUGS.has(slug)); });
 });
 
 test('legacy map rewrites old paths and keeps /strategy/ alone', function() {
@@ -114,6 +115,7 @@ test('build emits the new routes and no legacy href', function() {
   assert.ok(fs.existsSync(path.join(DIST, 'about', 'origins', 'index.html')));
   assert.ok(!fs.existsSync(path.join(DIST, 'about', 'headquarters', 'index.html')), 'retired HQ page must be gone');
   assert.ok(fs.existsSync(path.join(DIST, 'start', 'index.html')));
+  assert.ok(fs.existsSync(path.join(DIST, 'products', 'index.html')));
   assert.ok(!fs.existsSync(path.join(DIST, 'weapons')), 'old /weapons/ output must be gone');
   assert.ok(!fs.existsSync(path.join(DIST, 'genome')), 'old /genome/ output must be gone');
   assert.ok(!fs.existsSync(path.join(DIST, 'arsenal')), 'old /arsenal/ output must be gone');

@@ -40,7 +40,7 @@ test.describe('HOME02 — no duplicated blocks', () => {
     await expect(page.locator('#weapons-section .weapon-card')).toHaveCount(6);
     await expect(page.locator('.home-articles .article-card')).toHaveCount(3);
     await expect(page.locator('.home-method-tools .method-tool')).toHaveCount(3);
-    await expect(page.locator('.home-project-links .method-tool')).toHaveCount(3);
+    await expect(page.locator('.home-project-links .method-tool')).toHaveCount(4);
     await expect(page.locator('.manifesto-teaser')).toHaveCount(0);
     await expect(page.locator('.hq-section')).toHaveCount(0);
   });
@@ -56,13 +56,25 @@ test.describe('HOME02 — no duplicated blocks', () => {
     }
   });
 
-  test('project block links to about, manifesto and archive', async ({ page }) => {
+  test('project block links to products, about, manifesto and archive', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
+    await expect(page.locator('.home-project-links a[href="/products/"]')).toBeVisible();
     await expect(page.locator('.home-project-links a[href="/about/"]')).toBeVisible();
     await expect(page.locator('.home-project-links a[href="/about/manifesto/"]')).toBeVisible();
     await expect(page.locator('.home-project-links a[href="/about/origins/"]')).toBeVisible();
+  });
+
+  test('four project cards share one row on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const tops = await page.locator('.home-project-links .method-tool').evaluateAll(
+      (els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+    expect(tops).toHaveLength(4);
+    expect(new Set(tops).size).toBe(1);
   });
 });
 

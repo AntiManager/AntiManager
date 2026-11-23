@@ -55,7 +55,7 @@ test('home is a six-section book landing without duplicated blocks', function() 
     assert.strictEqual(count(region(main, 'id="weapons-section"'), /class="weapon-card"/g), 6, 'six featured chapters');
     assert.strictEqual(count(region(main, 'home-articles'), /class="article-card"/g), 3, 'three featured articles');
     assert.strictEqual(count(region(main, 'home-method-tools'), /class="method-tool"/g), 3, 'three methodology tools');
-    assert.strictEqual(count(region(main, 'home-project-links'), /class="method-tool"/g), 3, 'three project links');
+    assert.strictEqual(count(region(main, 'home-project-links'), /class="method-tool"/g), 4, 'four project links');
 
     assert.ok(!main.includes('manifesto-teaser'), 'manifesto wall must not ship on home');
     assert.ok(!main.includes('hq-section'), 'HQ block must not ship on home');

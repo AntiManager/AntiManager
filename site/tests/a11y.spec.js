@@ -17,6 +17,7 @@ const PAGES = [
   { path: '/method/audit/', label: 'express audit' },
   { path: '/playbook/antikrizis/full/', label: 'full chapter' },
   { path: '/articles/strategy/antihrupkaya-strategiya/', label: 'strategy article' },
+  { path: '/products/', label: 'products' },
 ];
 
 test.beforeEach(async ({ page }) => {

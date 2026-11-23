@@ -171,7 +171,10 @@ test.describe('AX04 — Responsive breakpoints', () => {
   });
 
   test('no horizontal scroll on all pages', async ({ page }) => {
-    const paths = ['/', '/playbook/', '/start/', '/about/origins/', '/playbook/antikrizis/', '/method/', '/method/role/', '/method/audit/', '/method/systems/', '/method/documents/', '/method/documents/ritm-soveshchaniy/', '/method/documents/gemba-obhod/', '/method/documents/snu-kontur-uluchsheniy/', '/articles/management/ritm-upravleniya/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
+    // The list keeps growing; 25 network-idle loads no longer fit in the
+    // default 30s budget on mobile (the 24-page list already ran close to it).
+    test.setTimeout(90000);
+    const paths = ['/', '/playbook/', '/start/', '/about/origins/', '/playbook/antikrizis/', '/method/', '/method/role/', '/method/audit/', '/method/systems/', '/method/documents/', '/products/', '/method/documents/ritm-soveshchaniy/', '/method/documents/gemba-obhod/', '/method/documents/snu-kontur-uluchsheniy/', '/articles/management/ritm-upravleniya/', '/contact/', '/articles/', '/articles/strategy/', '/articles/economics/', '/articles/management/', '/articles/strategy/antihrupkaya-strategiya/', '/articles/strategy/amortizacionnaya-lovushka/', '/articles/management/optimizaciya-razvitie-antikrizis/', '/articles/economics/sebestoimost-i-realnost/', '/articles/economics/ne-tolko-proekty/'];
     for (const p of paths) {
       await page.goto(p);
       await page.waitForLoadState('networkidle');

@@ -9,6 +9,8 @@ $checks = @(
   @{ Url = "$base/method/role/";   Match = 'doc-doc' },
   @{ Url = "$base/start/";         Match = 'start-page' },
   @{ Url = "$base/playbook/";      Match = 'weapon-grid' },
+  @{ Url = "$base/products/";      Match = 'products-page' },
+  @{ Url = "$base/sitemap.xml";    Match = '/products/' },
   @{ Url = "$base/sitemap.xml";    Match = '/method/role/' },
   @{ Url = "$base/sitemap.xml";    Match = '/articles/practice/' },
   @{ Url = "$base/articles/practice/5s-na-proizvodstve/"; Match = 'article-faq' },

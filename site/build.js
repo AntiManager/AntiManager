@@ -10,7 +10,7 @@ const { buildCatalog, situationLabels, roleLabels, typeLabels } = require('./src
 // Real build date drives sitemap lastmod and JSON-LD dates; BUILD_DATE env is a
 // test seam so output stays deterministic.
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
-const VERSION = '20261123a';
+const VERSION = '20261123b';
 // Search-engine verification codes are build-time secrets: a missing code ships
 // nothing, so a placeholder can never reach production. The Yandex code is also
 // used for the HTML-file verification method further down.
@@ -1382,6 +1382,7 @@ const homeMethodTools = [
 ];
 
 const homeProjectLinks = [
+  { url: siteRoutes.products(), key: 'ПРОДУКТЫ', title: 'Продукты', desc: 'Семь вопросов собственника — семь продуктов: результат, артефакты и формат работы. Без цен.', go: 'Смотреть продукты' },
   { url: siteRoutes.about(), key: 'ПРОЕКТ', title: 'О проекте', desc: 'Зачем существует сайт, для кого он и как им пользоваться без подписки.', go: 'Что это' },
   { url: siteRoutes.manifesto(), key: 'КОНСТИТУЦИЯ', title: 'Манифест', desc: 'Десять ценностей и пятнадцать принципов рационального управления.', go: 'Читать манифест' },
   { url: siteRoutes.origins(), key: 'АРХИВ', title: 'Архив идей', desc: 'Девять мыслителей и их вклад в практику: от Шухарта и Деминга до Гастева.', go: 'Открыть архив' }
@@ -1579,6 +1580,13 @@ if (/<!--SYSTEMS:[A-Z]+:START-->\s*<!--SYSTEMS:[A-Z]+:END-->/.test(systemsBody))
 }
 write(outFile(siteRoutes.systems()), renderPage('Карта систем производственной системы | AntiManager', 'Четырнадцать систем производственной системы: назначение, владелец, минимальные артефакты, KPI, типовой разрыв и шаблон карточки из двенадцати полей.', systemsBody, { canonicalUrl: SITE_URL + siteRoutes.systems(), navSection: 'method', structuredData: makeStructuredData('static', { breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Методология', url: SITE_URL + siteRoutes.method() }, { name: 'Карта систем', url: SITE_URL + siteRoutes.systems() }] }) }));
 console.log('  ✓ genome + genome/role + genome/audit + genome/systems');
+
+// Products (/products/): one static commercial page, built from an authored
+// partial. Seven owner questions, no prices, no client names — proof is the
+// published free artifacts, not case numbers.
+const productsBody = read('src/content/products.html');
+write(outFile(siteRoutes.products()), renderPage('Продукты: семь вопросов собственника | AntiManager', 'Семь продуктов AntiManager: что перестанет болеть у собственника, что останется после проекта и чем докажем результат. Без цен и обещаний.', productsBody, { canonicalUrl: SITE_URL + siteRoutes.products(), structuredData: makeStructuredData('collection', { name: 'Продукты', description: 'Семь вопросов собственника — семь продуктов: результат, артефакты, срок и формат работы.', url: SITE_URL + siteRoutes.products(), breadcrumbs: [{ name: 'Главная', url: SITE_URL + '/' }, { name: 'Продукты', url: SITE_URL + siteRoutes.products() }] }) }));
+console.log('  ✓ products');
 
 // === TYPICAL DOCUMENTS (/genome/documents/) ===
 // Authored hub shell + one generated body partial per document. The generator
@@ -1986,6 +1994,7 @@ var sitemapUrls = [
   { loc: SITE_URL + siteRoutes.audit(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + siteRoutes.systems(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + siteRoutes.documents(), priority: '0.7', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { loc: SITE_URL + siteRoutes.products(), priority: '0.8', changefreq: 'monthly', lastmod: BUILD_DATE },
   { loc: SITE_URL + siteRoutes.articles(), priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 documents.forEach(function(d) {

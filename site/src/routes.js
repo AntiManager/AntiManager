@@ -17,6 +17,7 @@ const routes = {
   documents: function() { return '/method/documents/'; },
   document: function(slug) { return '/method/documents/' + slug + '/'; },
   role: function() { return '/method/role/'; },
+  products: function() { return '/products/'; },
   about: function() { return '/about/'; },
   manifesto: function() { return '/about/manifesto/'; },
   origins: function() { return '/about/origins/'; },
@@ -26,7 +27,7 @@ const routes = {
   notFound: function() { return '/404/'; }
 };
 
-const RESERVED_SLUGS = new Set(['start', 'search', 'full', 'book', 'playbook', 'method', 'about', 'articles', 'contact', 'privacy']);
+const RESERVED_SLUGS = new Set(['start', 'search', 'full', 'book', 'playbook', 'method', 'about', 'articles', 'products', 'contact', 'privacy']);
 
 function absolute(pathname) {
   return SITE_URL + pathname;

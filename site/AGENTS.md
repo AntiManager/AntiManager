@@ -68,7 +68,7 @@ When publishing the full text:
 
 - `src/routes.js` is the single source of truth for every emitted path: `/`, `/playbook/`,
   `/playbook/<slug>/`, `/playbook/<slug>/full/`, `/start/`, `/articles/…`, `/method/`,
-  `/method/audit|systems|documents|role/`, `/about/`, `/about/manifesto|origins/`,
+  `/method/audit|systems|documents|role/`, `/products/`, `/about/`, `/about/manifesto|origins/`,
   `/contact/`, `/privacy/`, `/search/`, `/404/`. It also owns `RESERVED_SLUGS` and the
   `legacyRoutes` map; do not hard-code a route in `build.js`, tests or generators.
 - `src/lib/catalog.js` joins `weapons.json` ↔ `chapters.json` (1:1 slug/id, shared text fields
@@ -84,6 +84,19 @@ When publishing the full text:
 - New/renamed URL tests: `unit/build-routes.test.js`, `unit/build-cases-retired.test.js`,
   `tests/nav-mobile.spec.js`. Every page is rewritten and asserted at build time, so a legacy
   `href` fails the build rather than shipping.
+
+## «Продукты» (`/products/`)
+
+One static commercial page (`src/content/products.html`, rendered by `build.js` with the
+`collection` structured data). Seven products, each anchored as `#<pack>` and keyed to a
+`?pack=<slug>` contact CTA: dengi, operacionka, moshnost, standart, komanda, dannye, peredacha.
+The page carries no prices, no client names and no case numbers — proof is the published free
+artifacts. It is deliberately absent from the header nav (`navSection` is not set, so no
+`aria-current`; `unit/build-products.test.js` asserts this), reached from the footer, the home
+project block and the hero. Format tags contrast the product (AntiManager) with the interim
+mandate. `?pack=` slugs are duplicated in `js/contact.js` and `feedback/server.py`; the same unit
+test parses both and fails when the sets drift (the service silently drops unknown packs).
+Styles live in the `/* === PRODUCTS (/products/) === */` block of `css/brutalist.css`.
 
 ## «Геном завода» section (`/method/`, `/method/role/`)
 

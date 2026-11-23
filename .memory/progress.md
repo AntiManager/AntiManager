@@ -5,21 +5,29 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 
 ## Done
 
-- **Review follow-up on the measurement plan (2026-11-23, `a695776`, live `20261123a`):** reverted the tracked
-  `kilo.json` MCP block (machine vault path + auto-`npx` remain only in gitignored
-  `.kilo/kilo.json`); added `lead_sent` — `contact.js` dispatches `am:goal` on a successful POST,
-  `analytics.js` mirrors it to Metrika and GA4, keeping it distinct from the Metrika auto-goal
-  `contact_data_sent`; new Playwright assertion for both systems. Added build-time
-  `focusablePre()` (`tabindex="0"` on scrollable `<pre>`, fixes the axe
-  `scrollable-region-focusable` regression) and included `pre` in the AX16 mobile sweep;
-  regenerated PDFs for the 3 chapters containing `<pre>` and restored the other 38; added
-  `docx|xlsx` to the nginx asset cache; removed the inert `data-toc` from the workshop section;
-  aligned the contact success wording with the form; updated runbook §3/§5/§6, the Metrica
-  analysis note, harness counters (418/8) and the "test:unit wipes Pagefind" hot rule.
-  Evidence: feedback 51/51; unit 43/43; playwright 418 passed / 8 skipped; links 85/85;
-  redirects no drift. Committed `a695776` and deployed (`VERSION 20261123a`): service first,
-  site second; `verify-deploy.ps1` passed; live no-message lead → `deliver reason=ok
-  ip=77.50.254.216`; xlsx/PDF `Cache-Control: max-age=604800`; IndexNow 82 URLs.
+- **`/products/` commercial page (2026-11-23, committed this change, not yet deployed):** new
+  static route `siteRoutes.products()` → `/products/`, authored `src/content/products.html`:
+  seven owner questions → seven products (`#dengi`…`#peredacha`) with result / artifacts / term /
+  KPI / format, the 0–7 order ladder with explicit "not before" bans, and the product-vs-interim
+  table. No prices, client names or case numbers (test-asserted). Seven `?pack=` slugs added to
+  `js/contact.js` and `feedback/server.py`; `unit/build-products.test.js` parses both `PACK_LABELS`
+  maps and fails on drift, plus Playwright cases for `?pack=dengi|peredacha` and four home project
+  cards sharing one row at 1280px. Home project block is now 4 cards
+  (`repeat(4, minmax(0, 1fr))` ≥1025px); footer and sitemap entries; `--color-surface` token
+  replaces `#111` literals; `no aria-current` asserted (deliberately not in the header nav);
+  `/products/` added to the axe smoke list and the no-hscroll sweep; `verify-deploy.ps1` checks
+  the live page and sitemap. Evidence: unit 45/45; `npm test` 427 passed / 8 skipped; `check:links`
+  86/86; redirects no drift; `verify_repo.ps1` STATUS OK. Untracked by design:
+  `docs/seo-analysis-2026-11-23.md`, `site/prototype/products.html`.
+- **Review follow-up on the measurement plan (2026-11-23, `a695776`, live `20261123a`):**
+  reverted the tracked `kilo.json` MCP block (machine settings stay in gitignored
+  `.kilo/kilo.json`); added `lead_sent` (`am:goal` on a successful POST → Metrika + GA4, distinct
+  from Metrika's `contact_data_sent`); build-time `focusablePre()` (`tabindex="0"` on scrollable
+  `<pre>`, fixes the axe regression) + `pre` in the AX16 sweep; regenerated 3 PDFs and restored
+  the other 38; `docx|xlsx` nginx cache; runbook §3/§5/§6 and the harness counters (418/8).
+  Evidence: feedback 51/51; unit 43/43; playwright 418/8; links 85/85; redirects no drift.
+  Deployed `20261123a`: service first; `verify-deploy.ps1` passed; live no-message lead →
+  `deliver reason=ok`; IndexNow 82 URLs.
 - **Conversion & measurement plan (2026-11-23, committed `a695776`, live `20261123a`):** T1 mirrors
   every Metrika goal to GA4 via `gtag('event', …)` (independent try/catch); Playwright blocks both
   tags and asserts `window.dataLayer`. T2 adds «Рабочие файлы» (`workshopFilesHtml`) to all 14
@@ -70,17 +78,9 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
   `.kilo/harness.md` refreshed.
 - **Prototype tracked (2026-11-15):** `site/prototype/team-landing.html` (`dc90922`, `noindex`, out
   of the build). Content review pending.
-- **Harness optimization (2026-11-06):** turn/audit budgets, bounded reviewer, deploy provenance;
-  `session_audit.py` counts deploy/live checks; local `.kilo/kilo.json` paths repaired.
-- **Site IA releases A/B/C + S7.5 (2026-11-06):** routes cutover and 301 map, header/footer,
-  `/start/`, `/method/` hub, `/about/`, Pagefind `/search/`, a11y, CTA/analytics, prev/next,
-  free lead magnet. Closure gate: unit 43/43, `npm test` 378/6 skipped, check-links 85 pages
-  0/0/0/0, Pagefind 82 / 15,946. Deployed `20261106d`; plan closed and archived.
-- **Plan committed (2026-11-06):** `455d25b` (112 files) pushed to GitHub + GitVerse; live
-  `VERSION` ↔ SHA recorded. Session audit: 18 sessions, $4.24, 0 secrets, 0 dangerous commands.
-- **Work stream closed (2026-11-06):** Yandex.Webmaster confirmed; remaining queue closed by user.
-- **Earlier 2026-10:** methodology suite, SEO, IndexNow, systems map, PS-audit, vault split,
-  articles 53–55 → `.memory/archive/progress-history-2026-10-24.md`.
+- **2026-11-06 summary entries moved to** `.memory/archive/progress-history-2026-11-06-summary.md`
+  (IA cutover, plan commit, harness optimization); detailed evidence stays in
+  `.memory/archive/progress-history-2026-11-06.md`.
 
 ## Planned
 
@@ -99,4 +99,3 @@ Rolling log, recent first. Keep this file under 8 KB; older entries → `.memory
 - **GitVerse token** in `.git/config` (plaintext) — rotate + move to credential helper/SSH.
 - **F16.3:** Kilo 7.7.5 frontmatter parse warning on `.kilo/command|agent/**` writes
   (content-independent; write succeeds). No local fix.
-

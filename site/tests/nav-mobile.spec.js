@@ -155,7 +155,7 @@ test.describe('nav — footer', () => {
     });
     expect(cols).toBe(4);
 
-    for (const href of ['/playbook/', '/articles/', '/about/', '/contact/', '/privacy/']) {
+    for (const href of ['/playbook/', '/articles/', '/products/', '/about/', '/contact/', '/privacy/']) {
       await expect(page.locator('.footer-nav a[href="' + href + '"]')).toHaveCount(1);
     }
   });
